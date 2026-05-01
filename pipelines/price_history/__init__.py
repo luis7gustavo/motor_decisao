@@ -1,0 +1,2 @@
+"""Price history ingestion package."""
+

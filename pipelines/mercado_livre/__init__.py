@@ -1,0 +1,2 @@
+"""Mercado Livre ingestion package."""
+

@@ -1,0 +1,120 @@
+project:
+  name: motor_decisao_compra
+  environment: development
+
+pipeline:
+  site_id: MLB
+  initial_category_id: MLB1051
+  initial_category_name: tecnologia
+  max_items_per_category: 1000
+  run_mode: local
+
+market_sources:
+  market_web:
+    enabled: true
+    browser_engine: playwright
+    headless: true
+    locale: pt-BR
+    timezone_id: America/Sao_Paulo
+    navigation_timeout_seconds: 45
+    action_timeout_seconds: 15
+    scroll_steps: 4
+    scroll_pause_ms: 900
+    rate_limit_ms: 2500
+    max_results_per_query: 30
+    sources:
+      shopee:
+        enabled: true
+        base_url: https://shopee.com.br
+      magalu:
+        enabled: true
+        base_url: https://www.magazineluiza.com.br
+      amazon:
+        enabled: true
+        base_url: https://www.amazon.com.br
+      aliexpress:
+        enabled: true
+        base_url: https://pt.aliexpress.com
+      kabum:
+        enabled: true
+        base_url: https://www.kabum.com.br
+      pichau:
+        enabled: true
+        base_url: https://www.pichau.com.br
+      terabyte:
+        enabled: true
+        base_url: https://www.terabyteshop.com.br
+
+  mercado_livre:
+    enabled: true
+    api_base: https://api.mercadolibre.com
+    rate_limit_ms: 250
+    max_retries: 3
+    timeout_seconds: 20
+    catalog_product_scan_limit: 30
+
+  price_history:
+    enabled: true
+    preferred_source: buscape
+    rate_limit_ms: 1000
+    timeout_seconds: 30
+    max_results: 30
+    web_history:
+      enabled: true
+      browser_engine: playwright
+      headless: true
+      navigation_timeout_seconds: 45
+      action_timeout_seconds: 15
+      scroll_steps: 5
+      scroll_pause_ms: 900
+      rate_limit_ms: 1800
+      max_results: 8
+      product_detail_limit: 8
+      max_body_chars: 50000
+    candidates:
+      - buscape
+      - zoom
+
+supplier_sources:
+  enabled: false
+  b2b_playwright:
+    enabled: true
+    storage_state_dir: data/playwright_states
+    notes: >
+      Portais B2B com login entram por Playwright usando storage_state por
+      fornecedor. As credenciais e o login assistido ainda dependem da escolha
+      do fornecedor real.
+  # Exemplo para quando o primeiro fornecedor B2B for escolhido:
+  # suppliers:
+  #   - slug: fornecedor_exemplo
+  #     enabled: true
+  #     urls:
+  #       - https://fornecedor.example/catalogo
+  #     rate_limit_ms: 1500
+  #     selectors:
+  #       product: ".product-card"
+  #       title: ".product-title"
+  #       price: ".product-price"
+  #       stock: ".product-stock"
+  #       sku: "[data-sku]"
+  #       product_url: "a@href"
+  suppliers: []
+
+entity_resolution:
+  auto_approve_threshold: 0.90
+  review_threshold: 0.75
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  redis_ttl_seconds: 604800
+
+portfolio:
+  budget_total: 1000.00
+  max_supplier_risk_pct: 0.30
+  min_distinct_products: 3
+  use_conservative_estimate: true
+  solver_time_limit_seconds: 60
+
+margin:
+  ml_fee_pct: 0.12
+  tax_pct: 0.17
+  shipping_pct: 0.03
+  min_net_margin_pct: 0.20
