@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Query
 
+from app.core.mercado_livre_tokens import refresh_mercado_livre_tokens
 from app.core.settings import get_settings
 
 router = APIRouter(prefix="/integracoes/mercado-livre", tags=["mercado livre"])
@@ -64,4 +65,16 @@ def callback(
             "Rode: docker compose run --rm api python scripts/mercado_livre_oauth.py "
             f'exchange --code "{code}"'
         ),
+    }
+
+
+@router.post("/refresh-token")
+def refresh_token() -> dict[str, str | int | None]:
+    # 2026-05-02: expose a local refresh hook so Bronze ops can validate and
+    # repair Mercado Livre credentials without waiting for the full cycle order.
+    data = refresh_mercado_livre_tokens()
+    return {
+        "status": "refreshed",
+        "expires_in": int(data["expires_in"]) if data.get("expires_in") is not None else None,
+        "user_id": str(data["user_id"]) if data.get("user_id") is not None else None,
     }

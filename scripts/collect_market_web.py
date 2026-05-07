@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    selected_sources = args.sources or ["shopee", "amazon", "kabum", "pichau", "terabyte"]
+    selected_sources = args.sources or ["shopee", "amazon", "kabum", "pichau", "terabyte", "aliexpress"]
     if "all" in selected_sources:
         selected_sources = sorted(SOURCE_CONFIGS.keys())
     result = ingest_market_web(

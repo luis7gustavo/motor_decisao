@@ -76,7 +76,9 @@ class ComparisonSearchScraper:
 
     def _extract_next_data(self, html: str) -> dict[str, Any]:
         match = re.search(
-            r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+            # 2026-05-02: Buscape/Zoom can change attribute order on the Next.js
+            # payload script without changing the actual data contract.
+            r'<script[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',
             html,
             flags=re.DOTALL,
         )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import sys
 from pathlib import Path
@@ -10,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from pipelines.mercado_livre.ingest import ingest_mercado_livre_category  # noqa: E402
+from app.core.settings import get_settings  # noqa: E402
 
 
 DEFAULT_QUERIES = [
@@ -53,70 +55,129 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-items-per-query",
         type=int,
-        default=25,
+        default=200,
         help="Maximo de ofertas com preco por termo.",
     )
     parser.add_argument(
         "--page-limit",
         type=int,
-        default=10,
+        default=50,
         help="Produtos de catalogo por pagina no fallback.",
     )
     parser.add_argument(
         "--catalog-product-scan-limit",
         type=int,
-        default=120,
+        default=200,
         help="Maximo de produtos de catalogo salvos por termo.",
     )
     parser.add_argument(
         "--catalog-offer-scan-limit",
         type=int,
-        default=20,
+        default=80,
         help="Maximo de produtos por termo com consulta cara de ofertas/precos.",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="Numero de queries paralelas. Padrao: usa config.market_sources.mercado_livre.parallel_workers.",
+    )
     return parser.parse_args()
+
+
+def _resolve_workers(arg_workers: int | None) -> int:
+    if arg_workers is not None:
+        return max(1, arg_workers)
+    project_config = get_settings().load_project_config()
+    mercado_livre_config = project_config.get("market_sources", {}).get("mercado_livre", {})
+    return max(1, int(mercado_livre_config.get("parallel_workers", 1)))
+
+
+def _run_task(
+    *,
+    query: str,
+    max_items_per_query: int,
+    page_limit: int,
+    catalog_product_scan_limit: int,
+    catalog_offer_scan_limit: int,
+) -> dict[str, object]:
+    try:
+        result = ingest_mercado_livre_category(
+            query=query,
+            max_items=max_items_per_query,
+            page_limit=page_limit,
+            catalog_product_scan_limit=catalog_product_scan_limit,
+            catalog_offer_scan_limit=catalog_offer_scan_limit,
+            triggered_by="local_cli_perifericos_batch",
+        )
+        return {
+            "query": query,
+            "status": result.status,
+            "extracted": result.extracted,
+            "loaded": result.loaded,
+            "skipped": result.skipped,
+            "pages": result.pages,
+            "price_summaries": result.price_summaries,
+            "catalog_products_loaded": result.catalog_products_loaded,
+            "catalog_products_skipped": result.catalog_products_skipped,
+            "source_run_id": str(result.source_run_id),
+        }
+    except Exception as error:  # noqa: BLE001 - keep the rest of the query batch running.
+        return {
+            "query": query,
+            "status": "failed",
+            "error": str(error),
+        }
 
 
 def main() -> int:
     args = parse_args()
     queries = args.queries or DEFAULT_QUERIES
-    results = []
+    task_specs = [{"order": order, "query": query} for order, query in enumerate(queries)]
+    worker_count = min(_resolve_workers(args.workers), max(1, len(task_specs)))
+    results_by_order: dict[int, dict[str, object]] = {}
 
-    for query in queries:
-        try:
-            result = ingest_mercado_livre_category(
-                query=query,
-                max_items=args.max_items_per_query,
+    if worker_count <= 1:
+        for spec in task_specs:
+            results_by_order[spec["order"]] = _run_task(
+                query=spec["query"],
+                max_items_per_query=args.max_items_per_query,
                 page_limit=args.page_limit,
                 catalog_product_scan_limit=args.catalog_product_scan_limit,
                 catalog_offer_scan_limit=args.catalog_offer_scan_limit,
-                triggered_by="local_cli_perifericos_batch",
             )
-            results.append(
-                {
-                    "query": query,
-                    "status": result.status,
-                    "extracted": result.extracted,
-                    "loaded": result.loaded,
-                    "skipped": result.skipped,
-                    "pages": result.pages,
-                    "price_summaries": result.price_summaries,
-                    "catalog_products_loaded": result.catalog_products_loaded,
-                    "catalog_products_skipped": result.catalog_products_skipped,
-                    "source_run_id": str(result.source_run_id),
-                }
-            )
-        except Exception as error:
-            results.append(
-                {
-                    "query": query,
-                    "status": "failed",
-                    "error": str(error),
-                }
-            )
+    else:
+        with ThreadPoolExecutor(
+            max_workers=worker_count,
+            thread_name_prefix="mercado-livre-cli",
+        ) as executor:
+            future_to_spec = {
+                executor.submit(
+                    _run_task,
+                    query=spec["query"],
+                    max_items_per_query=args.max_items_per_query,
+                    page_limit=args.page_limit,
+                    catalog_product_scan_limit=args.catalog_product_scan_limit,
+                    catalog_offer_scan_limit=args.catalog_offer_scan_limit,
+                ): spec
+                for spec in task_specs
+            }
+            for future in as_completed(future_to_spec):
+                spec = future_to_spec[future]
+                try:
+                    results_by_order[spec["order"]] = future.result()
+                except Exception as error:  # noqa: BLE001 - preserve batch output.
+                    results_by_order[spec["order"]] = {
+                        "query": spec["query"],
+                        "status": "failed",
+                        "error": str(error),
+                    }
+
+    results = [results_by_order[index] for index in range(len(task_specs))]
 
     summary = {
         "queries": len(results),
+        "workers": worker_count,
         "success": sum(1 for result in results if result["status"] == "success"),
         "partial": sum(1 for result in results if result["status"] == "partial"),
         "failed": sum(1 for result in results if result["status"] == "failed"),

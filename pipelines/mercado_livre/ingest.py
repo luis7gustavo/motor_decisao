@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlalchemy import text
 
 from app.core.database import engine
+from app.core.mercado_livre_tokens import refresh_mercado_livre_tokens
 from app.core.settings import get_settings
 from pipelines.common.run_manager import (
     create_pipeline_run,
@@ -310,6 +311,13 @@ def _upsert_product_price_summary(
     return inserted_or_updated
 
 
+def _is_invalid_access_token_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "status 401" in message and (
+        "invalid access token" in message or "unauthorized" in message
+    )
+
+
 def ingest_mercado_livre_category(
     *,
     category_id: str | None = None,
@@ -385,156 +393,165 @@ def ingest_mercado_livre_category(
     catalog_product_item_errors = 0
     price_summaries = 0
 
-    try:
-        with MercadoLivreClient(
-            api_base=source_config.get("api_base", "https://api.mercadolibre.com"),
-            site_id=site_id,
-            timeout_seconds=int(source_config.get("timeout_seconds", 20)),
-            max_retries=int(source_config.get("max_retries", 3)),
-            rate_limit_ms=int(source_config.get("rate_limit_ms", 250)),
-            access_token=os.getenv("ML_ACCESS_TOKEN") or None,
-        ) as client:
-            offset = 0
-            while extracted < item_limit:
-                remaining = item_limit - extracted
-                try:
-                    if search_mode == "catalog_offers":
-                        if not query:
-                            raise MercadoLivreApiError(
-                                "Catalog fallback requires a query. Use --query."
+    access_token = os.getenv("ML_ACCESS_TOKEN") or None
+    for attempt in range(2):
+        try:
+            with MercadoLivreClient(
+                api_base=source_config.get("api_base", "https://api.mercadolibre.com"),
+                site_id=site_id,
+                timeout_seconds=int(source_config.get("timeout_seconds", 20)),
+                max_retries=int(source_config.get("max_retries", 3)),
+                rate_limit_ms=int(source_config.get("rate_limit_ms", 250)),
+                access_token=access_token,
+            ) as client:
+                offset = 0
+                while extracted < item_limit:
+                    remaining = item_limit - extracted
+                    try:
+                        if search_mode == "catalog_offers":
+                            if not query:
+                                raise MercadoLivreApiError(
+                                    "Catalog fallback requires a query. Use --query."
+                                )
+                            catalog_page = client.search_catalog_products(
+                                query=query,
+                                offset=offset,
+                                limit=min(page_limit, remaining, 50),
                             )
-                        catalog_page = client.search_catalog_products(
-                            query=query,
-                            offset=offset,
-                            limit=min(page_limit, remaining, 50),
-                        )
-                        pages += 1
-                        if not catalog_page.results:
-                            break
-
-                        catalog_products: list[dict[str, Any]] = []
-                        product_offer_groups: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
-                        for product in catalog_page.results:
-                            if catalog_products_seen >= resolved_catalog_product_scan_limit:
+                            pages += 1
+                            if not catalog_page.results:
                                 break
-                            catalog_products_seen += 1
-                            product_id = str(product.get("id") or "")
-                            if not product_id:
-                                catalog_products_without_offers += 1
-                                continue
-                            catalog_products.append(product)
-                            if catalog_offer_products_seen >= resolved_catalog_offer_scan_limit:
-                                continue
-                            catalog_offer_products_seen += 1
-                            try:
-                                offers_page = client.search_product_items(
-                                    product_id=product_id,
-                                    limit=50,
-                                )
-                            except MercadoLivreApiError:
-                                catalog_product_item_errors += 1
-                                continue
-                            offers = [
-                                _offer_with_catalog_context(product=product, offer=offer)
-                                for offer in offers_page.results
-                            ]
-                            if not offers:
-                                catalog_products_without_offers += 1
-                                continue
-                            product_offer_groups.append((product, offers))
 
-                        with engine.begin() as connection:
-                            for product in catalog_products:
-                                inserted_product = _insert_raw_product(
-                                    connection,
-                                    source_run_id=source_run_id,
-                                    site_id=site_id,
-                                    query=query,
-                                    product=product,
-                                )
-                                if inserted_product:
-                                    catalog_products_loaded += 1
-                                else:
-                                    catalog_products_skipped += 1
+                            catalog_products: list[dict[str, Any]] = []
+                            product_offer_groups: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
+                            for product in catalog_page.results:
+                                if catalog_products_seen >= resolved_catalog_product_scan_limit:
+                                    break
+                                catalog_products_seen += 1
+                                product_id = str(product.get("id") or "")
+                                if not product_id:
+                                    catalog_products_without_offers += 1
+                                    continue
+                                catalog_products.append(product)
+                                if catalog_offer_products_seen >= resolved_catalog_offer_scan_limit:
+                                    continue
+                                catalog_offer_products_seen += 1
+                                try:
+                                    offers_page = client.search_product_items(
+                                        product_id=product_id,
+                                        limit=50,
+                                    )
+                                except MercadoLivreApiError:
+                                    catalog_product_item_errors += 1
+                                    continue
+                                offers = [
+                                    _offer_with_catalog_context(product=product, offer=offer)
+                                    for offer in offers_page.results
+                                ]
+                                if not offers:
+                                    catalog_products_without_offers += 1
+                                    continue
+                                product_offer_groups.append((product, offers))
 
-                            for product, offers in product_offer_groups:
-                                if _upsert_product_price_summary(
-                                    connection,
-                                    source_run_id=source_run_id,
-                                    site_id=site_id,
-                                    query=query,
-                                    product=product,
-                                    offers=offers,
-                                ):
-                                    price_summaries += 1
-                                for offer in offers:
-                                    if extracted >= item_limit:
-                                        break
-                                    extracted += 1
-                                    inserted = _insert_raw_item(
+                            with engine.begin() as connection:
+                                for product in catalog_products:
+                                    inserted_product = _insert_raw_product(
                                         connection,
                                         source_run_id=source_run_id,
                                         site_id=site_id,
-                                        category_id=offer.get("category_id") or category,
                                         query=query,
-                                        item=offer,
+                                        product=product,
                                     )
-                                    if inserted:
-                                        loaded += 1
+                                    if inserted_product:
+                                        catalog_products_loaded += 1
                                     else:
-                                        skipped += 1
-                                if extracted >= item_limit:
-                                    break
+                                        catalog_products_skipped += 1
 
-                        offset += catalog_page.limit
-                        if (
-                            catalog_products_seen >= resolved_catalog_product_scan_limit
-                            or catalog_page.total is not None
-                            and offset >= catalog_page.total
-                        ):
-                            break
-                        continue
-                    else:
-                        page = client.search_items(
-                            category_id=category,
-                            query=query,
-                            offset=offset,
-                            limit=min(page_limit, remaining, 50),
-                            sort=sort,
-                        )
-                except MercadoLivreApiError as error:
-                    if "Status 403" not in str(error) or not query or search_mode == "catalog_offers":
-                        raise
-                    search_mode = "catalog_offers"
-                    offset = 0
-                    continue
-                pages += 1
-                if not page.results:
-                    break
+                                for product, offers in product_offer_groups:
+                                    if _upsert_product_price_summary(
+                                        connection,
+                                        source_run_id=source_run_id,
+                                        site_id=site_id,
+                                        query=query,
+                                        product=product,
+                                        offers=offers,
+                                    ):
+                                        price_summaries += 1
+                                    for offer in offers:
+                                        if extracted >= item_limit:
+                                            break
+                                        extracted += 1
+                                        inserted = _insert_raw_item(
+                                            connection,
+                                            source_run_id=source_run_id,
+                                            site_id=site_id,
+                                            category_id=offer.get("category_id") or category,
+                                            query=query,
+                                            item=offer,
+                                        )
+                                        if inserted:
+                                            loaded += 1
+                                        else:
+                                            skipped += 1
+                                    if extracted >= item_limit:
+                                        break
 
-                with engine.begin() as connection:
-                    for item in page.results:
-                        extracted += 1
-                        inserted = _insert_raw_item(
-                            connection,
-                            source_run_id=source_run_id,
-                            site_id=site_id,
-                            category_id=category,
-                            query=query,
-                            item=item,
-                        )
-                        if inserted:
-                            loaded += 1
+                            offset += catalog_page.limit
+                            if (
+                                catalog_products_seen >= resolved_catalog_product_scan_limit
+                                or catalog_page.total is not None
+                                and offset >= catalog_page.total
+                            ):
+                                break
+                            continue
                         else:
-                            skipped += 1
+                            page = client.search_items(
+                                category_id=category,
+                                query=query,
+                                offset=offset,
+                                limit=min(page_limit, remaining, 50),
+                                sort=sort,
+                            )
+                    except MercadoLivreApiError as error:
+                        if "Status 403" not in str(error) or not query or search_mode == "catalog_offers":
+                            raise
+                        search_mode = "catalog_offers"
+                        offset = 0
+                        continue
+                    pages += 1
+                    if not page.results:
+                        break
 
-                offset += page.limit
-                if page.total is not None and offset >= page.total:
-                    break
+                    with engine.begin() as connection:
+                        for item in page.results:
+                            extracted += 1
+                            inserted = _insert_raw_item(
+                                connection,
+                                source_run_id=source_run_id,
+                                site_id=site_id,
+                                category_id=category,
+                                query=query,
+                                item=item,
+                            )
+                            if inserted:
+                                loaded += 1
+                            else:
+                                skipped += 1
 
-    except Exception as error:
-        status = "failed"
-        error_message = str(error)
+                    offset += page.limit
+                    if page.total is not None and offset >= page.total:
+                        break
+            break
+        except Exception as error:
+            if attempt == 0 and _is_invalid_access_token_error(error):
+                # 2026-05-02: refresh the expired Mercado Livre token once so the
+                # Bronze cycle self-heals instead of failing every 2h until manual action.
+                refreshed = refresh_mercado_livre_tokens()
+                access_token = str(refreshed["access_token"])
+                continue
+            status = "failed"
+            error_message = str(error)
+            break
 
     with engine.begin() as connection:
         finish_source_run(

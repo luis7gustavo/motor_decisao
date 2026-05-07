@@ -8,6 +8,7 @@ __pycache__
 .env.*
 !.env.example
 data
+data_processed
 notebooks
 *.log
 *.sqlite

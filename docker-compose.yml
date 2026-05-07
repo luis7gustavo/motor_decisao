@@ -42,7 +42,8 @@ services:
       - "${SELENIUM_PORT:-4444}:4444"
       - "${SELENIUM_NOVNC_PORT:-7900}:7900"
     environment:
-      SE_NODE_MAX_SESSIONS: ${SELENIUM_MAX_SESSIONS:-1}
+      # 2026-05-02: keep Selenium capacity aligned with the scraper fan-out.
+      SE_NODE_MAX_SESSIONS: ${SELENIUM_MAX_SESSIONS:-4}
       SE_NODE_OVERRIDE_MAX_SESSIONS: "true"
       SE_SESSION_REQUEST_TIMEOUT: "60"
       SE_SESSION_RETRY_INTERVAL: "5"
@@ -73,6 +74,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      selenium:
         condition: service_healthy
     volumes:
       - .:/app

@@ -10,6 +10,7 @@ __pycache__/
 .coverage
 htmlcov/
 data/
+data_processed/
 *.log
 *.sqlite
 *.db

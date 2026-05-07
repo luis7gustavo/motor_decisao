@@ -118,9 +118,27 @@ class ComparisonWebHistoryScraper:
         product_detail_limit: int | None = None,
     ) -> list[PriceHistorySnapshot]:
         search_url = self._build_search_url(query)
-        html, body_text, block_reason = self._goto(search_url)
-        if block_reason:
-            return [_blocked_snapshot(self.source_name, query, search_url, block_reason, body_text)]
+        html = ""
+        body_text = ""
+        block_reason = None
+        for attempt in range(1, 4):
+            html, body_text, block_reason = self._goto(search_url)
+            if not block_reason:
+                break
+            if attempt < 3 and _is_retryable_block_reason(block_reason):
+                # 2026-05-01: retry transient anti-bot/search timeouts before giving up on the query.
+                _sleep_before_retry(attempt)
+                continue
+            return [
+                _blocked_snapshot(
+                    self.source_name,
+                    query,
+                    search_url,
+                    block_reason,
+                    body_text,
+                    attempt=attempt,
+                )
+            ]
 
         hits = self._extract_search_hits(html)
         limit = min(max_results, product_detail_limit or max_results)
@@ -163,9 +181,25 @@ class ComparisonWebHistoryScraper:
                 source_mode="product_history_web",
             )
 
-        html, body_text, block_reason = self._goto(product_url)
-        if block_reason:
-            return _blocked_snapshot(self.source_name, query, product_url, block_reason, body_text)
+        html = ""
+        body_text = ""
+        block_reason = None
+        for attempt in range(1, 4):
+            html, body_text, block_reason = self._goto(product_url)
+            if not block_reason:
+                break
+            if attempt < 3 and _is_retryable_block_reason(block_reason):
+                # 2026-05-01: product pages on Buscape/Zoom sometimes recover on a second open.
+                _sleep_before_retry(attempt)
+                continue
+            return _blocked_snapshot(
+                self.source_name,
+                query,
+                product_url,
+                block_reason,
+                body_text,
+                attempt=attempt,
+            )
 
         detail = _extract_product_detail(
             html=html,
@@ -218,7 +252,9 @@ class ComparisonWebHistoryScraper:
 
 def _extract_next_data(html: str) -> dict[str, Any]:
     match = re.search(
-        r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+        # 2026-05-02: Buscape started varying the script tag attributes/order,
+        # so the parser must match __NEXT_DATA__ even when nonce/data attrs move.
+        r'<script[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',
         html,
         flags=re.DOTALL,
     )
@@ -403,6 +439,8 @@ def _blocked_snapshot(
     url: str,
     block_reason: str,
     body_text: str,
+    *,
+    attempt: int = 1,
 ) -> PriceHistorySnapshot:
     return PriceHistorySnapshot(
         source_name=source_name,
@@ -418,6 +456,7 @@ def _blocked_snapshot(
             "query": query,
             "url": url,
             "block_reason": block_reason,
+            "attempt": attempt,
             "body_text": body_text[:5000],
         },
         avg_price=None,
@@ -426,6 +465,18 @@ def _blocked_snapshot(
         blocked=True,
         block_reason=block_reason,
     )
+
+
+def _is_retryable_block_reason(reason: str | None) -> bool:
+    if not reason:
+        return False
+    return reason in {"captcha", "bot_block", "access_denied"} or reason.startswith(
+        "navigation_timeout"
+    )
+
+
+def _sleep_before_retry(attempt: int) -> None:
+    time.sleep(min(4 * attempt, 12))
 
 
 def _as_float(value: Any) -> float | None:

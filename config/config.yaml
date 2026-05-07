@@ -22,25 +22,47 @@ market_sources:
     scroll_pause_ms: 900
     rate_limit_ms: 2500
     max_results_per_query: 30
+    # 2026-05-02: force serial fallback after repeated market_web bootstrap hangs at 0/0/0 under threaded fan-out.
+    parallel_workers: 1
+    parallel_safe_sources:
+      - amazon
+      - kabum
+      - terabyte
     sources:
       shopee:
         enabled: true
         base_url: https://shopee.com.br
       magalu:
-        enabled: true
+        enabled: false
         base_url: https://www.magazineluiza.com.br
+        # 2026-05-02: temporarily out of the fast lane after repeated slow or stuck Bronze runs.
+        # 2026-05-01: anti-bot recorrente; desacelera esta fonte sem afetar as demais.
+        rate_limit_ms: 4500
+        scroll_pause_ms: 1200
       amazon:
         enabled: true
         base_url: https://www.amazon.com.br
+        # 2026-05-01: reduz pressão de navegação para mitigar bloqueios e BSR incompleto.
+        rate_limit_ms: 3500
       aliexpress:
         enabled: true
         base_url: https://pt.aliexpress.com
+        # 2026-05-04: re-habilitada com rate limit conservador para dados de fornecedor.
+        # Fonte supplier — essencial para cálculo de margem. Zero load anterior pode ser
+        # seletor CSS ou CAPTCHA; monitorar blocked_rate nas próximas coletas.
+        rate_limit_ms: 5000
+        scroll_pause_ms: 1500
+        navigation_timeout_seconds: 60
       kabum:
         enabled: true
         base_url: https://www.kabum.com.br
       pichau:
-        enabled: true
+        enabled: false
         base_url: https://www.pichau.com.br
+        # 2026-05-02: desabilitada temporariamente apos travar o ciclo Bronze em running sem progresso.
+        rate_limit_ms: 5000
+        scroll_pause_ms: 1400
+        navigation_timeout_seconds: 60
       terabyte:
         enabled: true
         base_url: https://www.terabyteshop.com.br
@@ -51,7 +73,9 @@ market_sources:
     rate_limit_ms: 250
     max_retries: 3
     timeout_seconds: 20
-    catalog_product_scan_limit: 30
+    catalog_product_scan_limit: 100
+    # 2026-05-02: API collection can fan out wider than browser scrapers.
+    parallel_workers: 4
 
   price_history:
     enabled: true
@@ -68,6 +92,10 @@ market_sources:
       scroll_steps: 5
       scroll_pause_ms: 900
       rate_limit_ms: 1800
+      # 2026-05-02: live tests showed Buscape tolerates the safe path, while Zoom degraded under batch pressure.
+      parallel_workers: 1
+      bronze_sources:
+        - buscape
       max_results: 8
       product_detail_limit: 8
       max_body_chars: 50000

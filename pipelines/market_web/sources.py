@@ -279,16 +279,33 @@ class PlaywrightMarketSource:
 
     def fetch(self, *, query: str, max_results: int) -> list[MarketListingSnapshot]:
         url = self.config.search_url(query)
-        with chromium_page(
-            headless=self.headless,
-            locale=self.locale,
-            timezone_id=self.timezone_id,
-            navigation_timeout_seconds=self.navigation_timeout_seconds,
-            action_timeout_seconds=self.action_timeout_seconds,
-            storage_state_path=self.storage_state_path,
-        ) as page:
-            blocked, block_reason = self._prepare_page(page, url)
-            if blocked:
+        attempts = 3
+        last_block_reason: str | None = None
+        for attempt in range(1, attempts + 1):
+            with chromium_page(
+                headless=self.headless,
+                locale=self.locale,
+                timezone_id=self.timezone_id,
+                navigation_timeout_seconds=self.navigation_timeout_seconds,
+                action_timeout_seconds=self.action_timeout_seconds,
+                storage_state_path=self.storage_state_path,
+            ) as page:
+                blocked, block_reason = self._prepare_page(page, url)
+                if not blocked:
+                    snapshots = self._extract_cards(page, query=query, max_results=max_results)
+                    if snapshots:
+                        if self.source_name == "shopee":
+                            snapshots = self._enrich_shopee_details(page, snapshots)
+                        return snapshots
+
+                    # 2026-05-01: retry empty pages once because anti-bot pages sometimes render without cards.
+                    block_reason = "empty_results"
+
+                last_block_reason = block_reason
+                if attempt < attempts and _is_retryable_block_reason(block_reason):
+                    _sleep_before_retry(attempt)
+                    continue
+
                 return [
                     MarketListingSnapshot(
                         source_name=self.source_name,
@@ -316,13 +333,40 @@ class PlaywrightMarketSource:
                         is_catalog=None,
                         blocked=True,
                         block_reason=block_reason,
-                        payload={"url": url, "block_reason": block_reason},
+                        payload={"url": url, "block_reason": block_reason, "attempt": attempt},
                     )
                 ]
-            snapshots = self._extract_cards(page, query=query, max_results=max_results)
-            if self.source_name == "shopee":
-                snapshots = self._enrich_shopee_details(page, snapshots)
-            return snapshots
+
+        return [
+            MarketListingSnapshot(
+                source_name=self.source_name,
+                source_role=self.source_role,
+                query=query,
+                position=None,
+                title=None,
+                price=None,
+                old_price=None,
+                currency_id=None,
+                sold_quantity_text=None,
+                sold_quantity=None,
+                demand_signal_type="blocked",
+                demand_signal_value=None,
+                bsr_text=None,
+                rating_text=None,
+                reviews_count=None,
+                seller_text=None,
+                shipping_text=None,
+                installments_text=None,
+                item_url=url,
+                image_url=None,
+                is_sponsored=None,
+                is_full=None,
+                is_catalog=None,
+                blocked=True,
+                block_reason=last_block_reason,
+                payload={"url": url, "block_reason": last_block_reason, "attempt": attempts},
+            )
+        ]
 
     def _enrich_shopee_details(
         self,
@@ -522,3 +566,18 @@ def _extract_json_int(html: str, key: str) -> int | None:
     if not match or match.group(1) == "null":
         return None
     return int(match.group(1))
+
+
+def _is_retryable_block_reason(reason: str | None) -> bool:
+    if not reason:
+        return False
+    if reason == "empty_results":
+        return True
+    return reason in {"captcha", "bot_block", "access_denied"} or reason.startswith(
+        "navigation_timeout"
+    )
+
+
+def _sleep_before_retry(attempt: int) -> None:
+    # 2026-05-01: exponential backoff gives transient anti-bot pages time to clear.
+    time.sleep(min(4 * attempt, 12))

@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--query", action="append", dest="queries")
     parser.add_argument("--limit-per-page", type=int, default=50)
-    parser.add_argument("--pages-per-query", type=int, default=1)
+    parser.add_argument("--pages-per-query", type=int, default=4)
     return parser.parse_args()
 
 
