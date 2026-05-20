@@ -38,7 +38,7 @@ DEFAULT_QUERIES = [
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Coleta web de historico de precos em Buscape/Zoom."
+        description="Coleta web de historico de precos. Padrao: usa config.market_sources.price_history.web_history.bronze_sources."
     )
     parser.add_argument(
         "--source",
@@ -70,9 +70,21 @@ def parse_args() -> argparse.Namespace:
 
 
 def _sources(values: list[str] | None) -> list[str]:
-    if not values or "all" in values:
+    if values and "all" not in values:
+        return values
+    if values and "all" in values:
         return ["buscape", "zoom"]
-    return values
+
+    project_config = get_settings().load_project_config()
+    web_history = (
+        project_config.get("market_sources", {})
+        .get("price_history", {})
+        .get("web_history", {})
+    )
+    configured_sources = web_history.get("bronze_sources")
+    if configured_sources:
+        return list(configured_sources)
+    return ["buscape", "zoom"]
 
 
 def _resolve_workers(arg_workers: int | None) -> int:
@@ -188,7 +200,8 @@ def main() -> int:
         "results": results,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    return 0
+    has_useful_result = summary["loaded"] > 0 or summary["extracted"] > 0
+    return 0 if summary["failed"] == 0 and has_useful_result else 1
 
 
 if __name__ == "__main__":

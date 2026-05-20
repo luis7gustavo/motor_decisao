@@ -11,6 +11,7 @@ __pycache__/
 htmlcov/
 data/
 data_processed/
+backups/
 *.log
 *.sqlite
 *.db

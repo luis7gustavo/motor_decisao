@@ -13,6 +13,8 @@ from pipelines.market_web.ingest import ingest_market_web  # noqa: E402
 from pipelines.market_web.sources import SOURCE_CONFIGS  # noqa: E402
 
 
+DEFAULT_SOURCES = ["amazon", "kabum", "terabyte"]
+
 DEFAULT_QUERIES = [
     "mouse gamer",
     "mouse sem fio",
@@ -30,14 +32,16 @@ DEFAULT_QUERIES = [
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Coleta web com Playwright.")
+    parser = argparse.ArgumentParser(
+        description="Coleta web com Playwright. Padrao: Amazon, Kabum e Terabyte."
+    )
     parser.add_argument(
         "--source",
         action="append",
         dest="sources",
         choices=sorted(SOURCE_CONFIGS.keys()) + ["all"],
         default=None,
-        help="Fonte a coletar. Pode repetir. Use all para todas.",
+        help="Fonte a coletar. Pode repetir. Use all para todas as fontes habilitadas no config.",
     )
     parser.add_argument("--query", action="append", dest="queries", default=None)
     parser.add_argument("--max-results", type=int, default=20)
@@ -46,7 +50,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    selected_sources = args.sources or ["shopee", "amazon", "kabum", "pichau", "terabyte", "aliexpress"]
+    selected_sources = args.sources or DEFAULT_SOURCES
     if "all" in selected_sources:
         selected_sources = sorted(SOURCE_CONFIGS.keys())
     result = ingest_market_web(
@@ -70,7 +74,7 @@ def main() -> int:
             indent=2,
         )
     )
-    return 0
+    return 0 if result.status in {"success", "partial"} and result.extracted > 0 else 1
 
 
 if __name__ == "__main__":

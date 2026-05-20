@@ -194,7 +194,15 @@ def main() -> int:
         "results": results,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    return 0
+    has_useful_result = (
+        summary["extracted"] > 0
+        or summary["loaded"] > 0
+        or summary["skipped"] > 0
+        or summary["price_summaries"] > 0
+        or summary["catalog_products_loaded"] > 0
+        or summary["catalog_products_skipped"] > 0
+    )
+    return 0 if summary["failed"] == 0 and has_useful_result else 1
 
 
 if __name__ == "__main__":

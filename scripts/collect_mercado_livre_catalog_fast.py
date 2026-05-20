@@ -189,7 +189,8 @@ def main() -> int:
         "results": results,
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
-    return 0
+    has_useful_result = extracted > 0 or loaded > 0 or skipped > 0
+    return 0 if status != "failed" and has_useful_result else 1
 
 
 if __name__ == "__main__":

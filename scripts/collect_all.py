@@ -1,11 +1,11 @@
-"""Orquestra todas as coletas em uma única chamada.
+"""Orquestra as coletas locais em uma unica chamada.
 
 Uso:
     python scripts/collect_all.py                   # tudo
     python scripts/collect_all.py --skip etl        # sem ETL final
-    python scripts/collect_all.py --only ml         # só ML API
-    python scripts/collect_all.py --only web        # só scraping web
-    python scripts/collect_all.py --only etl        # só export ETL
+    python scripts/collect_all.py --only ml         # so ML API
+    python scripts/collect_all.py --only web        # so scraping web
+    python scripts/collect_all.py --only etl        # so export ETL
 """
 from __future__ import annotations
 
@@ -15,14 +15,14 @@ import sys
 import threading
 from datetime import datetime
 from pathlib import Path
+from queue import Queue
+from typing import Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 
 STAGES = ("ml", "web", "etl")
 
-
-# ── helpers ───────────────────────────────────────────────────────────────────
 
 def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
@@ -32,46 +32,49 @@ def _log(msg: str) -> None:
     print(f"[{_ts()}] {msg}", flush=True)
 
 
-def _sep(char: str = "─", width: int = 60) -> None:
+def _sep(char: str = "-", width: int = 60) -> None:
     print(char * width, flush=True)
 
 
 def _run(label: str, script: str, *extra_args: str) -> bool:
-    """Roda um script como subprocesso, streamando stdout/stderr ao vivo."""
-    _log(f"  → {label}")
+    """Roda um script como subprocesso e propaga falhas para o exit code final."""
+    _log(f"  -> {label}")
     cmd = [sys.executable, str(SCRIPTS / script), *extra_args]
     result = subprocess.run(cmd)
     ok = result.returncode == 0
-    _log(f"  {'✓' if ok else '✗'} {label} (exit {result.returncode})")
+    marker = "OK" if ok else "ERRO"
+    _log(f"  [{marker}] {label} (exit {result.returncode})")
     return ok
 
 
-# ── stages ────────────────────────────────────────────────────────────────────
-
-def stage_ml() -> None:
+def stage_ml() -> bool:
     _sep()
-    _log("[ML API] Catálogo rápido + periféricos com preços")
+    _log("[ML API] Catalogo rapido + perifericos com precos")
     _sep()
-    _run("ML Catalog Fast (produtos sem preço, 4 pág/query)", "collect_mercado_livre_catalog_fast.py")
-    _run("ML Periféricos (anúncios com preço, 200 items/query)", "collect_mercado_livre_perifericos.py")
+    results = [
+        _run("ML Catalog Fast (produtos sem preco, 4 pag/query)", "collect_mercado_livre_catalog_fast.py"),
+        _run("ML Perifericos (anuncios com preco, 200 items/query)", "collect_mercado_livre_perifericos.py"),
+    ]
+    return all(results)
 
 
-def stage_web() -> None:
+def stage_web() -> bool:
     _sep()
-    _log("[WEB] Scraping de marketplaces + histórico de preços")
+    _log("[WEB] Scraping de marketplaces + historico de precos")
     _sep()
-    _run("Market Web (Amazon / Shopee / Kabum / Terabyte / AliExpress)", "collect_market_web.py")
-    _run("Price History (Buscape)", "collect_price_history_web.py")
+    results = [
+        _run("Market Web (Amazon / Kabum / Terabyte)", "collect_market_web.py"),
+        _run("Price History (Buscape / Zoom, sequencial)", "collect_price_history_web.py"),
+    ]
+    return all(results)
 
 
-def stage_etl() -> None:
+def stage_etl() -> bool:
     _sep()
     _log("[ETL] Export Silver + oportunidades")
     _sep()
-    _run("Quick ETL Export", "quick_etl_exports.py")
+    return _run("Quick ETL Export", "quick_etl_exports.py")
 
-
-# ── entrypoint ────────────────────────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Roda todas as coletas de uma vez.")
@@ -80,21 +83,33 @@ def parse_args() -> argparse.Namespace:
         "--only",
         choices=STAGES,
         metavar="STAGE",
-        help=f"Roda apenas um estágio ({', '.join(STAGES)}).",
+        help=f"Roda apenas um estagio ({', '.join(STAGES)}).",
     )
     group.add_argument(
         "--skip",
         choices=STAGES,
         metavar="STAGE",
-        help=f"Pula um estágio ({', '.join(STAGES)}).",
+        help=f"Pula um estagio ({', '.join(STAGES)}).",
     )
     parser.add_argument(
         "--sequential",
         action="store_true",
         default=False,
-        help="Força execução sequencial (padrão: ml e web em paralelo).",
+        help="Forca execucao sequencial (padrao: ml e web em paralelo).",
     )
     return parser.parse_args()
+
+
+def _run_stage_threaded(
+    name: str,
+    target: Callable[[], bool],
+    queue: Queue[tuple[str, bool]],
+) -> None:
+    try:
+        queue.put((name, bool(target())))
+    except Exception as error:  # noqa: BLE001 - surface thread failures through exit code.
+        _log(f"  [ERRO] Stage {name} falhou com excecao: {error}")
+        queue.put((name, False))
 
 
 def main() -> int:
@@ -104,35 +119,46 @@ def main() -> int:
     run_web = args.only in (None, "web") and args.skip != "web"
     run_etl = args.only in (None, "etl") and args.skip != "etl"
 
-    _sep("═")
-    _log("COLETA COMPLETA — motor_decisao_compra")
-    _log(f"  ML={'sim' if run_ml else 'não'}  WEB={'sim' if run_web else 'não'}  ETL={'sim' if run_etl else 'não'}")
-    _sep("═")
+    _sep("=")
+    _log("COLETA COMPLETA - motor_decisao_compra")
+    _log(f"  ML={'sim' if run_ml else 'nao'}  WEB={'sim' if run_web else 'nao'}  ETL={'sim' if run_etl else 'nao'}")
+    _sep("=")
 
-    # ML API (HTTP) e web scraping (Playwright) usam recursos distintos:
-    # rodam em paralelo por padrão para economizar tempo.
+    stage_results: dict[str, bool] = {}
+
+    # ML API e web scraping usam recursos distintos; rodam em paralelo por padrao.
     if run_ml and run_web and not args.sequential:
         _log("Iniciando ML e WEB em paralelo...")
+        queue: Queue[tuple[str, bool]] = Queue()
         threads = [
-            threading.Thread(target=stage_ml, name="ml", daemon=True),
-            threading.Thread(target=stage_web, name="web", daemon=True),
+            threading.Thread(target=_run_stage_threaded, args=("ml", stage_ml, queue), name="ml", daemon=True),
+            threading.Thread(target=_run_stage_threaded, args=("web", stage_web, queue), name="web", daemon=True),
         ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        while not queue.empty():
+            name, ok = queue.get()
+            stage_results[name] = ok
     else:
         if run_ml:
-            stage_ml()
+            stage_results["ml"] = stage_ml()
         if run_web:
-            stage_web()
+            stage_results["web"] = stage_web()
 
     if run_etl:
-        stage_etl()
+        stage_results["etl"] = stage_etl()
 
-    _sep("═")
+    failed_stages = [name for name, ok in stage_results.items() if not ok]
+    _sep("=")
+    if failed_stages:
+        _log(f"FINALIZADO COM ERRO nos stages: {', '.join(sorted(failed_stages))}")
+        _sep("=")
+        return 1
+
     _log("PRONTO")
-    _sep("═")
+    _sep("=")
     return 0
 
 

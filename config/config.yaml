@@ -22,7 +22,8 @@ market_sources:
     scroll_pause_ms: 900
     rate_limit_ms: 2500
     max_results_per_query: 30
-    # 2026-05-02: force serial fallback after repeated market_web bootstrap hangs at 0/0/0 under threaded fan-out.
+    # 2026-05-20: ciclo padrao estabilizado para uso local e em outra maquina.
+    # Fontes experimentais continuam mapeadas, mas ficam fora do ciclo principal.
     parallel_workers: 1
     parallel_safe_sources:
       - amazon
@@ -30,8 +31,9 @@ market_sources:
       - terabyte
     sources:
       shopee:
-        enabled: true
+        enabled: false
         base_url: https://shopee.com.br
+        # 2026-05-20: recentes coletas trouxeram majoritariamente bloqueio/zero preco.
       magalu:
         enabled: false
         base_url: https://www.magazineluiza.com.br
@@ -45,11 +47,10 @@ market_sources:
         # 2026-05-01: reduz pressão de navegação para mitigar bloqueios e BSR incompleto.
         rate_limit_ms: 3500
       aliexpress:
-        enabled: true
+        enabled: false
         base_url: https://pt.aliexpress.com
-        # 2026-05-04: re-habilitada com rate limit conservador para dados de fornecedor.
-        # Fonte supplier — essencial para cálculo de margem. Zero load anterior pode ser
-        # seletor CSS ou CAPTCHA; monitorar blocked_rate nas próximas coletas.
+        # 2026-05-20: fonte experimental de custo/importacao; fora do ciclo principal
+        # ate validar seletores e precos em lote pequeno.
         rate_limit_ms: 5000
         scroll_pause_ms: 1500
         navigation_timeout_seconds: 60
@@ -92,10 +93,11 @@ market_sources:
       scroll_steps: 5
       scroll_pause_ms: 900
       rate_limit_ms: 1800
-      # 2026-05-02: live tests showed Buscape tolerates the safe path, while Zoom degraded under batch pressure.
+      # 2026-05-20: Buscape e Zoom ficam no ciclo padrao com paralelismo 1.
       parallel_workers: 1
       bronze_sources:
         - buscape
+        - zoom
       max_results: 8
       product_detail_limit: 8
       max_body_chars: 50000

@@ -9,6 +9,7 @@ __pycache__
 !.env.example
 data
 data_processed
+backups
 notebooks
 *.log
 *.sqlite

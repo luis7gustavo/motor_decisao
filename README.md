@@ -97,6 +97,17 @@ docker compose run --rm api python scripts/validate_setup.py
 docker compose up -d api
 ```
 
+Fluxo simplificado para Windows:
+
+```powershell
+.\SetupMotor.cmd
+.\ColetaMotorHTTP.cmd
+.\StatusMotor.cmd
+```
+
+O guia detalhado de uso local, fontes ativas e importacao de dados esta em
+`docs/uso_local_e_importacao.md`.
+
 Verificar API:
 
 ```powershell
