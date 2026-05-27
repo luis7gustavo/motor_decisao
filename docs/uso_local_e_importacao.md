@@ -425,6 +425,14 @@ Invoke-RestMethod -Method Post "http://127.0.0.1:8010/ops/repair-stale-runs?stal
 
 Por padrao, cada maquina tem seu proprio volume Docker de Postgres. GitHub leva codigo, nao leva o banco.
 
+As bases leves de reproducao ficam versionadas:
+
+- `data/megamix_catalog_raw.csv`;
+- `data/megamix_catalog_raw.json`;
+- `data_processed/`.
+
+Nao versionar tokens, arquivos PKCE, `.env` ou dumps completos do banco.
+
 Exportar banco da maquina atual:
 
 ```powershell

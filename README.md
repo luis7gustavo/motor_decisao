@@ -213,6 +213,12 @@ Antes de comprar:
 
 ## Dados e Seguranca
 
+Bases versionadas para reproducao rapida:
+
+- `data/megamix_catalog_raw.csv`;
+- `data/megamix_catalog_raw.json`;
+- `data_processed/`.
+
 Nao versionar:
 
 - `.env`;
@@ -220,6 +226,7 @@ Nao versionar:
 - dumps em `backups/`;
 - dados sensiveis;
 - tokens OAuth;
+- `data/mercado_livre_pkce.json`;
 - logs locais.
 
 Para levar dados a outra maquina, use:
