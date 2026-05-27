@@ -12,6 +12,7 @@ htmlcov/
 data/
 data_processed/
 backups/
+output/
 *.log
 *.sqlite
 *.db

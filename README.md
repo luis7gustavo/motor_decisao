@@ -1,114 +1,139 @@
-# Motor de Decisao de Compra
+# SILLO - Motor de Decisao de Compra
 
-Backend local para coletar dados de mercado, historico de precos e sinais de demanda de produtos de baixo valor, com foco inicial em perifericos de tecnologia: mouse, teclado, headset, webcam, hub USB, cabos e itens similares.
+**SILLO - Intelligence for better buying**
 
-O objetivo do projeto e construir uma base de dados para decidir o que vale comprar e revender, combinando preco praticado no varejo, historico de preco, concorrencia, sinais de demanda e, nas proximas etapas, margem estimada.
+Backend local-first para apoiar decisoes de compra para revenda usando dados de mercado, historico de precos, catalogos de fornecedores e um motor de decisao auditavel.
 
-## Estado Atual
+O sistema coleta e organiza sinais em arquitetura Medalhao, calcula margem e confianca, e separa produtos em:
 
-Ja esta pronto:
+- `comprar_teste`;
+- `revisar`;
+- `ignorar`.
 
-- Infra local com Docker Compose.
-- Postgres 15 com schemas `control`, `bronze`, `silver` e `gold`.
-- Redis.
-- API FastAPI com healthcheck.
-- Alembic para migracoes.
-- Tabelas de controle de execucao.
-- Coleta via API do Mercado Livre para catalogo e enriquecimento.
-- Scraper Playwright para marketplaces fora Mercado Livre.
-- Scraper Playwright para Zoom e Buscape com captura de preco atual e resumo de historico visivel.
-- Conexao validada no DBeaver via Postgres local.
-- Primeiras coletas reais gravadas no banco.
+O objetivo do MVP e apoiar decisao humana. Ele ainda nao executa compra automatica.
 
-Decisao importante: o Mercado Livre fica como fonte de catalogo/enriquecimento. Para benchmarking de preco e demanda, a coleta principal sera feita por web scraping em outras fontes.
+## Documentacao
 
-## Arquitetura Local
+| Documento | Uso |
+| --- | --- |
+| `docs/sillo_documentacao.md` | Visao de produto, identidade SILLO e resumo executivo. |
+| `docs/sillo_documentacao.html` | Versao visual da documentacao com identidade da marca. |
+| `docs/arquitetura_tecnica.md` | Arquitetura, schemas, pipelines, motor, objetivos e proximos passos. |
+| `docs/uso_local_e_importacao.md` | Runbook operacional: setup, coleta, motor, diagnostico e importacao/exportacao. |
+| `docs/mercado_livre_ngrok.md` | Guia de OAuth Mercado Livre com ngrok. |
+
+Logo:
 
 ```text
-scripts/
-  collect_market_web.py          -> coleta Shopee, Amazon, Kabum, Terabyte, Pichau, Magalu, AliExpress
-  collect_price_history_web.py   -> coleta Zoom e Buscape por paginas de produto
-  collect_mercado_livre.py       -> coleta catalogo/itens Mercado Livre
-
-pipelines/
-  market_web/                    -> fontes de varejo e marketplace
-  price_history/                 -> comparadores e historico de preco
-  mercado_livre/                 -> API oficial Mercado Livre
-  common/                        -> browser, db, config e utilitarios
-
-bronze/
-  market_web_listings_raw        -> ofertas brutas dos marketplaces
-  price_history_raw              -> preco/historico bruto de Zoom e Buscape
-  mercado_livre_products_raw     -> produtos do catalogo Mercado Livre
-  mercado_livre_items_raw        -> anuncios/itens vinculados quando disponiveis
+docs/assets/sillo-logo.png
 ```
 
-## Fontes Implementadas
+Versoes Word geradas:
 
-| Fonte | Status | Uso | Observacoes |
-| --- | --- | --- | --- |
-| Mercado Livre API | Parcial | Catalogo e enriquecimento | A busca aberta de anuncios pode retornar `403`; por isso nao sera a fonte principal de benchmarking. |
-| Shopee Brasil | Funcional | Preco e sinais de demanda | SPA pesada; requer Playwright. Volume vendido nem sempre aparece no HTML inicial. |
-| Amazon Brasil | Funcional | Preco, reviews e proxy de demanda | Anti-bot forte; BSR detalhado ainda precisa de etapa de pagina de produto. |
-| Zoom | Funcional | Historico/preco | Captura preco atual e resumo visivel, mas nao serie historica completa ponto a ponto. |
-| Buscape | Funcional | Historico/preco | Mesmo limite do Zoom; alguns produtos podem bloquear ou esconder historico. |
-| Kabum | Funcional | Preco varejo nacional | A busca pode retornar itens fora do termo exato; precisa filtro Silver por relevancia. |
-| Terabyte | Funcional | Preco varejo nacional | Boa coleta de ofertas; tambem precisa filtro Silver por relevancia. |
-| Pichau | Mapeado, bloqueado | Preco varejo nacional | O HTML foi mapeado, mas o coletor encontrou bloqueio anti-bot na execucao atual. |
-| Magalu | Bloqueado | Preco varejo nacional | Ambiente atual retornou bloqueio/acesso negado. |
-| AliExpress | Parcial | Benchmark de custo importado | Funciona em alguns cenarios, mas pode cair em captcha/bloqueio. B2B nacional esta pausado. |
-
-## Resultado da Coleta Local Atual
-
-Ultimo estado observado no banco local:
-
-| Tabela | Fonte | Linhas | Com preco | Bloqueios |
-| --- | --- | ---: | ---: | ---: |
-| `bronze.market_web_listings_raw` | Shopee | 53 | 53 | 0 |
-| `bronze.market_web_listings_raw` | Amazon | 53 | 53 | 0 |
-| `bronze.market_web_listings_raw` | Kabum | 48 | 48 | 0 |
-| `bronze.market_web_listings_raw` | Terabyte | 25 | 25 | 0 |
-| `bronze.market_web_listings_raw` | AliExpress | 11 | 10 | 1 |
-| `bronze.market_web_listings_raw` | Magalu | 2 | 0 | 2 |
-| `bronze.market_web_listings_raw` | Pichau | 1 | 0 | 1 |
-| `bronze.price_history_raw` | Buscape | 99 | 96 | 3 |
-| `bronze.price_history_raw` | Zoom | 98 | 95 | 3 |
-
-Esses numeros sao da execucao local de desenvolvimento e nao devem ser tratados como dataset final. A proxima etapa e transformar o Bronze em Silver com deduplicacao, filtros de relevancia e normalizacao de preco.
-
-## Como Rodar em Outra Maquina
-
-Requisitos:
-
-- Docker Desktop.
-- Git.
-- PowerShell.
-- Opcional: DBeaver para visualizar tabelas.
-
-Passo a passo:
-
-```powershell
-git clone https://github.com/luis7gustavo/motor_decisao.git
-cd motor_decisao
-Copy-Item .env.example .env
-docker compose up -d postgres redis
-docker compose run --rm api alembic upgrade head
-docker compose run --rm api python scripts/validate_setup.py
-docker compose up -d api
+```text
+output/doc/SILLO_README.docx
+output/doc/SILLO_Documentacao_Produto.docx
+output/doc/SILLO_Arquitetura_Tecnica.docx
+output/doc/SILLO_Runbook_Operacional.docx
+output/doc/SILLO_Mercado_Livre_Ngrok.docx
+output/doc/SILLO_Documentacao_Completa.docx
 ```
 
-Fluxo simplificado para Windows:
+## Estado Atual Validado
+
+Validado em 2026-05-26:
+
+| Indicador | Valor |
+| --- | ---: |
+| Produtos pontuados no Gold atual | 5.139 |
+| `comprar_teste` | 2 |
+| `revisar` | 34 |
+| `ignorar` | 5.103 |
+| Versao do motor | `heuristic_v2_confidence_guard` |
+
+Tabelas principais:
+
+| Tabela | Linhas |
+| --- | ---: |
+| `bronze.market_web_listings_raw` | 14.516 |
+| `bronze.price_history_raw` | 3.459 |
+| `bronze.supplier_products_raw` | 7.527 |
+| `silver.supplier_products_normalized` | 7.527 |
+| `gold.decision_opportunities` | 5.139 |
+| `gold.decision_opportunity_snapshots` | 12.661 |
+
+Fornecedores carregados:
+
+| Fornecedor | Registros Bronze |
+| --- | ---: |
+| MegaMix | 4.720 |
+| Mirao | 2.807 |
+
+## Stack
+
+- FastAPI
+- PostgreSQL 15 + pgvector
+- Redis
+- Selenium Grid
+- Playwright
+- Alembic
+- Docker Compose
+- Python
+
+Portas locais:
+
+| Servico | Porta |
+| --- | ---: |
+| API | `8010` |
+| Postgres | `55432` |
+| Redis | `6380` |
+| Selenium | `4444` |
+
+## Arquitetura Resumida
+
+```text
+Fontes externas
+  Mercado Livre
+  Marketplaces
+  Zoom / Buscape
+  MegaMix
+  Mirao
+
+        |
+        v
+
+Bronze
+  dados brutos e payloads
+
+        |
+        v
+
+Silver
+  normalizacao e chaves comparaveis
+
+        |
+        v
+
+Gold
+  oportunidades, historico e runs versionadas
+
+        |
+        v
+
+API FastAPI
+  operacao e consulta
+```
+
+## Setup Rapido
+
+Na raiz do projeto:
 
 ```powershell
+cd "C:\Users\luisg\revenda assistida\motor_decisao"
 .\SetupMotor.cmd
-.\ColetaMotorHTTP.cmd
-.\StatusMotor.cmd
 ```
 
-O guia detalhado de uso local, fontes ativas e importacao de dados esta em
-`docs/uso_local_e_importacao.md`.
-
-Verificar API:
+Validar API:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8010/health
@@ -124,9 +149,46 @@ Resposta esperada:
 }
 ```
 
-## Conexao no DBeaver
+## Rodar Coleta e Motor
 
-Use uma conexao PostgreSQL:
+Coletar Mirao:
+
+```powershell
+docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
+```
+
+Importar MegaMix e rodar motor:
+
+```powershell
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+```
+
+Consultar resumo:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary
+```
+
+Consultar oportunidades:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?recommendation=comprar_teste"
+```
+
+## Endpoints Principais
+
+| Rota | Metodo | Uso |
+| --- | --- | --- |
+| `/health` | GET | Healthcheck da API e banco. |
+| `/ops/recent-runs` | GET | Ultimas execucoes. |
+| `/ops/bronze-cycle` | POST | Ciclo Bronze via API. |
+| `/ops/repair-stale-runs` | POST | Reparo de runs travadas. |
+| `/decision-engine/run` | POST | Executa motor. |
+| `/decision-engine/summary` | GET | Resumo das recomendacoes atuais. |
+| `/decision-engine/opportunities` | GET | Lista oportunidades. |
+| `/decision-engine/runs` | GET | Historico de rodadas do motor. |
+
+## Conexao no DBeaver
 
 ```text
 Host: localhost
@@ -136,115 +198,35 @@ User: motor
 Password: motor
 ```
 
-Tabelas principais:
+## Regra de Uso das Recomendacoes
 
-- `bronze.market_web_listings_raw`
-- `bronze.price_history_raw`
-- `bronze.mercado_livre_products_raw`
-- `bronze.mercado_livre_items_raw`
-- `silver.mercado_livre_product_prices`
-- `control.pipeline_runs`
-- `control.source_runs`
+`comprar_teste` significa oportunidade forte para lote pequeno, nao compra automatica.
 
-Consulta util:
+Antes de comprar:
 
-```sql
-SELECT
-  source_name,
-  query,
-  title,
-  price,
-  currency_id,
-  fetched_at
-FROM bronze.market_web_listings_raw
-WHERE price IS NOT NULL
-ORDER BY fetched_at DESC
-LIMIT 100;
-```
+1. confirmar estoque;
+2. confirmar frete;
+3. validar equivalencia do produto;
+4. checar concorrencia atual;
+5. comprar pouco;
+6. registrar margem e giro real.
 
-Para Zoom e Buscape:
+## Dados e Seguranca
 
-```sql
-SELECT
-  source_name,
-  query,
-  title,
-  current_price,
-  avg_price,
-  min_price,
-  max_price,
-  fetched_at
-FROM bronze.price_history_raw
-ORDER BY fetched_at DESC
-LIMIT 100;
-```
+Nao versionar:
 
-## Comandos de Coleta
+- `.env`;
+- `.env.*`;
+- dumps em `backups/`;
+- dados sensiveis;
+- tokens OAuth;
+- logs locais.
 
-Coleta de marketplaces:
+Para levar dados a outra maquina, use:
 
 ```powershell
-docker compose run --rm api python scripts/collect_market_web.py --source shopee --source amazon --source kabum --source terabyte --query "mouse gamer" --query "teclado mecanico" --query "headset gamer" --max-results 5
+.\scripts\export_db.ps1
+.\scripts\import_db.ps1 -DumpPath .\backups\motor_decisao_YYYYMMDD_HHMMSS.dump
 ```
 
-Coleta focada em Terabyte:
-
-```powershell
-docker compose run --rm api python scripts/collect_market_web.py --source terabyte --query "mouse sem fio" --query "hub usb" --query "webcam" --max-results 4
-```
-
-Coleta Zoom e Buscape:
-
-```powershell
-docker compose run --rm api python scripts/collect_price_history_web.py --source all --query "mouse gamer" --query "headset gamer" --max-results 2 --product-detail-limit 2
-```
-
-Coleta Mercado Livre:
-
-```powershell
-docker compose run --rm api python scripts/collect_mercado_livre.py --query "mouse gamer" --max-items 50
-```
-
-OAuth Mercado Livre com ngrok:
-
-```powershell
-ngrok http 8010
-docker compose run --rm api python scripts/mercado_livre_oauth.py auth-url
-```
-
-Guia: `docs/mercado_livre_ngrok.md`.
-
-## Limitacoes Encontradas nos Scrapers
-
-- Sites com SPA pesada exigem Playwright e esperas por renderizacao; requests simples nao sao suficientes.
-- Shopee e Amazon mudam estrutura e exibem demanda de forma incompleta na busca.
-- Amazon tem protecao anti-bot forte; para escala real sera necessario reduzir taxa, persistir sessao e possivelmente usar proxies residenciais.
-- Pichau foi mapeada, mas retornou bloqueio anti-bot no coletor atual.
-- Magalu retornou bloqueio/acesso negado neste ambiente.
-- Kabum e Terabyte funcionaram, mas a busca retorna produtos correlatos e patrocinados; o Bronze ainda contem ruido.
-- Zoom e Buscape nao expuseram a serie historica completa em formato simples; por enquanto extraimos preco atual e agregados/indicadores visiveis na pagina.
-- As datas registradas sao `fetched_at`/`fetched_date`, ou seja, data da nossa coleta. Quando o site nao mostra datas historicas internas, nao inventamos essa informacao.
-- Os dados Bronze ainda nao fazem deduplicacao entre lojas nem normalizacao de SKU.
-
-## Proximos Passos
-
-1. Criar Silver de ofertas com limpeza de titulo, marca, categoria, preco normalizado e filtro de relevancia por query.
-2. Criar Silver de historico Zoom/Buscape separando preco atual, media, minimo, maximo e janela do historico.
-3. Deduplicar produtos equivalentes entre Kabum, Terabyte, Shopee, Amazon, Zoom e Buscape.
-4. Implementar score inicial de oportunidade: preco minimo, preco medio, dispersao de preco, demanda proxy e confianca da fonte.
-5. Melhorar Pichau com sessao persistente, headers mais conservadores e fallback via Selenium Grid.
-6. Melhorar Amazon com coleta de pagina de produto para BSR e Buy Box quando a busca permitir.
-7. Criar dashboard simples para visualizar runs, fontes bloqueadas e top oportunidades.
-8. Preparar rotina agendada de coleta local com baixo volume por fonte para evitar bloqueios.
-
-## Seguranca
-
-Arquivos sensiveis e dados locais nao devem ser versionados:
-
-- `.env`
-- `.env.*`
-- `data/`
-- bancos locais
-- logs
-
-Use `.env.example` como modelo e coloque credenciais reais apenas no `.env` local.
+Detalhes completos em `docs/uso_local_e_importacao.md`.

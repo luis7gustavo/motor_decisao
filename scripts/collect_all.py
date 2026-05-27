@@ -1,11 +1,12 @@
 """Orquestra as coletas locais em uma unica chamada.
 
 Uso:
-    python scripts/collect_all.py                   # tudo
-    python scripts/collect_all.py --skip etl        # sem ETL final
-    python scripts/collect_all.py --only ml         # so ML API
-    python scripts/collect_all.py --only web        # so scraping web
-    python scripts/collect_all.py --only etl        # so export ETL
+    python scripts/collect_all.py                       # tudo
+    python scripts/collect_all.py --skip etl            # sem ETL final
+    python scripts/collect_all.py --only ml             # so ML API
+    python scripts/collect_all.py --only web            # so scraping web
+    python scripts/collect_all.py --only suppliers      # so fornecedores B2B
+    python scripts/collect_all.py --only etl            # so export ETL
 """
 from __future__ import annotations
 
@@ -21,7 +22,7 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 
-STAGES = ("ml", "web", "etl")
+STAGES = ("ml", "web", "suppliers", "etl")
 
 
 def _ts() -> str:
@@ -67,6 +68,13 @@ def stage_web() -> bool:
         _run("Price History (Buscape / Zoom, sequencial)", "collect_price_history_web.py"),
     ]
     return all(results)
+
+
+def stage_suppliers() -> bool:
+    _sep()
+    _log("[SUPPLIERS] Coleta de fornecedores B2B (Mirao, etc.)")
+    _sep()
+    return _run("Suppliers B2B", "collect_suppliers.py")
 
 
 def stage_etl() -> bool:
@@ -117,22 +125,38 @@ def main() -> int:
 
     run_ml = args.only in (None, "ml") and args.skip != "ml"
     run_web = args.only in (None, "web") and args.skip != "web"
+    run_suppliers = args.only in (None, "suppliers") and args.skip != "suppliers"
     run_etl = args.only in (None, "etl") and args.skip != "etl"
 
     _sep("=")
     _log("COLETA COMPLETA - motor_decisao_compra")
-    _log(f"  ML={'sim' if run_ml else 'nao'}  WEB={'sim' if run_web else 'nao'}  ETL={'sim' if run_etl else 'nao'}")
+    _log(
+        f"  ML={'sim' if run_ml else 'nao'}"
+        f"  WEB={'sim' if run_web else 'nao'}"
+        f"  SUPPLIERS={'sim' if run_suppliers else 'nao'}"
+        f"  ETL={'sim' if run_etl else 'nao'}"
+    )
     _sep("=")
 
     stage_results: dict[str, bool] = {}
 
-    # ML API e web scraping usam recursos distintos; rodam em paralelo por padrao.
-    if run_ml and run_web and not args.sequential:
-        _log("Iniciando ML e WEB em paralelo...")
+    # ML API, web scraping e suppliers usam recursos distintos; rodam em paralelo.
+    parallel_stages: list[tuple[str, object]] = []
+    if run_ml:
+        parallel_stages.append(("ml", stage_ml))
+    if run_web:
+        parallel_stages.append(("web", stage_web))
+    if run_suppliers:
+        parallel_stages.append(("suppliers", stage_suppliers))
+
+    if len(parallel_stages) > 1 and not args.sequential:
+        _log(f"Iniciando {', '.join(n for n, _ in parallel_stages)} em paralelo...")
         queue: Queue[tuple[str, bool]] = Queue()
         threads = [
-            threading.Thread(target=_run_stage_threaded, args=("ml", stage_ml, queue), name="ml", daemon=True),
-            threading.Thread(target=_run_stage_threaded, args=("web", stage_web, queue), name="web", daemon=True),
+            threading.Thread(
+                target=_run_stage_threaded, args=(name, fn, queue), name=name, daemon=True
+            )
+            for name, fn in parallel_stages
         ]
         for thread in threads:
             thread.start()
@@ -142,10 +166,8 @@ def main() -> int:
             name, ok = queue.get()
             stage_results[name] = ok
     else:
-        if run_ml:
-            stage_results["ml"] = stage_ml()
-        if run_web:
-            stage_results["web"] = stage_web()
+        for name, fn in parallel_stages:
+            stage_results[name] = fn()  # type: ignore[operator]
 
     if run_etl:
         stage_results["etl"] = stage_etl()

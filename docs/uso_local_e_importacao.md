@@ -1,177 +1,495 @@
-# Uso local, fontes ativas e importacao em outra maquina
+# SILLO - Runbook Operacional Local
 
-Este documento descreve o modo recomendado para rodar o `motor_decisao` em uma maquina Windows com Docker Desktop.
+Data de referencia: 2026-05-26
 
-## Estado recomendado das fontes
+Este documento descreve como instalar, rodar, validar, operar e transportar os dados locais da SILLO em uma maquina Windows com Docker Desktop.
 
-O ciclo padrao foi reduzido para fontes que ja demonstraram utilidade real no banco local:
+## Quando usar este documento
 
-| Grupo | Fontes padrao | Motivo |
-| --- | --- | --- |
-| Market web | Amazon, Kabum, Terabyte | Geraram volume util com preco. |
-| Historico/comparacao | Buscape, Zoom | Geraram preco atual e agregados visiveis; rodam sequencialmente. |
-| Mercado Livre | Catalogo + itens/precos por produto | Serve como catalogo e enriquecimento, nao como principal benchmark. |
+Use este runbook para:
 
-Fontes fora do ciclo principal:
+- subir o ambiente local;
+- validar API e banco;
+- coletar dados;
+- importar fornecedores;
+- rodar o motor de decisao;
+- consultar oportunidades;
+- diagnosticar falhas;
+- exportar/importar banco para outra maquina.
 
-| Fonte | Situacao atual | Como tratar |
-| --- | --- | --- |
-| Shopee | Parcial/instavel nos ultimos runs | Manter fora do padrao; testar manualmente em lote pequeno. |
-| AliExpress | Parcial; util como proxy de custo/importacao | Manter experimental ate validar seletores e filtro de preco. |
-| Pichau | Mapeada, mas sem preco util no ambiente atual | Manter desabilitada. |
-| Magalu | Bloqueada/sem preco util no ambiente atual | Manter desabilitada. |
+Para arquitetura e objetivos tecnicos, leia `docs/arquitetura_tecnica.md`.
 
-As fontes desabilitadas continuam no codigo para testes futuros, mas nao entram no ciclo padrao.
-
-## Arquivos de duplo clique
-
-Na raiz do projeto existem launchers `.cmd` para uso simples:
-
-| Arquivo | Uso |
-| --- | --- |
-| `SetupMotor.cmd` | Primeiro setup da maquina: cria `.env`, sobe containers, aplica migracoes, valida e sobe API. |
-| `ColetaMotorHTTP.cmd` | Aciona o ciclo Bronze oficial via API local `/ops/bronze-cycle`. Recomendado para rotina. |
-| `ColetaMotor.cmd` | Roda a coleta direta via `scripts/collect_all.py`, incluindo ETL rapido. Bom para uso manual. |
-| `StatusMotor.cmd` | Mostra status das coletas e tabelas recentes. |
-| `PararMotor.cmd` | Para os containers Docker do projeto. |
-
-O caminho mais seguro para rotina local e:
-
-```powershell
-.\SetupMotor.cmd
-.\ColetaMotorHTTP.cmd
-.\StatusMotor.cmd
-```
-
-O `ColetaMotorHTTP.cmd` e o melhor acionamento operacional porque passa pela API, que ja possui reparo de runs travadas, trava contra ciclo duplicado e endpoint de status.
-
-O `ColetaMotor.cmd` continua util quando voce quer rodar a coleta direta e o ETL local em seguida.
-
-## Instalacao em outra maquina
-
-Requisitos:
+## Requisitos
 
 - Windows com PowerShell.
 - Docker Desktop instalado e aberto.
 - Git.
-- A pasta do projeto ou o clone do repositorio.
+- Acesso a internet para coletas.
+- Opcional: DBeaver para explorar o banco.
 
-Passos:
+## Portas Locais
+
+| Servico | URL/porta |
+| --- | --- |
+| API | `http://127.0.0.1:8010` |
+| Postgres | `localhost:55432` |
+| Redis | `localhost:6380` |
+| Selenium Grid | `http://127.0.0.1:4444` |
+
+## Primeiro Setup
+
+Na raiz do projeto:
 
 ```powershell
-git clone https://github.com/luis7gustavo/motor_decisao.git
-cd motor_decisao
+cd "C:\Users\luisg\revenda assistida\motor_decisao"
 .\SetupMotor.cmd
 ```
 
-O setup faz:
+O setup deve:
 
-1. Cria `.env` a partir de `.env.example`, se ainda nao existir.
-2. Sobe `postgres`, `redis` e `selenium`.
-3. Roda `alembic upgrade head`.
-4. Executa `scripts/validate_setup.py`.
-5. Sobe a API em `http://127.0.0.1:8010`.
-6. Valida `GET /health`.
+1. criar `.env` a partir de `.env.example`, se necessario;
+2. subir `postgres`, `redis` e `selenium`;
+3. aplicar migracoes Alembic;
+4. rodar validacao de setup;
+5. subir a API;
+6. validar `/health`.
 
-Depois do setup:
+## Subir e Parar
+
+Subir tudo:
+
+```powershell
+docker compose up -d
+```
+
+Parar tudo:
+
+```powershell
+.\PararMotor.cmd
+```
+
+Ver containers:
+
+```powershell
+docker compose ps
+```
+
+Estado esperado:
+
+- `motor_api` healthy;
+- `motor_postgres` healthy;
+- `motor_redis` healthy;
+- `motor_selenium` healthy.
+
+## Validacao Rapida
+
+Healthcheck:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/health
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": "ok",
+  "environment": "development",
+  "database": true
+}
+```
+
+Testar porta do banco:
+
+```powershell
+Test-NetConnection 127.0.0.1 -Port 55432
+```
+
+Validar versao Alembic:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT version_num FROM alembic_version;"
+```
+
+Versao esperada apos a fase atual:
+
+```text
+20260526_0007
+```
+
+## Fluxo Operacional Recomendado
+
+Para rotina local completa:
+
+```powershell
+.\SetupMotor.cmd
+docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary
+```
+
+Para ciclo Bronze padrao via API:
 
 ```powershell
 .\ColetaMotorHTTP.cmd
+```
+
+Para status:
+
+```powershell
 .\StatusMotor.cmd
 ```
 
-## Para onde os dados vao?
+## Coleta Bronze via API
 
-Por padrao, cada maquina cria o seu proprio banco local em um volume Docker chamado:
+O caminho operacional preferido para ciclo Bronze e HTTP-first, porque evita duplicar runs e usa os endpoints operacionais da API.
+
+Iniciar ciclo Bronze assincrono:
+
+```powershell
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/ops/bronze-cycle?async_run=true"
+```
+
+Ver runs recentes:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/ops/recent-runs?limit=20"
+```
+
+Reparar runs travadas:
+
+```powershell
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/ops/repair-stale-runs?stale_after_hours=8"
+```
+
+Cancelar run especifica:
+
+```powershell
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/ops/cancel-pipeline-run?pipeline_run_id=COLE_O_ID_AQUI"
+```
+
+## Fornecedores
+
+### Listar fornecedores habilitados
+
+```powershell
+docker compose exec -T api python scripts/collect_suppliers.py --list
+```
+
+Estado atual esperado:
 
 ```text
-motor_postgres_data
+Fornecedores habilitados: ['mirao']
 ```
 
-Ou seja:
+### Coletar Mirao
 
-- Maquina A tem seu banco local.
-- Maquina B tem outro banco local.
-- Os dados nao vao automaticamente para o mesmo lugar.
-- O GitHub leva codigo e configuracao, mas nao leva os dados do Postgres.
-
-Isso e o comportamento mais seguro para desenvolvimento local.
-
-## Como usar o mesmo banco em mais de uma maquina
-
-So use esse modelo se voce realmente quiser centralizar dados.
-
-Opcoes:
-
-1. Rodar um Postgres central em uma maquina/servidor e apontar todas as maquinas para ele.
-2. Usar um banco gerenciado na nuvem.
-3. Manter coletas locais separadas e depois consolidar por dump/CSV.
-
-Para apontar para banco central, seria necessario ajustar `.env`, especialmente:
-
-```env
-DATABASE_URL=postgresql+psycopg://usuario:senha@host:5432/motor_decisao
+```powershell
+docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
 ```
 
-Nesse caso, todas as coletas gravam no mesmo banco. Nao e o padrao recomendado agora, porque exige rede estavel, credenciais, backup e cuidado para nao rodar ciclos duplicados.
+Observacao operacional:
 
-## Como levar os dados para outra maquina
+- a categoria `audio-e-video.html` retornou `404` na ultima validacao;
+- isso e registrado como `partial`, mas nao impede carregar as categorias validas;
+- se `records_loaded=0` mas `records_extracted>0`, pode ser apenas deduplicacao do dia.
 
-Se voce quer levar o banco atual para outro computador, faca dump/restaure.
+### Importar MegaMix
 
-Na maquina de origem:
+O caminho mais simples e rodar o motor com importacao:
+
+```powershell
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+```
+
+Tambem e possivel importar diretamente:
+
+```powershell
+docker compose exec -T api python scripts/import_megamix_catalog.py
+```
+
+Arquivo padrao:
+
+```text
+data/megamix_catalog_raw.json
+```
+
+## Rodar Motor de Decisao
+
+Com importacao MegaMix antes da pontuacao:
+
+```powershell
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+```
+
+Sem reimportar MegaMix:
+
+```powershell
+docker compose exec -T api python scripts/build_decision_engine.py
+```
+
+Via API:
+
+```powershell
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/decision-engine/run?import_megamix=true"
+```
+
+Saida esperada no CLI:
+
+```text
+Motor de decisao: 5139 produtos pontuados / 2 comprar_teste / 34 revisar / 5103 ignorar
+pipeline_run_id=...
+decision_run_id=...
+scoring_version=heuristic_v2_confidence_guard
+```
+
+## Consultar Resultados
+
+Resumo:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary
+```
+
+Oportunidades de compra teste:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?recommendation=comprar_teste"
+```
+
+Oportunidades por fornecedor:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?supplier_slug=mirao&limit=100"
+```
+
+Oportunidades por confianca:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?confidence_level=alta"
+```
+
+Historico de rodadas:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/runs?limit=10"
+```
+
+## Consultas SQL Uteis
+
+Resumo por recomendacao:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT recommendation, confidence_level, COUNT(*) FROM gold.decision_opportunities GROUP BY recommendation, confidence_level ORDER BY recommendation, confidence_level;"
+```
+
+Resumo por fornecedor:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT supplier_slug, recommendation, confidence_level, COUNT(*) FROM gold.decision_opportunities GROUP BY supplier_slug, recommendation, confidence_level ORDER BY supplier_slug, recommendation, confidence_level;"
+```
+
+Top oportunidades:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT product_title, supplier_slug, supplier_price, estimated_market_price, net_margin_pct, demand_score, match_confidence, decision_score, risk_flags FROM gold.decision_opportunities WHERE recommendation='comprar_teste' ORDER BY decision_score DESC;"
+```
+
+Ultima rodada do motor:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT id, scoring_version, status, metadata, started_at, finished_at FROM gold.decision_engine_runs ORDER BY started_at DESC LIMIT 1;"
+```
+
+Runs de fornecedor Mirao:
+
+```powershell
+docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT status, records_extracted, records_loaded, records_skipped, metadata->'page_errors' AS page_errors FROM control.source_runs WHERE source_name='mirao' ORDER BY started_at DESC LIMIT 5;"
+```
+
+## Estado Atual Validado
+
+Validado em 2026-05-26:
+
+| Indicador | Valor |
+| --- | ---: |
+| `bronze.market_web_listings_raw` | 14.516 |
+| `bronze.price_history_raw` | 3.459 |
+| `bronze.supplier_products_raw` | 7.527 |
+| `silver.supplier_products_normalized` | 7.527 |
+| `gold.decision_opportunities` | 5.139 |
+| `gold.decision_opportunity_snapshots` | 12.661 |
+
+Fornecedores:
+
+| Fornecedor | Registros Bronze |
+| --- | ---: |
+| MegaMix | 4.720 |
+| Mirao | 2.807 |
+
+Resultado atual do motor:
+
+| Recomendacao | Confianca | Produtos |
+| --- | --- | ---: |
+| `comprar_teste` | Alta | 2 |
+| `revisar` | Media | 34 |
+| `ignorar` | Baixa | 5.103 |
+
+## Conexao no DBeaver
+
+Use:
+
+```text
+Host: localhost
+Port: 55432
+Database: motor_decisao
+User: motor
+Password: motor
+```
+
+Tabelas mais uteis:
+
+- `control.pipeline_runs`
+- `control.source_runs`
+- `control.data_quality_checks`
+- `bronze.market_web_listings_raw`
+- `bronze.price_history_raw`
+- `bronze.supplier_products_raw`
+- `silver.supplier_products_normalized`
+- `gold.decision_opportunities`
+- `gold.decision_engine_runs`
+- `gold.decision_opportunity_snapshots`
+
+## Diagnostico de Problemas
+
+### API nao responde
+
+1. Verifique containers:
+
+```powershell
+docker compose ps
+```
+
+2. Veja logs:
+
+```powershell
+docker compose logs --tail=120 api
+```
+
+3. Reinicie API:
+
+```powershell
+docker compose restart api
+```
+
+### Banco nao responde
+
+```powershell
+docker compose logs --tail=120 postgres
+docker compose restart postgres
+```
+
+Depois:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/health
+```
+
+### Alembic fora da versao esperada
+
+```powershell
+docker compose exec -T api alembic upgrade head
+```
+
+### Fonte retorna zero registros
+
+Checar:
+
+- se houve bloqueio/captcha;
+- se a fonte mudou HTML;
+- se a query esta muito especifica;
+- se `records_loaded=0` e apenas deduplicacao;
+- se `metadata.page_errors` mostra status 403, 404, 429 ou timeout.
+
+### Docker CLI bloqueado, mas API ativa
+
+Use o caminho HTTP:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/health
+Invoke-RestMethod "http://127.0.0.1:8010/ops/recent-runs?limit=20"
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/ops/repair-stale-runs?stale_after_hours=8"
+```
+
+## Exportar e Importar Dados
+
+Por padrao, cada maquina tem seu proprio volume Docker de Postgres. GitHub leva codigo, nao leva o banco.
+
+Exportar banco da maquina atual:
 
 ```powershell
 .\scripts\export_db.ps1
 ```
 
-O arquivo sera criado em `backups/`.
+O dump fica em `backups/`.
 
-Copie o `.dump` gerado para a outra maquina.
-
-Na maquina de destino, depois de rodar `SetupMotor.cmd`:
+Importar em outra maquina:
 
 ```powershell
-.\scripts\import_db.ps1 -DumpPath .\motor_decisao_YYYYMMDD_HHMMSS.dump
+.\scripts\import_db.ps1 -DumpPath .\backups\motor_decisao_YYYYMMDD_HHMMSS.dump
 ```
 
-Use isso apenas quando quiser clonar o estado dos dados. Para instalar do zero, nao precisa de dump.
+Use dump/restore quando quiser clonar o estado local dos dados.
 
-## Configuracoes sensiveis
+## Usar Banco Central
 
-O arquivo `.env` nao deve ser commitado com segredos.
+Nao e o padrao recomendado agora. Se precisar centralizar, ajuste `.env`:
 
-Campos que podem precisar de preenchimento manual:
-
-- `DISCORD_WEBHOOK_URL`
-- `ML_CLIENT_ID`
-- `ML_CLIENT_SECRET`
-- `ML_REDIRECT_URI`
-- `ML_ACCESS_TOKEN`
-- `ML_REFRESH_TOKEN`
-
-Sem esses campos, o setup basico roda. Algumas funcoes de notificacao/OAuth ficam limitadas.
-
-## Como testar fontes fora do padrao
-
-Para testar fonte experimental sem mudar o ciclo principal:
-
-```powershell
-docker compose run --rm api python scripts/collect_market_web.py --source shopee --query "mouse gamer" --max-results 3
-docker compose run --rm api python scripts/collect_market_web.py --source aliexpress --query "mouse gamer" --max-results 3
+```env
+DATABASE_URL=postgresql+psycopg://usuario:senha@host:5432/motor_decisao
 ```
 
-Se a fonte gerar muitos bloqueios ou zero preco, mantenha fora do `config/config.yaml`.
+Cuidados:
 
-## Se abrir este chat em outra maquina
+- evitar ciclos duplicados;
+- proteger credenciais;
+- validar backup;
+- monitorar latencia;
+- controlar quem escreve no banco.
 
-Se a outra maquina tiver a pasta do projeto e Docker Desktop funcionando, o assistente consegue ajudar a configurar e validar o ambiente por este mesmo fluxo:
+## Seguranca
 
-1. Conferir `.env`.
-2. Rodar `SetupMotor.cmd`.
-3. Validar `docker compose ps`.
-4. Validar `GET http://127.0.0.1:8010/health`.
-5. Rodar uma coleta controlada.
-6. Verificar `StatusMotor.cmd`.
+Nao versionar:
 
-O que nao vai junto automaticamente e o banco local antigo. Para levar dados, use o dump descrito acima.
+- `.env`;
+- `.env.*`;
+- dumps em `backups/`;
+- dados brutos sensiveis;
+- logs locais;
+- credenciais Mercado Livre;
+- tokens OAuth.
+
+Use `.env.example` como referencia.
+
+## Checklist de Operacao Diaria
+
+1. `docker compose ps`
+2. `Invoke-RestMethod http://127.0.0.1:8010/health`
+3. `Invoke-RestMethod "http://127.0.0.1:8010/ops/recent-runs?limit=20"`
+4. `docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao`
+5. `docker compose exec -T api python scripts/build_decision_engine.py --import-megamix`
+6. `Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary`
+7. Revisar manualmente os itens `comprar_teste`
+
+## Regra de Compra
+
+`comprar_teste` nao significa compra automatica.
+
+Antes de comprar:
+
+1. confirmar estoque;
+2. confirmar frete;
+3. confirmar equivalencia do produto;
+4. checar concorrencia atual;
+5. comprar lote pequeno;
+6. registrar margem e giro real.

@@ -24,7 +24,9 @@ market_sources:
     max_results_per_query: 30
     # 2026-05-20: ciclo padrao estabilizado para uso local e em outra maquina.
     # Fontes experimentais continuam mapeadas, mas ficam fora do ciclo principal.
-    parallel_workers: 1
+    # 2026-05-21: 3 workers para rodar amazon+kabum+terabyte simultaneamente.
+    # Cada fonte tem seu proprio browser Playwright — sem conflito de estado.
+    parallel_workers: 3
     parallel_safe_sources:
       - amazon
       - kabum
@@ -106,29 +108,34 @@ market_sources:
       - zoom
 
 supplier_sources:
-  enabled: false
+  enabled: true
   b2b_playwright:
-    enabled: true
+    enabled: false
     storage_state_dir: data/playwright_states
-    notes: >
-      Portais B2B com login entram por Playwright usando storage_state por
-      fornecedor. As credenciais e o login assistido ainda dependem da escolha
-      do fornecedor real.
-  # Exemplo para quando o primeiro fornecedor B2B for escolhido:
-  # suppliers:
-  #   - slug: fornecedor_exemplo
-  #     enabled: true
-  #     urls:
-  #       - https://fornecedor.example/catalogo
-  #     rate_limit_ms: 1500
-  #     selectors:
-  #       product: ".product-card"
-  #       title: ".product-title"
-  #       price: ".product-price"
-  #       stock: ".product-stock"
-  #       sku: "[data-sku]"
-  #       product_url: "a@href"
-  suppliers: []
+  suppliers:
+    - slug: mirao
+      enabled: true
+      # Loja virtual pública — preços visíveis sem login.
+      # Coleta categorias de periféricos relevantes para revenda.
+      urls:
+        - https://www.mirao.com.br/perifericos.html
+        - https://www.mirao.com.br/hardware.html
+        - https://www.mirao.com.br/cabos.html
+        - https://www.mirao.com.br/audio-e-video.html
+      pagination:
+        enabled: true
+        # Padrão de URL da próxima página: adiciona ?p=N
+        url_pattern: "{url}?p={page}"
+        max_pages: 60
+        start_page: 2
+      # 2026-05-21: conservador para não acionar rate-limit
+      rate_limit_ms: 2000
+      selectors:
+        product: ".product-item"
+        title: "strong"
+        # Preço à vista (segundo span = preço com desconto PIX)
+        price: "span + span"
+        product_url: "a@href"
 
 entity_resolution:
   auto_approve_threshold: 0.90

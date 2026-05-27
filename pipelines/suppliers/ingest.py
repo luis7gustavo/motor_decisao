@@ -125,10 +125,17 @@ def ingest_supplier_html(
     skipped = 0
     status = "success"
     error_message: str | None = None
+    scraper_metadata: dict[str, Any] = {}
 
     try:
         with GenericHtmlSupplierScraper(supplier_config=supplier_config) as scraper:
             snapshots = scraper.fetch()
+            scraper_metadata = {
+                "pages_fetched": scraper.pages_fetched,
+                "page_errors": scraper.page_errors,
+            }
+            if scraper.page_errors:
+                status = "partial"
         extracted = len(snapshots)
         with engine.begin() as connection:
             for snapshot in snapshots:
@@ -140,6 +147,16 @@ def ingest_supplier_html(
         status = "failed"
         error_message = str(error)
 
+    final_metadata = {
+        **metadata,
+        **scraper_metadata,
+        "records_extracted": extracted,
+        "records_loaded": loaded,
+        "records_skipped": skipped,
+    }
+    quality_status = "passed" if loaded > 0 else ("warning" if extracted > 0 else "failed")
+    pipeline_status = status if status in {"failed", "partial"} else ("success" if loaded > 0 else "partial")
+
     with engine.begin() as connection:
         finish_source_run(
             connection,
@@ -148,7 +165,7 @@ def ingest_supplier_html(
             records_extracted=extracted,
             records_loaded=loaded,
             records_skipped=skipped,
-            metadata=metadata,
+            metadata=final_metadata,
             error_message=error_message,
         )
         record_quality_check(
@@ -158,23 +175,18 @@ def ingest_supplier_html(
             schema_name="bronze",
             table_name="supplier_products_raw",
             check_name="records_loaded_gt_zero",
-            status="passed" if loaded > 0 else "failed",
+            status=quality_status,
             metric_name="records_loaded",
             metric_value=loaded,
             threshold_value=1,
-            details={"extracted": extracted, "skipped": skipped, "supplier_slug": supplier_slug},
-            message=None if loaded > 0 else f"No supplier records loaded from {supplier_slug}",
+            details=final_metadata,
+            message=None if loaded > 0 else f"No new supplier records loaded from {supplier_slug}",
         )
         finish_pipeline_run(
             connection,
             pipeline_run_id=pipeline_run_id,
-            status=status if status == "failed" else ("success" if loaded > 0 else "partial"),
-            metadata={
-                **metadata,
-                "records_extracted": extracted,
-                "records_loaded": loaded,
-                "records_skipped": skipped,
-            },
+            status=pipeline_status,
+            metadata=final_metadata,
             error_message=error_message,
         )
 
@@ -190,4 +202,3 @@ def ingest_supplier_html(
         loaded=loaded,
         skipped=skipped,
     )
-
