@@ -84,11 +84,16 @@ if ($Unregister) {
 # --- Inicia o daemon ---
 Set-Location $ProjectRoot
 
-# Garante que postgres e redis estao rodando
-docker compose up -d postgres redis
+# O modo Once continua util para diagnostico local sem manter servico ativo.
+if ($Once) {
+    docker compose --profile daemon run --rm daemon python scripts/daemon.py --cooldown $Cooldown --once
+    exit $LASTEXITCODE
+}
 
-# Monta os args do daemon Python
-$DaemonArgs = @("scripts/daemon.py", "--cooldown", $Cooldown)
-if ($Once) { $DaemonArgs += "--once" }
+$env:MOTOR_DAEMON_COOLDOWN_HOURS = "$Cooldown"
+docker compose --profile daemon up -d --build daemon
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-docker compose run --rm daemon python @DaemonArgs
+Write-Host "Servico motor_daemon ativo. Cooldown: $Cooldown h." -ForegroundColor Green
+docker compose --profile daemon ps daemon
+exit $LASTEXITCODE

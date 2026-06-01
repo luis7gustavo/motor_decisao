@@ -80,6 +80,29 @@ Estado esperado:
 - `motor_postgres` healthy;
 - `motor_redis` healthy;
 - `motor_selenium` healthy.
+- `motor_daemon` ativo quando a coleta continua estiver habilitada.
+
+### Coleta continua gerenciada
+
+Subir ou atualizar o servico:
+
+```powershell
+.\scripts\daemon.ps1
+```
+
+Ver status e logs:
+
+```powershell
+docker compose --profile daemon ps daemon
+docker logs --tail 120 motor_daemon
+```
+
+O servico roda `scripts/collect_all.py`, aguarda o cooldown configurado e
+reinicia automaticamente com Docker. O valor padrao e `4` horas:
+
+```env
+MOTOR_DAEMON_COOLDOWN_HOURS=4
+```
 
 ## Validacao Rapida
 
@@ -163,6 +186,11 @@ As buscas cobrem perifericos e hardware, incluindo:
 Os catalogos brutos MegaMix e Mirao continuam preservados integralmente. O
 filtro evita ruido nas evidencias de mercado sem descartar dados de origem dos
 fornecedores.
+
+A API oficial do Mercado Livre depende de `ML_ACCESS_TOKEN` e
+`ML_REFRESH_TOKEN`. Quando essas credenciais nao estao configuradas, o estagio
+e registrado como `failed` e encerrado corretamente; as demais fontes continuam
+coletando.
 
 Iniciar ciclo Bronze assincrono:
 

@@ -163,6 +163,14 @@ O ciclo Bronze de mercado coleta perifericos e hardware com preco entre
 marketplace e historico de preco; catalogos brutos de fornecedores continuam
 preservados integralmente para auditoria.
 
+Iniciar coleta continua gerenciada:
+
+```powershell
+.\scripts\daemon.ps1
+docker compose --profile daemon ps daemon
+docker logs --tail 120 motor_daemon
+```
+
 Coletar Mirao:
 
 ```powershell

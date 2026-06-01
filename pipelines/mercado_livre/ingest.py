@@ -546,7 +546,14 @@ def ingest_mercado_livre_category(
             if attempt == 0 and _is_invalid_access_token_error(error):
                 # 2026-05-02: refresh the expired Mercado Livre token once so the
                 # Bronze cycle self-heals instead of failing every 2h until manual action.
-                refreshed = refresh_mercado_livre_tokens()
+                try:
+                    refreshed = refresh_mercado_livre_tokens()
+                except Exception as refresh_error:  # noqa: BLE001 - persist failed run state.
+                    status = "failed"
+                    error_message = (
+                        f"{error} Token refresh failed: {refresh_error}"
+                    )
+                    break
                 access_token = str(refreshed["access_token"])
                 continue
             status = "failed"

@@ -93,6 +93,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.api
+    container_name: motor_daemon
     env_file:
       - .env
     environment:
@@ -109,8 +110,10 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+    command: python scripts/daemon.py --cooldown ${MOTOR_DAEMON_COOLDOWN_HOURS:-4}
     healthcheck:
       disable: true
+    restart: unless-stopped
 
 volumes:
   motor_postgres_data:

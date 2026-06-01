@@ -24,7 +24,7 @@ O MVP atual nao compra automaticamente. Ele entrega uma fila priorizada para dec
 | Cache/apoio | Redis |
 | Browser automation | Selenium Grid / Playwright |
 | Migracoes | Alembic |
-| Orquestracao local | Docker Compose |
+| Orquestracao local | Docker Compose + servico `motor_daemon` |
 | Ambiente alvo | Windows com Docker Desktop |
 
 Portas locais padrao:
