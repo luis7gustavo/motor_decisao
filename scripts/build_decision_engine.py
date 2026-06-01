@@ -4,6 +4,10 @@ import argparse
 from pathlib import Path
 
 from pipelines.decision_engine.build import build_decision_opportunities
+from scripts.import_coletek_catalog import (
+    DEFAULT_CATALOG_PATH as DEFAULT_COLETEK_CATALOG_PATH,
+    import_coletek_catalog,
+)
 from scripts.import_megamix_catalog import DEFAULT_CATALOG_PATH, import_megamix_catalog
 
 
@@ -20,6 +24,17 @@ def main() -> int:
         default=DEFAULT_CATALOG_PATH,
         help="Caminho do megamix_catalog_raw.json.",
     )
+    parser.add_argument(
+        "--import-coletek",
+        action="store_true",
+        help="Importa o snapshot Coletek para Bronze antes de pontuar.",
+    )
+    parser.add_argument(
+        "--coletek-path",
+        type=Path,
+        default=DEFAULT_COLETEK_CATALOG_PATH,
+        help="Caminho do coletek_catalog_raw.json.",
+    )
     args = parser.parse_args()
 
     if args.import_megamix:
@@ -29,6 +44,18 @@ def main() -> int:
         )
         print(
             "MegaMix: "
+            f"{import_result.loaded} carregados / "
+            f"{import_result.extracted} extraidos / "
+            f"{import_result.skipped} duplicados ou invalidos"
+        )
+
+    if args.import_coletek:
+        import_result = import_coletek_catalog(
+            path=args.coletek_path,
+            triggered_by="local_cli_decision_engine",
+        )
+        print(
+            "Coletek: "
             f"{import_result.loaded} carregados / "
             f"{import_result.extracted} extraidos / "
             f"{import_result.skipped} duplicados ou invalidos"

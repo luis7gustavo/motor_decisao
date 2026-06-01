@@ -33,6 +33,15 @@ DEFAULT_QUERIES = [
     "base notebook",
     "adaptador bluetooth",
     "microfone usb",
+    "ssd sata 480gb",
+    "ssd nvme 1tb",
+    "memoria ram ddr4 16gb",
+    "memoria ram ddr5 16gb",
+    "placa mae",
+    "processador ryzen",
+    "fonte 650w",
+    "cooler processador",
+    "gabinete gamer",
 ]
 
 

@@ -42,6 +42,7 @@ class _MarketSourceExecutionResult:
     loaded: int
     skipped: int
     blocked: int
+    price_filtered: int
     error_message: str | None
 
 
@@ -147,6 +148,19 @@ def _insert_listing(connection, *, source_run_id: UUID, snapshot: MarketListingS
     return row is not None
 
 
+def _is_listing_in_price_range(
+    snapshot: MarketListingSnapshot,
+    *,
+    min_price: float,
+    max_price: float,
+) -> bool:
+    # Keep blocked snapshots as operational evidence. Normal listings must have
+    # a usable price inside the configured buying range.
+    if snapshot.blocked:
+        return True
+    return snapshot.price is not None and min_price <= snapshot.price <= max_price
+
+
 def _market_source_runtime_config(
     *,
     market_web_config: dict[str, Any],
@@ -226,6 +240,7 @@ def _ingest_single_market_source(
     loaded = 0
     skipped = 0
     blocked = 0
+    price_filtered = 0
     error_message = None
     source_status = "success"
 
@@ -246,6 +261,14 @@ def _ingest_single_market_source(
                     extracted += 1
                     if snapshot.blocked:
                         blocked += 1
+                    if not _is_listing_in_price_range(
+                        snapshot,
+                        min_price=float(market_web_config.get("min_price", 100.0)),
+                        max_price=float(market_web_config.get("max_price", 1500.0)),
+                    ):
+                        skipped += 1
+                        price_filtered += 1
+                        continue
                     if _insert_listing(connection, source_run_id=source_run_id, snapshot=snapshot):
                         loaded += 1
                     else:
@@ -262,6 +285,7 @@ def _ingest_single_market_source(
         "loaded": loaded,
         "skipped": skipped,
         "blocked": blocked,
+        "price_filtered": price_filtered,
         "error": error_message,
     }
     with engine.begin() as connection:
@@ -298,6 +322,7 @@ def _ingest_single_market_source(
         loaded=loaded,
         skipped=skipped,
         blocked=blocked,
+        price_filtered=price_filtered,
         error_message=error_message,
     )
 
@@ -334,6 +359,8 @@ def ingest_market_web(
         "queries": queries,
         "max_results": max_results,
         "engine": "playwright",
+        "min_price": float(market_web_config.get("min_price", 100.0)),
+        "max_price": float(market_web_config.get("max_price", 1500.0)),
         "parallel_workers": parallel_workers,
         "parallel_sources": parallel_sources,
         "sequential_sources": sequential_sources,
@@ -385,6 +412,7 @@ def ingest_market_web(
     total_loaded = 0
     total_skipped = 0
     total_blocked = 0
+    total_price_filtered = 0
     any_failed = False
     any_non_success = False
 
@@ -395,6 +423,7 @@ def ingest_market_web(
         total_loaded += source_result.loaded
         total_skipped += source_result.skipped
         total_blocked += source_result.blocked
+        total_price_filtered += source_result.price_filtered
         any_failed = any_failed or source_result.status == "failed"
         any_non_success = any_non_success or source_result.status != "success"
         results.append(
@@ -405,6 +434,7 @@ def ingest_market_web(
                 "loaded": source_result.loaded,
                 "skipped": source_result.skipped,
                 "blocked": source_result.blocked,
+                "price_filtered": source_result.price_filtered,
                 "error": source_result.error_message,
             }
         )
@@ -426,6 +456,7 @@ def ingest_market_web(
                 "records_loaded": total_loaded,
                 "records_skipped": total_skipped,
                 "blocked": total_blocked,
+                "price_filtered": total_price_filtered,
                 "results": results,
             },
             error_message=None if final_status != "failed" else "No market web listings loaded",

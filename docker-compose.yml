@@ -87,6 +87,31 @@ services:
       retries: 10
     restart: unless-stopped
 
+  daemon:
+    profiles:
+      - daemon
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${MOTOR_POSTGRES_USER:-motor}:${MOTOR_POSTGRES_PASSWORD:-motor}@postgres:5432/${MOTOR_POSTGRES_DB:-motor_decisao}
+      REDIS_URL: redis://redis:6379/0
+      MOTOR_CONFIG_PATH: /app/config/config.yaml
+      SELENIUM_REMOTE_URL: http://selenium:4444/wd/hub
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      selenium:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    healthcheck:
+      disable: true
+
 volumes:
   motor_postgres_data:
     name: motor_postgres_data

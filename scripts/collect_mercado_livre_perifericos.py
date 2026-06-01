@@ -39,12 +39,21 @@ DEFAULT_QUERIES = [
     "cooler notebook",
     "base notebook",
     "microfone usb",
+    "ssd sata 480gb",
+    "ssd nvme 1tb",
+    "memoria ram ddr4 16gb",
+    "memoria ram ddr5 16gb",
+    "placa mae",
+    "processador ryzen",
+    "fonte 650w",
+    "cooler processador",
+    "gabinete gamer",
 ]
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Coleta ampla de perifericos baratos no Mercado Livre."
+        description="Coleta ampla de perifericos e hardware no Mercado Livre."
     )
     parser.add_argument(
         "--query",

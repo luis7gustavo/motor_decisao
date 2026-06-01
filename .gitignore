@@ -14,9 +14,11 @@ data/
 data/*
 !data/megamix_catalog_raw.csv
 !data/megamix_catalog_raw.json
+!data/coletek_catalog_raw.json
 data_processed/
 !data_processed/
 !data_processed/*
+data_processed/power_bi/
 backups/
 output/
 *.log

@@ -33,6 +33,22 @@ class PriceComparisonIngestionResult:
     blocked: int = 0
 
 
+def _is_snapshot_in_price_range(
+    snapshot,
+    *,
+    min_price: float,
+    max_price: float,
+) -> bool:
+    # Keep blocked snapshots as diagnostics. Product records need a current
+    # price inside the configured buying range.
+    if snapshot.blocked:
+        return True
+    return (
+        snapshot.current_price is not None
+        and min_price <= snapshot.current_price <= max_price
+    )
+
+
 def _insert_snapshot(connection, *, source_run_id: UUID, snapshot) -> bool:
     row = connection.execute(
         text(
@@ -113,11 +129,15 @@ def ingest_price_comparison_search(
     project_config = settings.load_project_config()
     source_config = project_config["market_sources"]["price_history"]
     result_limit = int(max_results or source_config.get("max_results", 30))
+    min_price = float(source_config.get("min_price", 100.0))
+    max_price = float(source_config.get("max_price", 1500.0))
 
     metadata: dict[str, Any] = {
         "source_name": source_name,
         "query": query,
         "max_results": result_limit,
+        "min_price": min_price,
+        "max_price": max_price,
         "note": "comparison search current prices; not full historical series yet",
     }
 
@@ -141,6 +161,7 @@ def ingest_price_comparison_search(
     extracted = 0
     loaded = 0
     skipped = 0
+    price_filtered = 0
     status = "success"
     error_message: str | None = None
 
@@ -155,6 +176,14 @@ def ingest_price_comparison_search(
 
         with engine.begin() as connection:
             for snapshot in snapshots:
+                if not _is_snapshot_in_price_range(
+                    snapshot,
+                    min_price=min_price,
+                    max_price=max_price,
+                ):
+                    skipped += 1
+                    price_filtered += 1
+                    continue
                 if _insert_snapshot(connection, source_run_id=source_run_id, snapshot=snapshot):
                     loaded += 1
                 else:
@@ -171,7 +200,7 @@ def ingest_price_comparison_search(
             records_extracted=extracted,
             records_loaded=loaded,
             records_skipped=skipped,
-            metadata=metadata,
+            metadata={**metadata, "price_filtered": price_filtered},
             error_message=error_message,
         )
         record_quality_check(
@@ -185,7 +214,12 @@ def ingest_price_comparison_search(
             metric_name="records_loaded",
             metric_value=loaded,
             threshold_value=1,
-            details={"extracted": extracted, "skipped": skipped, "source_name": source_name},
+            details={
+                "extracted": extracted,
+                "skipped": skipped,
+                "price_filtered": price_filtered,
+                "source_name": source_name,
+            },
             message=None if loaded > 0 else f"No comparison records loaded from {source_name}",
         )
         finish_pipeline_run(
@@ -197,6 +231,7 @@ def ingest_price_comparison_search(
                 "records_extracted": extracted,
                 "records_loaded": loaded,
                 "records_skipped": skipped,
+                "price_filtered": price_filtered,
             },
             error_message=error_message,
         )
@@ -231,12 +266,16 @@ def ingest_price_comparison_web_history(
     web_config = source_config.get("web_history", {})
     result_limit = int(max_results or web_config.get("max_results", source_config.get("max_results", 30)))
     detail_limit = int(product_detail_limit or web_config.get("product_detail_limit", result_limit))
+    min_price = float(web_config.get("min_price", source_config.get("min_price", 100.0)))
+    max_price = float(web_config.get("max_price", source_config.get("max_price", 1500.0)))
 
     metadata: dict[str, Any] = {
         "source_name": source_name,
         "query": query,
         "max_results": result_limit,
         "product_detail_limit": detail_limit,
+        "min_price": min_price,
+        "max_price": max_price,
         "note": "comparison product pages via Playwright; captures raw page state, offers and visible price-history summary",
     }
 
@@ -260,6 +299,7 @@ def ingest_price_comparison_web_history(
     extracted = 0
     loaded = 0
     skipped = 0
+    price_filtered = 0
     blocked = 0
     status = "success"
     error_message: str | None = None
@@ -285,6 +325,14 @@ def ingest_price_comparison_web_history(
 
         with engine.begin() as connection:
             for snapshot in snapshots:
+                if not _is_snapshot_in_price_range(
+                    snapshot,
+                    min_price=min_price,
+                    max_price=max_price,
+                ):
+                    skipped += 1
+                    price_filtered += 1
+                    continue
                 if _insert_snapshot(connection, source_run_id=source_run_id, snapshot=snapshot):
                     loaded += 1
                 else:
@@ -302,7 +350,7 @@ def ingest_price_comparison_web_history(
             records_extracted=extracted,
             records_loaded=loaded,
             records_skipped=skipped,
-            metadata={**metadata, "blocked": blocked},
+            metadata={**metadata, "blocked": blocked, "price_filtered": price_filtered},
             error_message=error_message,
         )
         record_quality_check(
@@ -320,6 +368,7 @@ def ingest_price_comparison_web_history(
                 "extracted": extracted,
                 "skipped": skipped,
                 "blocked": blocked,
+                "price_filtered": price_filtered,
                 "source_name": source_name,
             },
             message=None if loaded > 0 else f"No web history records loaded from {source_name}",
@@ -334,6 +383,7 @@ def ingest_price_comparison_web_history(
                 "records_loaded": loaded,
                 "records_skipped": skipped,
                 "blocked": blocked,
+                "price_filtered": price_filtered,
             },
             error_message=error_message,
         )

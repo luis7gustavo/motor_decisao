@@ -144,6 +144,26 @@ Para status:
 
 O caminho operacional preferido para ciclo Bronze e HTTP-first, porque evita duplicar runs e usa os endpoints operacionais da API.
 
+### Escopo atual da coleta
+
+O ciclo coleta novas evidencias de marketplace e historico de preco apenas
+quando o produto esta entre `R$ 100,00` e `R$ 1.500,00`. Snapshots bloqueados
+continuam registrados como diagnostico operacional.
+
+As buscas cobrem perifericos e hardware, incluindo:
+
+- SSD SATA e NVMe;
+- memoria RAM DDR4 e DDR5;
+- placa-mae;
+- processador Ryzen;
+- fonte;
+- cooler de processador;
+- gabinete.
+
+Os catalogos brutos MegaMix e Mirao continuam preservados integralmente. O
+filtro evita ruido nas evidencias de mercado sem descartar dados de origem dos
+fornecedores.
+
 Iniciar ciclo Bronze assincrono:
 
 ```powershell

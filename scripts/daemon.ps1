@@ -20,6 +20,8 @@ param(
 
 $ProjectRoot = Resolve-Path "$PSScriptRoot\.."
 $TaskName = "MotorDecisaoDaemon"
+$StartupDir = [Environment]::GetFolderPath("Startup")
+$StartupLauncher = Join-Path $StartupDir "$TaskName.cmd"
 
 # --- Registra tarefa no Task Scheduler ---
 if ($Register) {
@@ -40,13 +42,31 @@ if ($Register) {
         -StartWhenAvailable `
         -WakeToRun
 
-    Register-ScheduledTask `
-        -TaskName $TaskName `
-        -Action $Action `
-        -Trigger $TriggerLogon, $TriggerWake `
-        -Settings $Settings `
-        -RunLevel Highest `
-        -Force | Out-Null
+    try {
+        Register-ScheduledTask `
+            -TaskName $TaskName `
+            -Action $Action `
+            -Trigger $TriggerLogon, $TriggerWake `
+            -Settings $Settings `
+            -Force `
+            -ErrorAction Stop | Out-Null
+    }
+    catch {
+        $LauncherContent = @"
+@echo off
+start "" /min powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -File "$ScriptPath"
+"@
+        try {
+            Set-Content -LiteralPath $StartupLauncher -Value $LauncherContent -Encoding ASCII
+        }
+        catch {
+            Write-Error "Nao foi possivel registrar a tarefa nem criar o inicializador: $($_.Exception.Message)"
+            exit 1
+        }
+        Write-Warning "Agendador de Tarefas indisponivel. Inicializador criado em '$StartupLauncher'."
+        Write-Host "O daemon iniciara automaticamente ao fazer login." -ForegroundColor Green
+        exit 0
+    }
 
     Write-Host "Tarefa '$TaskName' registrada com sucesso." -ForegroundColor Green
     Write-Host "O daemon iniciara automaticamente ao ligar o PC e ao fazer login."
@@ -56,6 +76,7 @@ if ($Register) {
 # --- Remove tarefa do Task Scheduler ---
 if ($Unregister) {
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $StartupLauncher -Force -ErrorAction SilentlyContinue
     Write-Host "Tarefa '$TaskName' removida." -ForegroundColor Yellow
     exit 0
 }
@@ -70,4 +91,4 @@ docker compose up -d postgres redis
 $DaemonArgs = @("scripts/daemon.py", "--cooldown", $Cooldown)
 if ($Once) { $DaemonArgs += "--once" }
 
-docker compose run --rm api python @DaemonArgs
+docker compose run --rm daemon python @DaemonArgs

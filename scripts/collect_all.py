@@ -7,6 +7,8 @@ Uso:
     python scripts/collect_all.py --only web            # so scraping web
     python scripts/collect_all.py --only suppliers      # so fornecedores B2B
     python scripts/collect_all.py --only etl            # so export ETL
+    python scripts/collect_all.py --only engine         # so recalculo Gold
+    python scripts/collect_all.py --only powerbi        # so export Power BI
 """
 from __future__ import annotations
 
@@ -22,7 +24,7 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 
-STAGES = ("ml", "web", "suppliers", "etl")
+STAGES = ("ml", "web", "suppliers", "etl", "engine", "powerbi")
 
 
 def _ts() -> str:
@@ -84,6 +86,25 @@ def stage_etl() -> bool:
     return _run("Quick ETL Export", "quick_etl_exports.py")
 
 
+def stage_powerbi() -> bool:
+    _sep()
+    _log("[POWER BI] Export da camada analitica")
+    _sep()
+    return _run("Power BI Export", "export_power_bi.py")
+
+
+def stage_engine() -> bool:
+    _sep()
+    _log("[ENGINE] Importa snapshots e recalcula recomendacoes Gold")
+    _sep()
+    return _run(
+        "Decision Engine",
+        "build_decision_engine.py",
+        "--import-megamix",
+        "--import-coletek",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Roda todas as coletas de uma vez.")
     group = parser.add_mutually_exclusive_group()
@@ -127,6 +148,8 @@ def main() -> int:
     run_web = args.only in (None, "web") and args.skip != "web"
     run_suppliers = args.only in (None, "suppliers") and args.skip != "suppliers"
     run_etl = args.only in (None, "etl") and args.skip != "etl"
+    run_engine = args.only in (None, "engine") and args.skip != "engine"
+    run_powerbi = args.only in (None, "powerbi") and args.skip != "powerbi"
 
     _sep("=")
     _log("COLETA COMPLETA - motor_decisao_compra")
@@ -135,6 +158,8 @@ def main() -> int:
         f"  WEB={'sim' if run_web else 'nao'}"
         f"  SUPPLIERS={'sim' if run_suppliers else 'nao'}"
         f"  ETL={'sim' if run_etl else 'nao'}"
+        f"  ENGINE={'sim' if run_engine else 'nao'}"
+        f"  POWERBI={'sim' if run_powerbi else 'nao'}"
     )
     _sep("=")
 
@@ -171,6 +196,10 @@ def main() -> int:
 
     if run_etl:
         stage_results["etl"] = stage_etl()
+    if run_engine:
+        stage_results["engine"] = stage_engine()
+    if run_powerbi:
+        stage_results["powerbi"] = stage_powerbi()
 
     failed_stages = [name for name, ok in stage_results.items() if not ok]
     _sep("=")

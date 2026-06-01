@@ -9,6 +9,10 @@ from sqlalchemy import text
 
 from app.core.database import engine
 from pipelines.decision_engine.build import build_decision_opportunities
+from scripts.import_coletek_catalog import (
+    DEFAULT_CATALOG_PATH as DEFAULT_COLETEK_CATALOG_PATH,
+    import_coletek_catalog,
+)
 from scripts.import_megamix_catalog import DEFAULT_CATALOG_PATH, import_megamix_catalog
 
 
@@ -37,11 +41,20 @@ def _serialize_row(row: dict[str, Any]) -> dict[str, Any]:
 def run_decision_engine(
     import_megamix: bool = Query(default=True),
     megamix_path: str | None = Query(default=None),
+    import_coletek: bool = Query(default=True),
+    coletek_path: str | None = Query(default=None),
 ) -> dict[str, Any]:
     import_summary = None
+    coletek_import_summary = None
     if import_megamix:
         path = Path(megamix_path) if megamix_path else DEFAULT_CATALOG_PATH
         import_summary = import_megamix_catalog(
+            path=path,
+            triggered_by="api_decision_engine",
+        )
+    if import_coletek:
+        path = Path(coletek_path) if coletek_path else DEFAULT_COLETEK_CATALOG_PATH
+        coletek_import_summary = import_coletek_catalog(
             path=path,
             triggered_by="api_decision_engine",
         )
@@ -49,6 +62,9 @@ def run_decision_engine(
     result = build_decision_opportunities(triggered_by="api_decision_engine")
     return {
         "import_megamix": _serialize(import_summary.__dict__) if import_summary else None,
+        "import_coletek": (
+            _serialize(coletek_import_summary.__dict__) if coletek_import_summary else None
+        ),
         "decision_engine": _serialize(result.__dict__),
     }
 

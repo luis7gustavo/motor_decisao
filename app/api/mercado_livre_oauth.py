@@ -4,7 +4,10 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.core.mercado_livre_tokens import refresh_mercado_livre_tokens
+from app.core.mercado_livre_tokens import (
+    exchange_mercado_livre_code,
+    refresh_mercado_livre_tokens,
+)
 from app.core.settings import get_settings
 
 router = APIRouter(prefix="/integracoes/mercado-livre", tags=["mercado livre"])
@@ -57,14 +60,17 @@ def callback(
     if not code:
         raise HTTPException(status_code=400, detail="Callback sem parametro code.")
 
+    try:
+        data = exchange_mercado_livre_code(code)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return {
-        "status": "received_code",
-        "code": code,
+        "status": "authorized",
         "state": state,
-        "next_step": (
-            "Rode: docker compose run --rm api python scripts/mercado_livre_oauth.py "
-            f'exchange --code "{code}"'
-        ),
+        "user_id": str(data["user_id"]) if data.get("user_id") is not None else None,
+        "expires_in": str(data["expires_in"]) if data.get("expires_in") is not None else None,
+        "refresh_token_configured": "true" if data.get("refresh_token") else "false",
     }
 
 

@@ -20,6 +20,7 @@ O objetivo do MVP e apoiar decisao humana. Ele ainda nao executa compra automati
 | `docs/sillo_documentacao.html` | Versao visual da documentacao com identidade da marca. |
 | `docs/arquitetura_tecnica.md` | Arquitetura, schemas, pipelines, motor, objetivos e proximos passos. |
 | `docs/uso_local_e_importacao.md` | Runbook operacional: setup, coleta, motor, diagnostico e importacao/exportacao. |
+| `docs/power_bi_dashboard.md` | Modelo de dados, atualizacao e paginas recomendadas no Power BI. |
 | `docs/mercado_livre_ngrok.md` | Guia de OAuth Mercado Livre com ngrok. |
 
 Logo:
@@ -98,6 +99,7 @@ Fontes externas
   Zoom / Buscape
   MegaMix
   Mirao
+  Coletek
 
         |
         v
@@ -151,6 +153,11 @@ Resposta esperada:
 
 ## Rodar Coleta e Motor
 
+O ciclo Bronze de mercado coleta perifericos e hardware com preco entre
+`R$ 100,00` e `R$ 1.500,00`. A faixa e aplicada a novas evidencias de
+marketplace e historico de preco; catalogos brutos de fornecedores continuam
+preservados integralmente para auditoria.
+
 Coletar Mirao:
 
 ```powershell
@@ -160,7 +167,8 @@ docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
 Importar MegaMix e rodar motor:
 
 ```powershell
-docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+.\scripts\extract_coletek_catalog.ps1
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix --import-coletek
 ```
 
 Consultar resumo:
@@ -173,6 +181,12 @@ Consultar oportunidades:
 
 ```powershell
 Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?recommendation=comprar_teste"
+```
+
+Exportar a camada analitica para o Power BI:
+
+```powershell
+docker compose exec -T api python scripts/export_power_bi.py
 ```
 
 ## Endpoints Principais
