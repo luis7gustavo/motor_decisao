@@ -21,6 +21,11 @@ data_processed/
 data_processed/power_bi/
 backups/
 output/
+artifacts/ml/models/
+artifacts/ml/metadata/
+artifacts/ml/feature_lists/
+reports/ml/
+data_processed/ml/
 *.log
 *.sqlite
 *.db

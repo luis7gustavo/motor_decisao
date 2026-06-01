@@ -21,6 +21,7 @@ O objetivo do MVP e apoiar decisao humana. Ele ainda nao executa compra automati
 | `docs/arquitetura_tecnica.md` | Arquitetura, schemas, pipelines, motor, objetivos e proximos passos. |
 | `docs/uso_local_e_importacao.md` | Runbook operacional: setup, coleta, motor, diagnostico e importacao/exportacao. |
 | `docs/power_bi_dashboard.md` | Modelo de dados, atualizacao e paginas recomendadas no Power BI. |
+| `docs/ml_engine.md` | Camada hibrida de ML, limites dos rotulos proxy, treino e evolucao. |
 | `docs/mercado_livre_ngrok.md` | Guia de OAuth Mercado Livre com ngrok. |
 
 Logo:
@@ -42,33 +43,37 @@ output/doc/SILLO_Documentacao_Completa.docx
 
 ## Estado Atual Validado
 
-Validado em 2026-05-26:
+Validado em 2026-06-01:
 
 | Indicador | Valor |
 | --- | ---: |
-| Produtos pontuados no Gold atual | 5.139 |
+| Produtos pontuados no Gold atual | 5.776 |
 | `comprar_teste` | 2 |
-| `revisar` | 34 |
-| `ignorar` | 5.103 |
+| `revisar` heuristico | 38 |
+| `ignorar` heuristico | 5.736 |
 | Versao do motor | `heuristic_v2_confidence_guard` |
+| Modelo ML selecionado | `random_forest` |
+| `revisar` hibrido | 171 |
 
 Tabelas principais:
 
 | Tabela | Linhas |
 | --- | ---: |
-| `bronze.market_web_listings_raw` | 14.516 |
-| `bronze.price_history_raw` | 3.459 |
-| `bronze.supplier_products_raw` | 7.527 |
-| `silver.supplier_products_normalized` | 7.527 |
-| `gold.decision_opportunities` | 5.139 |
-| `gold.decision_opportunity_snapshots` | 12.661 |
+| `bronze.market_web_listings_raw` | 17.324 |
+| `bronze.price_history_raw` | 3.824 |
+| `bronze.supplier_products_raw` | 18.583 |
+| `silver.supplier_products_normalized` | 15.783 |
+| `gold.decision_opportunities` | 5.776 |
+| `gold.decision_opportunity_snapshots` | 38.993 |
+| `gold.ml_opportunity_scores_latest` | 5.776 |
 
 Fornecedores carregados:
 
 | Fornecedor | Registros Bronze |
 | --- | ---: |
-| MegaMix | 4.720 |
-| Mirao | 2.807 |
+| MegaMix | 9.440 |
+| Mirao | 8.408 |
+| Coletek | 735 |
 
 ## Stack
 
@@ -117,7 +122,7 @@ Silver
         v
 
 Gold
-  oportunidades, historico e runs versionadas
+  oportunidades, historico, runs e scores ML versionados
 
         |
         v
@@ -189,6 +194,32 @@ Exportar a camada analitica para o Power BI:
 docker compose exec -T api python scripts/export_power_bi.py
 ```
 
+## Rodar Camada Hibrida de ML
+
+O baseline heuristico continua ativo e auditavel. A camada de ML aprende
+rotulos proxy da heuristica, compara tres modelos e combina o score selecionado
+com as regras existentes. Ela nao autoriza compra automaticamente.
+
+Treinar, pontuar e comparar:
+
+```powershell
+docker compose exec -T api python scripts/ml_run_all.py
+```
+
+Atualizar apenas as previsoes depois de um novo ciclo do motor:
+
+```powershell
+docker compose exec -T api python scripts/ml_run_all.py --predict-only
+```
+
+Consultar resumo:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/ml-engine/summary
+```
+
+Detalhes em `docs/ml_engine.md`.
+
 ## Endpoints Principais
 
 | Rota | Metodo | Uso |
@@ -201,6 +232,10 @@ docker compose exec -T api python scripts/export_power_bi.py
 | `/decision-engine/summary` | GET | Resumo das recomendacoes atuais. |
 | `/decision-engine/opportunities` | GET | Lista oportunidades. |
 | `/decision-engine/runs` | GET | Historico de rodadas do motor. |
+| `/ml-engine/train` | POST | Treina e versiona um modelo proxy. |
+| `/ml-engine/predict` | POST | Atualiza scores hibridos com o ultimo modelo. |
+| `/ml-engine/summary` | GET | Resume a comparacao heuristica x ML. |
+| `/ml-engine/opportunities` | GET | Lista scores hibridos e explicacoes. |
 
 ## Conexao no DBeaver
 

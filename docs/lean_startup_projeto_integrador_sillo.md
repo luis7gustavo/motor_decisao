@@ -4,7 +4,7 @@
 
 **Tagline:** SILLO - Intelligence for better buying
 
-**Data de referência:** 27/05/2026, com resultados técnicos validados em 26/05/2026
+**Data de referência:** 01/06/2026, com resultados técnicos validados na mesma data
 
 **Natureza do projeto:** MVP local-first de inteligência de compras para revenda, com pipeline de dados e motor de decisão auditável.
 
@@ -16,7 +16,7 @@ A SILLO é uma plataforma inteligente para apoiar decisões de compra orientadas
 
 O MVP já implementado cobre ingestão de dados, arquitetura Medalhão, normalização de fornecedores, motor de decisão e API operacional. A entrega atual não executa compras automaticamente; ela recomenda ações com níveis de confiança e preserva evidências para revisão humana.
 
-- Fontes de fornecedores: MegaMix via arquivo JSON e Mirão via web scraper já carregado no banco.
+- Fontes de fornecedores: MegaMix via arquivo JSON, Mirão via web scraper e Coletek via planilha já carregados no banco.
 - Fontes de mercado: Mercado Livre, marketplaces, comparadores e histórico parcial de preços.
 - Camadas de dados: Bronze para dados brutos, Silver para normalização e Gold para decisões auditáveis.
 - Saída do motor: `comprar_teste`, `revisar` ou `ignorar`, sempre com guardrails de risco.
@@ -31,7 +31,7 @@ Abaixo estão as respostas diretas ao Canvas apresentado nos slides do workshop.
 | Quem é afetado | Compradores de revenda, pequenos lojistas, analistas operacionais e donos de negócio que precisam transformar catálogos grandes em decisões práticas de compra. |
 | Impacto | Perda de margem, capital parado em produtos ruins, excesso de tempo gasto em comparação manual, risco de comprar produto sem demanda ou com concorrência agressiva. |
 | Hipótese central | Acredito que preço de fornecedor, preço estimado de mercado, diversidade de fontes, sinais de demanda, histórico de preço e qualidade do match estão relacionados à viabilidade de compra; e que é possível ranquear oportunidades com confiança operacional usando dados de fornecedores, marketplaces e comparadores. |
-| Fonte de dados | MegaMix (`data/megamix_catalog_raw.json`), Mirão via web scraper, Mercado Livre, Amazon, Kabum, Terabyte, Shopee, AliExpress, Pichau, Magalu, Zoom e Buscapé. Os dados são armazenados em PostgreSQL nas camadas Bronze, Silver e Gold. |
+| Fonte de dados | MegaMix (`data/megamix_catalog_raw.json`), Mirão via web scraper, Coletek via planilha, Mercado Livre, Amazon, Kabum, Terabyte, Shopee, AliExpress, Pichau, Magalu, Zoom e Buscapé. Os dados são armazenados em PostgreSQL nas camadas Bronze, Silver e Gold. |
 | MVP - primeira entrega | Um motor local que ingere dados, normaliza produtos, calcula margem, confiança e risco, e gera uma lista priorizada de oportunidades. A primeira pergunta respondida é: quais produtos merecem compra experimental pequena agora? |
 | Métricas de sucesso | Cobertura de produtos elegíveis, quantidade de evidências por produto, margem líquida estimada, diversidade de fontes, nível de confiança, taxa futura de aprovação humana, margem realizada e giro após compra-teste. |
 | Stakeholder / público | Revendedores, compradores B2B, pequenos e-commerces, equipes comerciais e avaliadores acadêmicos interessados em um projeto aplicado de Data Science com impacto operacional real. |
@@ -43,7 +43,7 @@ Abaixo estão as respostas diretas ao Canvas apresentado nos slides do workshop.
 | O problema é real? | Sim. | A decisão de compra usa múltiplas fontes e milhares de produtos. O risco de falso positivo, margem baixa e falta de demanda já aparece nas flags do motor. |
 | É relevante para alguém? | Sim. | Revendedores precisam comprar melhor, reduzir estoque parado e priorizar produtos com evidência de mercado. |
 | Posso medir o problema? | Sim. | O projeto mede margem estimada, preço de mercado, score de demanda, quantidade de evidências, diversidade de fontes, confiança de match e recomendação. |
-| Tenho dados para analisar? | Sim. | A base validada contém 7.527 produtos brutos de fornecedores, 14.516 ofertas web e 3.459 registros de histórico de preço. |
+| Tenho dados para analisar? | Sim. | O snapshot validado contém 18.583 registros Bronze de fornecedor, 17.324 ofertas web e 3.824 registros de histórico de preço. |
 | É viável em 1 semestre? | Sim. | O MVP já existe localmente com API, banco, pipelines, documentação e motor versionado. O escopo final deve continuar como apoio à decisão, não compra automática. |
 
 **Conclusão da validação:** o problema passa nas 5 perguntas da apresentação. O escopo é bom para projeto integrador porque tem dado real, decisão de negócio clara, MVP funcional e espaço natural para iteração.
@@ -70,24 +70,24 @@ O MVP não tenta resolver todo o ciclo de compra. Ele entrega a menor versão fu
 | Etapa Lean Startup | Implementação na SILLO | Aprendizado gerado |
 | --- | --- | --- |
 | Build | Pipelines de ingestão, banco PostgreSQL, camadas Bronze/Silver/Gold, motor `heuristic_v2_confidence_guard` e rotas FastAPI. | É possível transformar fontes heterogêneas em uma base comparável de decisão. |
-| Measure | Rodada validada com 5.139 produtos pontuados, 18.011 evidências usadas, 2 `comprar_teste`, 34 `revisar` e 5.103 `ignorar`. | O motor é conservador: prefere bloquear compra quando há pouca evidência, match fraco ou margem insuficiente. |
+| Measure | Rodada validada com 5.776 produtos pontuados, 21.031 evidências usadas, 2 `comprar_teste`, 38 `revisar` e 5.736 `ignorar`. A camada híbrida amplia a fila explicável para 171 revisões. | O motor é conservador: prefere bloquear compra quando há pouca evidência, match fraco ou margem insuficiente. |
 | Learn | A saída mostra que a compra automática ainda seria prematura, mas a triagem para revisão humana já tem valor. | A próxima iteração deve focar em match canônico, margem real e validação humana para criar dataset supervisionado. |
 
 ## 6. Resultados Atuais do Motor
 
-A última rodada validada em 26/05/2026 mostra um comportamento coerente para um MVP de decisão de compra: o motor é restritivo e libera poucos itens como compra-teste.
+A última rodada validada em 01/06/2026 mostra um comportamento coerente para um MVP de decisão de compra: o motor é restritivo e libera poucos itens como compra-teste.
 
 | Indicador | Valor |
 | --- | ---: |
 | Versão do motor | `heuristic_v2_confidence_guard` |
-| Produtos pontuados | 5.139 |
-| Evidências usadas | 18.011 |
+| Produtos pontuados | 5.776 |
+| Evidências usadas | 21.031 |
 | `comprar_teste` | 2 |
-| `revisar` | 34 |
-| `ignorar` | 5.103 |
+| `revisar` | 38 |
+| `ignorar` | 5.736 |
 | Confiança alta | 2 produtos |
-| Confiança média | 34 produtos |
-| Confiança baixa | 5.103 produtos |
+| Confiança média | 38 produtos |
+| Confiança baixa | 5.736 produtos |
 
 | Produto | Fornecedor | Preço fornecedor | Preço mercado | Margem líquida | Confiança |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -102,7 +102,7 @@ As métricas abaixo conectam a metodologia da apresentação com a realidade do 
 
 | Métrica | Status atual | Meta de evolução |
 | --- | --- | --- |
-| Cobertura de pontuação | 5.139 produtos elegíveis pontuados na rodada validada. | Pontuar todo produto com preço e dados mínimos, com controle de freshness por fonte. |
+| Cobertura de pontuação | 5.776 produtos elegíveis pontuados na rodada validada. | Pontuar todo produto com preço e dados mínimos, com controle de freshness por fonte. |
 | Qualidade da recomendação | Classificação em 3 níveis com guardrails de risco. | Medir precisão@k e taxa de aprovação humana das recomendações `comprar_teste`. |
 | Margem | Margem líquida estimada calculada pelo motor. | Incluir frete, taxas, impostos, estoque e margem realizada após venda. |
 | Demanda | Score de demanda por evidências disponíveis. | Usar sinais históricos e vendas reais para estimar probabilidade de giro. |
@@ -120,7 +120,7 @@ A metodologia técnica segue uma arquitetura Medalhão, que separa coleta, norma
 | Gold | Gerar saída de decisão e histórico auditável. | Tabela `gold.decision_opportunities`, runs versionadas e snapshots. |
 | API | Operar e consultar o sistema. | Rotas `/health`, `/ops/*` e `/decision-engine/*`. |
 
-O motor atual é heurístico, o que é adequado para um MVP: ele permite explicar cada decisão, entender limites dos dados e gerar uma base futura para modelos estatísticos ou de Machine Learning.
+O baseline continua heurístico e explicável. A primeira camada híbrida de ML compara modelos simples, registra scores auditáveis e mantém a heurística como trava de segurança. Como os rótulos atuais são proxy da heurística, ainda falta registrar vendas reais para validar desempenho comercial.
 
 ## 9. Pivotar ou Perseverar
 
@@ -130,7 +130,7 @@ A recomendação é perseverar na direção do produto, mas manter o posicioname
 | --- | --- |
 | Perseverar | O problema é real, os dados existem, o MVP funciona e a saída é interpretável. A arquitetura já permite medir e aprender a cada rodada. |
 | Pivot já realizado | O projeto saiu da ideia de compra automática para recomendação auditável com compra-teste controlada. Esse pivô reduz risco e melhora a validade acadêmica e operacional. |
-| Próximo ponto de decisão | Após revisão humana dos itens recomendados, decidir se o motor precisa mudar pesos, ampliar fontes ou melhorar o matching antes de avançar para ML. |
+| Próximo ponto de decisão | Após revisão humana dos itens recomendados, decidir se o motor precisa mudar pesos, ampliar fontes ou melhorar o matching antes de substituir rótulos proxy por vendas reais. |
 
 ## 10. Avaliação pelos Critérios do Projeto
 
@@ -165,7 +165,7 @@ A recomendação é perseverar na direção do produto, mas manter o posicioname
 
 A SILLO resolve um problema comum em revenda: decidir o que comprar quando existem milhares de produtos de fornecedores e sinais de mercado espalhados em várias fontes. Em vez de começar pelo dataset, o projeto começa pela decisão de negócio: encontrar produtos com margem, demanda e evidência suficiente para uma compra-teste segura.
 
-O MVP coleta dados de fornecedores como MegaMix e Mirão, junta sinais de marketplaces e comparadores, organiza tudo em camadas Bronze, Silver e Gold e roda um motor de decisão auditável. Na rodada validada, 5.139 produtos foram pontuados e apenas 2 passaram como `comprar_teste`, mostrando uma postura conservadora adequada para reduzir falso positivo.
+O MVP coleta dados de fornecedores como MegaMix, Mirão e Coletek, junta sinais de marketplaces e comparadores, organiza tudo em camadas Bronze, Silver e Gold e roda um motor de decisão auditável. Na rodada validada, 5.776 produtos foram pontuados e apenas 2 passaram como `comprar_teste`, mostrando uma postura conservadora adequada para reduzir falso positivo.
 
 O próximo ciclo é transformar revisão humana em dado, melhorar o matching de produto e incluir custos reais como frete e taxas. Assim, o projeto evolui de regras explicáveis para modelos estatísticos e de Machine Learning treinados com evidências reais.
 

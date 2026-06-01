@@ -183,3 +183,19 @@ margin:
   tax_pct: 0.17
   shipping_pct: 0.03
   min_net_margin_pct: 0.20
+
+ml:
+  enabled: true
+  use_heuristic_as_teacher: true
+  use_hybrid_score: true
+  heuristic_weight: 0.70
+  ml_weight: 0.30
+  opportunity_threshold: 0.65
+  review_threshold: 0.45
+  min_training_rows: 50
+  random_state: 42
+  test_size: 0.25
+  model_type: best
+  artifact_dir: artifacts/ml
+  report_dir: reports/ml
+  dataset_dir: data_processed/ml

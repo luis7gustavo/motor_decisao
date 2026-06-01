@@ -8,6 +8,7 @@ Uso:
     python scripts/collect_all.py --only suppliers      # so fornecedores B2B
     python scripts/collect_all.py --only etl            # so export ETL
     python scripts/collect_all.py --only engine         # so recalculo Gold
+    python scripts/collect_all.py --only mlengine       # so predicao ML hibrida
     python scripts/collect_all.py --only powerbi        # so export Power BI
 """
 from __future__ import annotations
@@ -24,7 +25,7 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 
-STAGES = ("ml", "web", "suppliers", "etl", "engine", "powerbi")
+STAGES = ("ml", "web", "suppliers", "etl", "engine", "mlengine", "powerbi")
 
 
 def _ts() -> str:
@@ -105,6 +106,18 @@ def stage_engine() -> bool:
     )
 
 
+def stage_mlengine() -> bool:
+    _sep()
+    _log("[ML ENGINE] Predicao hibrida com o ultimo modelo treinado")
+    _sep()
+    return _run(
+        "ML Hybrid Prediction",
+        "ml_run_all.py",
+        "--predict-only",
+        "--allow-missing-model",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Roda todas as coletas de uma vez.")
     group = parser.add_mutually_exclusive_group()
@@ -149,6 +162,7 @@ def main() -> int:
     run_suppliers = args.only in (None, "suppliers") and args.skip != "suppliers"
     run_etl = args.only in (None, "etl") and args.skip != "etl"
     run_engine = args.only in (None, "engine") and args.skip != "engine"
+    run_mlengine = args.only in (None, "mlengine") and args.skip != "mlengine"
     run_powerbi = args.only in (None, "powerbi") and args.skip != "powerbi"
 
     _sep("=")
@@ -159,6 +173,7 @@ def main() -> int:
         f"  SUPPLIERS={'sim' if run_suppliers else 'nao'}"
         f"  ETL={'sim' if run_etl else 'nao'}"
         f"  ENGINE={'sim' if run_engine else 'nao'}"
+        f"  MLENGINE={'sim' if run_mlengine else 'nao'}"
         f"  POWERBI={'sim' if run_powerbi else 'nao'}"
     )
     _sep("=")
@@ -198,6 +213,8 @@ def main() -> int:
         stage_results["etl"] = stage_etl()
     if run_engine:
         stage_results["engine"] = stage_engine()
+    if run_mlengine:
+        stage_results["mlengine"] = stage_mlengine()
     if run_powerbi:
         stage_results["powerbi"] = stage_powerbi()
 

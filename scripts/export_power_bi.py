@@ -176,6 +176,61 @@ QUERY_EXPORTS = (
         """,
         params={"quality_limit": 10000},
     ),
+    QueryExport(
+        filename="fato_ml_oportunidades_atuais.csv",
+        sql="""
+            SELECT
+                id::text AS ml_score_id,
+                model_run_id::text AS model_run_id,
+                decision_run_id::text AS decision_run_id,
+                supplier_product_id::text AS supplier_product_id,
+                supplier_slug,
+                product_title,
+                heuristic_score,
+                heuristic_decision,
+                ml_score,
+                ml_prediction,
+                ml_decision,
+                final_score,
+                final_decision,
+                score_difference,
+                decision_source,
+                confidence_level,
+                explanation,
+                model_version,
+                scored_at
+            FROM gold.ml_opportunity_scores_latest
+            ORDER BY
+                CASE final_decision
+                    WHEN 'comprar_teste' THEN 1
+                    WHEN 'revisar' THEN 2
+                    ELSE 3
+                END,
+                final_score DESC,
+                supplier_slug,
+                product_title
+        """,
+    ),
+    QueryExport(
+        filename="fato_execucoes_ml.csv",
+        sql="""
+            SELECT
+                id::text AS model_run_id,
+                model_version,
+                model_type,
+                status,
+                training_rows,
+                positive_rows,
+                artifact_path,
+                trained_at,
+                error_message,
+                created_at
+            FROM gold.ml_model_runs
+            ORDER BY created_at DESC
+            LIMIT :ml_run_limit
+        """,
+        params={"ml_run_limit": 1000},
+    ),
 )
 
 

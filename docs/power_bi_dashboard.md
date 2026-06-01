@@ -31,6 +31,8 @@ atualiza esses arquivos ao final da execucao.
 | `fato_execucoes_motor.csv` | Duracao, status e versao de cada rodada do motor. |
 | `fato_execucoes_fontes.csv` | Saude, volume e atualizacao das fontes coletadas. |
 | `fato_qualidade_dados.csv` | Checks de qualidade e alertas dos pipelines. |
+| `fato_ml_oportunidades_atuais.csv` | Scores hibridos, divergencias e explicacoes do modelo atual. |
+| `fato_execucoes_ml.csv` | Modelos treinados, versoes e metricas registradas. |
 | `dim_fornecedores.csv` | Pedido minimo e modo de atualizacao de cada fornecedor. |
 | `dim_cenarios_frete.csv` | Cenarios de frete de entrada: otimista, base e conservador. |
 
@@ -44,6 +46,7 @@ Relacionamentos principais:
 dim_fornecedores[supplier_slug] 1 --- * fato_oportunidades_atuais[supplier_slug]
 dim_fornecedores[supplier_slug] 1 --- * fato_historico_oportunidades[supplier_slug]
 fato_execucoes_motor[decision_run_id] 1 --- * fato_historico_oportunidades[decision_run_id]
+dim_fornecedores[supplier_slug] 1 --- * fato_ml_oportunidades_atuais[supplier_slug]
 ```
 
 Use `dim_cenarios_frete` como tabela desconectada para alternar cenarios em um
@@ -96,6 +99,15 @@ comecar com filtros e uma selecao manual das oportunidades aprovadas.
 - evolucao da confianca dos matches;
 - comparacao entre versoes do scoring.
 
+### 6. Heuristica x Machine Learning
+
+- score heuristico, score ML e score final hibrido;
+- quantidade de divergencias;
+- recomendacao final por fornecedor;
+- explicacao textual de cada oportunidade;
+- versao do modelo selecionado;
+- fila de revisao humana ampliada pelos sinais do ML.
+
 ## Medidas iniciais
 
 Exemplos de medidas DAX:
@@ -103,6 +115,9 @@ Exemplos de medidas DAX:
 ```DAX
 Produtos Avaliados =
 COUNTROWS(fato_oportunidades_atuais)
+
+Produtos Avaliados ML =
+COUNTROWS(fato_ml_oportunidades_atuais)
 
 Oportunidades Comprar Teste =
 CALCULATE(
@@ -115,6 +130,12 @@ AVERAGE(fato_oportunidades_atuais[net_margin_pct])
 
 Frete Entrada Selecionado =
 SELECTEDVALUE(dim_cenarios_frete[shipping_pct], 0.09)
+
+Divergencias Heuristica ML =
+CALCULATE(
+    COUNTROWS(fato_ml_oportunidades_atuais),
+    fato_ml_oportunidades_atuais[heuristic_decision] <> fato_ml_oportunidades_atuais[ml_decision]
+)
 ```
 
 ## Regra de negocio registrada

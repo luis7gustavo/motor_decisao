@@ -1,6 +1,6 @@
 # SILLO - Documentacao Tecnica
 
-Data de referencia: 2026-05-26
+Data de referencia: 2026-06-01
 
 Este documento descreve a arquitetura tecnica atual da SILLO, o modelo de dados, os pipelines implementados, o motor de decisao e os proximos objetivos de evolucao.
 
@@ -50,11 +50,14 @@ pipelines/
   price_history/               -> Zoom/Buscape e comparadores
   suppliers/                   -> fornecedores B2B por HTML/catalogo
   decision_engine/             -> motor de decisao
+  ml/                          -> dataset, treino, explicacao e score hibrido
 
 scripts/
   collect_*.py                 -> coletores e rotinas locais
   import_megamix_catalog.py    -> importacao MegaMix
   build_decision_engine.py     -> execucao CLI do motor
+  ml_run_all.py                -> treino e predicao hibrida
+  export_power_bi.py           -> CSVs analiticos para Power BI
   validate_setup.py            -> validacao de ambiente
 
 alembic/
@@ -75,6 +78,7 @@ Fontes externas
   Zoom / Buscape
   MegaMix
   Mirao
+  Coletek
 
         |
         v
@@ -98,7 +102,7 @@ silver
         v
 
 gold
-  recomendacoes atuais, historico e runs versionadas
+  recomendacoes, historico, runs e scores ML versionados
 ```
 
 ## Schema `control`
@@ -128,24 +132,27 @@ Bronze guarda dados brutos ou quase brutos. A regra e preservar o payload e evit
 | `bronze.price_history_raw` | Zoom/Buscape | Preco atual e agregados/historico visivel. |
 | `bronze.mercado_livre_products_raw` | API Mercado Livre | Catalogo e produtos consultados. |
 | `bronze.mercado_livre_items_raw` | API Mercado Livre | Itens/anuncios relacionados quando disponiveis. |
-| `bronze.supplier_products_raw` | Fornecedores | Catalogos MegaMix/Mirao e payload original. |
+| `bronze.supplier_products_raw` | Fornecedores | Catalogos MegaMix/Mirao/Coletek e payload original. |
 
-Estado validado em 2026-05-26:
+Snapshot validado em 2026-06-01:
 
 | Tabela | Linhas |
 | --- | ---: |
-| `bronze.market_web_listings_raw` | 14.516 |
-| `bronze.price_history_raw` | 3.459 |
-| `bronze.supplier_products_raw` | 7.527 |
+| `bronze.market_web_listings_raw` | 17.324 |
+| `bronze.price_history_raw` | 3.824 |
+| `bronze.supplier_products_raw` | 18.583 |
 
 Fornecedores em Bronze:
 
 | Fornecedor | Linhas |
 | --- | ---: |
-| MegaMix | 4.720 |
-| Mirao | 2.807 |
+| MegaMix | 9.440 |
+| Mirao | 8.408 |
+| Coletek | 735 |
 
-Observacao: MegaMix tem snapshots de mais de uma carga. O motor usa o snapshot mais recente por `source_product_key` para evitar duplicidade no Gold atual.
+Observacao: Bronze preserva snapshots de mais de uma carga. O motor usa o
+snapshot mais recente por `source_product_key` para evitar duplicidade no Gold
+atual.
 
 ## Schema `silver`
 
@@ -169,7 +176,7 @@ Estado validado:
 
 | Tabela | Linhas |
 | --- | ---: |
-| `silver.supplier_products_normalized` | 7.527 |
+| `silver.supplier_products_normalized` | 15.783 |
 
 ## Schema `gold`
 
@@ -180,13 +187,17 @@ Gold e a camada de decisao.
 | `gold.decision_opportunities` | Estado atual consumivel pela API. |
 | `gold.decision_engine_runs` | Historico de rodadas do motor. |
 | `gold.decision_opportunity_snapshots` | Snapshot completo das decisoes por rodada. |
+| `gold.ml_model_runs` | Historico de modelos treinados, metricas e artefatos. |
+| `gold.ml_opportunity_scores` | Scores hibridos e explicacoes por produto. |
+| `gold.ml_opportunity_scores_latest` | View com o ultimo score hibrido de cada produto. |
 
-Estado validado em 2026-05-26:
+Estado validado em 2026-06-01:
 
 | Tabela | Linhas |
 | --- | ---: |
-| `gold.decision_opportunities` | 5.139 |
-| `gold.decision_opportunity_snapshots` | 12.661 |
+| `gold.decision_opportunities` | 5.776 |
+| `gold.decision_opportunity_snapshots` | 38.993 |
+| `gold.ml_opportunity_scores_latest` | 5.776 |
 
 ## Pipelines Implementados
 
@@ -271,6 +282,7 @@ Fornecedores:
 
 - MegaMix via arquivo `data/megamix_catalog_raw.json`;
 - Mirao via scraper HTML configurado em `config/config.yaml`.
+- Coletek via planilha importada e snapshot versionado.
 
 Melhorias atuais:
 
@@ -387,6 +399,10 @@ Rotas principais:
 | `/decision-engine/summary` | GET | Resumo atual das decisoes. |
 | `/decision-engine/opportunities` | GET | Lista oportunidades. |
 | `/decision-engine/runs` | GET | Historico de rodadas. |
+| `/ml-engine/train` | POST | Treina e versiona um modelo proxy. |
+| `/ml-engine/predict` | POST | Atualiza scores hibridos. |
+| `/ml-engine/summary` | GET | Resume heuristica x ML. |
+| `/ml-engine/opportunities` | GET | Lista scores e explicacoes. |
 
 ## Resultado Atual Validado
 
@@ -394,22 +410,22 @@ Ultima rodada validada:
 
 | Campo | Valor |
 | --- | --- |
-| `decision_run_id` | `e049aa46-1d14-40b1-9e4c-f94d996a10fe` |
+| `decision_run_id` | `4b79565d-51da-4a2c-9c12-cacee5c64843` |
 | `scoring_version` | `heuristic_v2_confidence_guard` |
 | Status | `success` |
-| Finalizada em | `2026-05-26 20:54:42 UTC` |
-| Produtos pontuados | 5.139 |
+| Finalizada em | `2026-06-01 22:00:08 UTC` |
+| Produtos pontuados | 5.776 |
 | `comprar_teste` | 2 |
-| `revisar` | 34 |
-| `ignorar` | 5.103 |
+| `revisar` | 38 |
+| `ignorar` | 5.736 |
 
 Distribuicao por confianca:
 
 | Confianca | Produtos |
 | --- | ---: |
 | Alta | 2 |
-| Media | 34 |
-| Baixa | 5.103 |
+| Media | 38 |
+| Baixa | 5.736 |
 
 ## Limitacoes Tecnicas
 
