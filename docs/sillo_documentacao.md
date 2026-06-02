@@ -353,6 +353,12 @@ estratificada, versiona o melhor modelo e preserva a heuristica como trava de
 seguranca. Os rotulos atuais ainda sao proxy da heuristica, nao resultados
 comerciais.
 
+A evolucao atual compara treino somente real contra treino real com dados
+sinteticos controlados. Os sinteticos entram apenas no treino, recebem peso
+reduzido e so sao aceitos quando melhoram a avaliacao composta exclusivamente
+por registros reais. O model card e o relatorio de augmentation ficam em
+`reports/ml/`.
+
 Quando houver dados historicos suficientes, substituir os rotulos proxy por
 resultados reais e evoluir os modelos:
 

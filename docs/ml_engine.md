@@ -86,6 +86,35 @@ oportunidades ainda e rara. O XGBoost recebe peso automatico para a classe
 positiva e usa `tree_method=hist` em CPU. Depois da selecao, o vencedor e
 treinado novamente com todo o dataset antes de ser versionado.
 
+O treino usa um desenho teacher com features independentes:
+
+- a heuristica gera o rotulo proxy;
+- o ML recebe apenas sinais intermediarios;
+- `decision_score` e a decisao final heuristica nao entram como features;
+- o score heuristico volta apenas na combinacao hibrida posterior.
+
+## Augmentation Controlado
+
+O motor compara duas variantes para cada algoritmo:
+
+1. `real_only`: treino somente com registros reais;
+2. `real_plus_synthetic`: treino real com perturbacoes controladas de
+   oportunidades positivas.
+
+As duas variantes sao avaliadas nos mesmos folds reais. Os sinteticos:
+
+- sao gerados apenas dentro do fold de treino;
+- nunca entram na avaliacao principal;
+- recebem `is_synthetic=true`;
+- recebem peso reduzido;
+- respeitam limites de preco, contagens, taxas, demanda, match e flags;
+- so sao ativados se melhorarem `average_precision` em pelo menos `0,001`.
+
+Como o snapshot atual nao contem todos os campos brutos necessarios para
+reexecutar integralmente a heuristica, cada sintetico herda o rotulo proxy da
+oportunidade positiva que o originou. Essa limitacao esta registrada no model
+card e impede interpretar o augmentation como evidencia comercial.
+
 As features sao registradas por versao em:
 
 ```text
@@ -140,12 +169,21 @@ Relatorios locais:
 reports/ml/metrics.json
 reports/ml/classification_report.txt
 reports/ml/feature_importance.csv
+reports/ml/augmentation_report.json
+reports/ml/model_card.md
 reports/ml/heuristic_vs_ml_comparison.csv
 reports/ml/heuristic_vs_ml_summary.json
 reports/ml/prediction_summary.json
 ```
 
 Os artefatos e relatorios sao regeneraveis e nao devem ser versionados.
+
+Datasets locais auditaveis:
+
+```text
+data_processed/ml/training_dataset_proxy.csv
+data_processed/ml/training_dataset_augmented.csv
+```
 
 ## Tabelas Gold
 
@@ -205,6 +243,26 @@ Validado em 2026-06-02 com 5 folds estratificados:
 O ganho ainda mede imitacao da heuristica. A proxima melhoria de qualidade nao
 e apenas trocar o algoritmo: e registrar resultados reais de compra, venda,
 margem e tempo de giro para criar rotulos comerciais.
+
+## Estado Com Augmentation Validado
+
+Validado em 2026-06-02 com avaliacao out-of-fold composta somente por linhas
+reais:
+
+| Indicador | Real-only | Real + sinteticos |
+| --- | ---: | ---: |
+| Linhas reais | 5.817 | 5.817 |
+| Linhas sinteticas no treino final | 0 | 129 |
+| Average precision XGBoost | 0,98619 | 0,98794 |
+| Precision global | 0,78846 | 0,70000 |
+| Recall | 0,95349 | 0,97674 |
+| Precision@10 | 1,00000 | 1,00000 |
+| Recall@50 | 0,95349 | 0,97674 |
+
+A variante `real_plus_synthetic` foi selecionada porque melhorou a metrica
+principal de ranking acima do ganho minimo configurado. A queda de precision
+global reforca a decisao de manter a heuristica como trava e enviar casos
+adicionais para revisao humana.
 
 ## Evolucao Recomendada
 

@@ -353,6 +353,16 @@ O ML atual usa rotulos proxy da heuristica e nao vendas reais. Ele amplia a
 analise, mas nao promove sozinho um produto para `comprar_teste`. Leia
 `docs/ml_engine.md` antes de interpretar as metricas.
 
+Cada treino tambem compara `real_only` contra `real_plus_synthetic`. Os dados
+sinteticos sao gerados somente dentro do treino, recebem peso menor e nunca
+entram na avaliacao principal. Verifique:
+
+```text
+reports/ml/augmentation_report.json
+reports/ml/model_card.md
+data_processed/ml/training_dataset_augmented.csv
+```
+
 ## Consultas SQL Uteis
 
 Resumo por recomendacao:

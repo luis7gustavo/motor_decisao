@@ -172,6 +172,7 @@ def write_training_csv(path: Path, records: list[FeatureRecord]) -> None:
         "opportunity_label",
         "opportunity_class",
         "sample_weight",
+        "is_synthetic",
         *FEATURE_NAMES,
     ]
     with path.open("w", encoding="utf-8-sig", newline="") as file:
@@ -188,6 +189,7 @@ def write_training_csv(path: Path, records: list[FeatureRecord]) -> None:
                     "opportunity_label": record.opportunity_label,
                     "opportunity_class": record.opportunity_class,
                     "sample_weight": record.sample_weight,
+                    "is_synthetic": False,
                     **record.features,
                 }
             )

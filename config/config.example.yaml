@@ -160,6 +160,13 @@ ml:
   test_size: 0.25
   cv_splits: 5
   model_type: best
+  augmentation:
+    enabled: true
+    synthetic_multiplier: 3
+    max_synthetic_rows: 5000
+    synthetic_sample_weight: 0.30
+    noise_level: 0.08
+    min_average_precision_gain: 0.001
   artifact_dir: artifacts/ml
   report_dir: reports/ml
   dataset_dir: data_processed/ml

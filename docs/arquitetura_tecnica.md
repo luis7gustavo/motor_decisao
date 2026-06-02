@@ -50,7 +50,7 @@ pipelines/
   price_history/               -> Zoom/Buscape e comparadores
   suppliers/                   -> fornecedores B2B por HTML/catalogo
   decision_engine/             -> motor de decisao
-  ml/                          -> dataset, treino, explicacao e score hibrido
+  ml/                          -> dataset, augmentation, treino, explicacao e score hibrido
 
 scripts/
   collect_*.py                 -> coletores e rotinas locais

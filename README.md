@@ -43,29 +43,31 @@ output/doc/SILLO_Documentacao_Completa.docx
 
 ## Estado Atual Validado
 
-Validado em 2026-06-01:
+Validado em 2026-06-02:
 
 | Indicador | Valor |
 | --- | ---: |
-| Produtos pontuados no Gold atual | 5.776 |
+| Produtos pontuados no Gold atual | 5.817 |
 | `comprar_teste` | 2 |
-| `revisar` heuristico | 38 |
-| `ignorar` heuristico | 5.736 |
+| `revisar` heuristico | 41 |
+| `ignorar` heuristico | 5.774 |
 | Versao do motor | `heuristic_v2_confidence_guard` |
-| Modelo ML selecionado | `random_forest` |
-| `revisar` hibrido | 171 |
+| Modelo ML selecionado | `xgboost` |
+| Variante de treino ML | `real_plus_synthetic` |
+| Linhas sinteticas usadas | 129 |
+| `revisar` hibrido | 176 |
 
 Tabelas principais:
 
 | Tabela | Linhas |
 | --- | ---: |
-| `bronze.market_web_listings_raw` | 17.324 |
-| `bronze.price_history_raw` | 3.824 |
-| `bronze.supplier_products_raw` | 18.583 |
-| `silver.supplier_products_normalized` | 15.783 |
-| `gold.decision_opportunities` | 5.776 |
-| `gold.decision_opportunity_snapshots` | 38.993 |
-| `gold.ml_opportunity_scores_latest` | 5.776 |
+| `bronze.market_web_listings_raw` | 19.035 |
+| `bronze.price_history_raw` | 4.252 |
+| `bronze.supplier_products_raw` | 23.774 |
+| `silver.supplier_products_normalized` | 20.943 |
+| `gold.decision_opportunities` | 5.817 |
+| `gold.decision_opportunity_snapshots` | 44.810 |
+| `gold.ml_opportunity_scores_latest` | 5.817 |
 
 Fornecedores carregados:
 
@@ -205,8 +207,11 @@ docker compose exec -T api python scripts/export_power_bi.py
 ## Rodar Camada Hibrida de ML
 
 O baseline heuristico continua ativo e auditavel. A camada de ML aprende
-rotulos proxy da heuristica, compara tres modelos e combina o score selecionado
-com as regras existentes. Ela nao autoriza compra automaticamente.
+rotulos proxy da heuristica, compara Logistic Regression, Random Forest,
+HistGradientBoosting e XGBoost CPU e combina o score selecionado com as regras
+existentes. Cada candidato e avaliado com treino `real_only` e
+`real_plus_synthetic`, sempre em folds de validacao exclusivamente reais. Ela
+nao autoriza compra automaticamente.
 
 Treinar, pontuar e comparar:
 

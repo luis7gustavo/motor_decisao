@@ -24,6 +24,12 @@ class MlConfig:
     model_type: str
     test_size: float
     cv_splits: int
+    augmentation_enabled: bool
+    augmentation_synthetic_multiplier: int
+    augmentation_max_synthetic_rows: int
+    augmentation_synthetic_sample_weight: float
+    augmentation_noise_level: float
+    augmentation_min_average_precision_gain: float
     artifact_dir: Path
     report_dir: Path
     dataset_dir: Path
@@ -56,6 +62,7 @@ def get_ml_config() -> MlConfig:
         heuristic_weight /= weight_total
         ml_weight /= weight_total
 
+    augmentation = config.get("augmentation") or {}
     return MlConfig(
         enabled=bool(config.get("enabled", True)),
         use_heuristic_as_teacher=bool(config.get("use_heuristic_as_teacher", True)),
@@ -79,6 +86,33 @@ def get_ml_config() -> MlConfig:
         model_type=str(config.get("model_type", "best")).strip().lower() or "best",
         test_size=_bounded_float(config.get("test_size"), default=0.25, minimum=0.10, maximum=0.45),
         cv_splits=max(2, min(int(config.get("cv_splits", 5)), 10)),
+        augmentation_enabled=bool(augmentation.get("enabled", True)),
+        augmentation_synthetic_multiplier=max(
+            0,
+            min(int(augmentation.get("synthetic_multiplier", 3)), 20),
+        ),
+        augmentation_max_synthetic_rows=max(
+            0,
+            int(augmentation.get("max_synthetic_rows", 5000)),
+        ),
+        augmentation_synthetic_sample_weight=_bounded_float(
+            augmentation.get("synthetic_sample_weight"),
+            default=0.30,
+            minimum=0.01,
+            maximum=1.0,
+        ),
+        augmentation_noise_level=_bounded_float(
+            augmentation.get("noise_level"),
+            default=0.08,
+            minimum=0.0,
+            maximum=0.30,
+        ),
+        augmentation_min_average_precision_gain=_bounded_float(
+            augmentation.get("min_average_precision_gain"),
+            default=0.001,
+            minimum=0.0,
+            maximum=1.0,
+        ),
         artifact_dir=ROOT / str(config.get("artifact_dir", "artifacts/ml")),
         report_dir=ROOT / str(config.get("report_dir", "reports/ml")),
         dataset_dir=ROOT / str(config.get("dataset_dir", "data_processed/ml")),

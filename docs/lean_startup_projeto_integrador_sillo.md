@@ -120,7 +120,7 @@ A metodologia técnica segue uma arquitetura Medalhão, que separa coleta, norma
 | Gold | Gerar saída de decisão e histórico auditável. | Tabela `gold.decision_opportunities`, runs versionadas e snapshots. |
 | API | Operar e consultar o sistema. | Rotas `/health`, `/ops/*` e `/decision-engine/*`. |
 
-O baseline continua heurístico e explicável. A primeira camada híbrida de ML compara modelos simples, registra scores auditáveis e mantém a heurística como trava de segurança. Como os rótulos atuais são proxy da heurística, ainda falta registrar vendas reais para validar desempenho comercial.
+O baseline continua heurístico e explicável. A camada híbrida de ML compara Logistic Regression, Random Forest, HistGradientBoosting e XGBoost CPU, registra scores auditáveis e mantém a heurística como trava de segurança. A rodada atual também testa augmentation controlado somente no treino e preserva avaliação exclusivamente real. Como os rótulos atuais são proxy da heurística, ainda falta registrar vendas reais para validar desempenho comercial.
 
 ## 9. Pivotar ou Perseverar
 
