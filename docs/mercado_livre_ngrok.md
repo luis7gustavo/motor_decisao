@@ -55,13 +55,17 @@ docker compose up -d --force-recreate api
 
 ## 4. Gerar URL de autorizacao
 
-Fluxo normal:
+Fluxo recomendado pela API local:
 
 ```powershell
-docker compose run --rm api python scripts/mercado_livre_oauth.py auth-url
+Invoke-RestMethod http://127.0.0.1:8010/integracoes/mercado-livre/auth-url
 ```
 
-Se o aplicativo estiver com PKCE habilitado no Mercado Livre:
+O endpoint gera PKCE automaticamente, guarda o `code_verifier` localmente e
+devolve a URL de autorizacao. Abra `authorization_url` no navegador. O callback
+troca o code por tokens e grava os valores no `.env`.
+
+Fluxo manual alternativo:
 
 ```powershell
 docker compose run --rm api python scripts/mercado_livre_oauth.py auth-url --pkce
@@ -72,7 +76,9 @@ autorize o app. O Mercado Livre vai redirecionar para o callback local via ngrok
 
 ## 5. Trocar o code por tokens
 
-O callback vai mostrar o `code` e sugerir o comando:
+No fluxo recomendado, o callback mostra `status: authorized`.
+
+No fluxo manual alternativo, o callback pode ser trocado via CLI:
 
 ```powershell
 docker compose run --rm api python scripts/mercado_livre_oauth.py exchange --code "TG-..."

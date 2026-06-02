@@ -8,36 +8,44 @@ from app.core.mercado_livre_tokens import (
     exchange_mercado_livre_code,
     refresh_mercado_livre_tokens,
 )
+from app.core.mercado_livre_pkce import (
+    consume_code_verifier,
+    create_pkce_authorization,
+)
 from app.core.settings import get_settings
 
 router = APIRouter(prefix="/integracoes/mercado-livre", tags=["mercado livre"])
 
 
-def build_authorization_url(*, state: str | None = None) -> str:
+def build_authorization_url() -> tuple[str, str]:
     settings = get_settings()
     if not settings.ml_client_id:
         raise HTTPException(status_code=500, detail="ML_CLIENT_ID nao configurado.")
     if not settings.ml_redirect_uri:
         raise HTTPException(status_code=500, detail="ML_REDIRECT_URI nao configurado.")
 
+    pkce = create_pkce_authorization()
     params = {
         "response_type": "code",
         "client_id": settings.ml_client_id,
         "redirect_uri": settings.ml_redirect_uri,
+        **pkce,
     }
-    if state:
-        params["state"] = state
-
-    return f"{settings.ml_auth_base.rstrip('/')}/authorization?{urlencode(params)}"
+    return (
+        f"{settings.ml_auth_base.rstrip('/')}/authorization?{urlencode(params)}",
+        pkce["state"],
+    )
 
 
 @router.get("/auth-url")
-def auth_url(state: str | None = None) -> dict[str, str | None]:
+def auth_url() -> dict[str, str | None]:
     settings = get_settings()
+    authorization_url, state = build_authorization_url()
     return {
-        "authorization_url": build_authorization_url(state=state),
+        "authorization_url": authorization_url,
         "redirect_uri": settings.ml_redirect_uri,
         "state": state,
+        "pkce": "enabled",
     }
 
 
@@ -61,7 +69,8 @@ def callback(
         raise HTTPException(status_code=400, detail="Callback sem parametro code.")
 
     try:
-        data = exchange_mercado_livre_code(code)
+        code_verifier = consume_code_verifier(state)
+        data = exchange_mercado_livre_code(code, code_verifier=code_verifier)
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
