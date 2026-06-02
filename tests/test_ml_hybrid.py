@@ -3,6 +3,7 @@ from pathlib import Path
 from pipelines.ml.build_features import build_feature_snapshot, proxy_class, proxy_label
 from pipelines.ml.config import MlConfig
 from pipelines.ml.hybrid import combine_decisions
+from pipelines.ml.train_model import _effective_cv_splits, _positive_class_weight
 
 
 def _config() -> MlConfig:
@@ -18,6 +19,7 @@ def _config() -> MlConfig:
         random_state=42,
         model_type="best",
         test_size=0.25,
+        cv_splits=5,
         artifact_dir=Path("artifacts/ml"),
         report_dir=Path("reports/ml"),
         dataset_dir=Path("data_processed/ml"),
@@ -83,3 +85,11 @@ def test_buy_requires_heuristic_buy_and_ml_support() -> None:
     )
     assert confirmed.final_decision == "comprar_teste"
     assert challenged.final_decision == "revisar"
+
+
+def test_positive_class_weight_uses_negative_to_positive_ratio() -> None:
+    assert _positive_class_weight([0, 0, 0, 1]) == 3.0
+
+
+def test_cross_validation_splits_are_limited_by_rare_class() -> None:
+    assert _effective_cv_splits([0, 0, 0, 1, 1], requested_splits=5) == 2

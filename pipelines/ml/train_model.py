@@ -10,14 +10,16 @@ from uuid import uuid4
 
 import joblib
 import numpy as np
+from sklearn.base import clone
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sqlalchemy import text
+from xgboost import XGBClassifier
 
 from app.core.database import engine
 from pipelines.common.serialization import to_json_text
@@ -41,7 +43,24 @@ class TrainModelResult:
     metrics: dict[str, Any]
 
 
-def _build_candidates(random_state: int) -> dict[str, Pipeline]:
+def _positive_class_weight(y_values) -> float:
+    positive_rows = int(np.sum(np.asarray(y_values) == 1))
+    negative_rows = int(np.sum(np.asarray(y_values) == 0))
+    if positive_rows <= 0:
+        raise RuntimeError("ML dataset needs positive proxy rows.")
+    return max(float(negative_rows) / float(positive_rows), 1.0)
+
+
+def _effective_cv_splits(y_values, requested_splits: int) -> int:
+    positive_rows = int(np.sum(np.asarray(y_values) == 1))
+    negative_rows = int(np.sum(np.asarray(y_values) == 0))
+    splits = min(requested_splits, positive_rows, negative_rows)
+    if splits < 2:
+        raise RuntimeError("ML dataset needs at least 2 rows in each class for cross-validation.")
+    return splits
+
+
+def _build_candidates(random_state: int, *, positive_class_weight: float) -> dict[str, Pipeline]:
     return {
         "logistic_regression": Pipeline(
             steps=[
@@ -87,6 +106,30 @@ def _build_candidates(random_state: int) -> dict[str, Pipeline]:
                 ),
             ]
         ),
+        "xgboost": Pipeline(
+            steps=[
+                ("imputer", SimpleImputer(strategy="median")),
+                (
+                    "classifier",
+                    XGBClassifier(
+                        n_estimators=300,
+                        max_depth=5,
+                        learning_rate=0.05,
+                        subsample=0.85,
+                        colsample_bytree=0.85,
+                        min_child_weight=2.0,
+                        reg_alpha=0.10,
+                        reg_lambda=2.0,
+                        scale_pos_weight=positive_class_weight,
+                        objective="binary:logistic",
+                        eval_metric="aucpr",
+                        tree_method="hist",
+                        random_state=random_state,
+                        n_jobs=-1,
+                    ),
+                ),
+            ]
+        ),
     }
 
 
@@ -104,10 +147,37 @@ def _fit_candidate(
     y_train,
     sample_weights,
 ) -> None:
-    if model_name == "hist_gradient_boosting":
-        model.fit(x_train, y_train, classifier__sample_weight=sample_weights)
-    else:
-        model.fit(x_train, y_train)
+    model.fit(x_train, y_train, classifier__sample_weight=sample_weights)
+
+
+def _cross_validate_candidate(
+    *,
+    model_name: str,
+    model: Pipeline,
+    x_values,
+    y_values,
+    sample_weights,
+    splits: int,
+    random_state: int,
+) -> tuple[dict[str, Any], str]:
+    oof_scores = np.zeros(len(y_values), dtype=float)
+    cv = StratifiedKFold(n_splits=splits, shuffle=True, random_state=random_state)
+    for train_indexes, test_indexes in cv.split(x_values, y_values):
+        fold_model = clone(model)
+        _fit_candidate(
+            model_name=model_name,
+            model=fold_model,
+            x_train=x_values[train_indexes],
+            y_train=y_values[train_indexes],
+            sample_weights=sample_weights[train_indexes],
+        )
+        oof_scores[test_indexes] = _positive_scores(fold_model, x_values[test_indexes])
+    oof_predictions = (oof_scores >= 0.50).astype(int)
+    return evaluate_binary_classifier(
+        y_true=y_values,
+        y_pred=oof_predictions,
+        y_score=oof_scores,
+    )
 
 
 def _model_importances(
@@ -215,14 +285,7 @@ def train_models() -> TrainModelResult:
     x_values = np.asarray(records_as_matrix(dataset.records), dtype=float)
     y_values = np.asarray([record.opportunity_label for record in dataset.records], dtype=int)
     weights = np.asarray([record.sample_weight for record in dataset.records], dtype=float)
-    (
-        x_train,
-        x_test,
-        y_train,
-        y_test,
-        weight_train,
-        _weight_test,
-    ) = train_test_split(
+    x_train, x_test, y_train, y_test, weight_train, _weight_test = train_test_split(
         x_values,
         y_values,
         weights,
@@ -231,23 +294,23 @@ def train_models() -> TrainModelResult:
         stratify=y_values,
     )
 
-    candidates = _build_candidates(config.random_state)
+    positive_class_weight = _positive_class_weight(y_values)
+    cv_splits = _effective_cv_splits(y_values, config.cv_splits)
+    candidates = _build_candidates(
+        config.random_state,
+        positive_class_weight=positive_class_weight,
+    )
     candidate_metrics: dict[str, dict[str, Any]] = {}
     candidate_reports: dict[str, str] = {}
     for model_name, model in candidates.items():
-        _fit_candidate(
+        metrics, report = _cross_validate_candidate(
             model_name=model_name,
             model=model,
-            x_train=x_train,
-            y_train=y_train,
-            sample_weights=weight_train,
-        )
-        y_score = _positive_scores(model, x_test)
-        y_pred = (y_score >= 0.50).astype(int)
-        metrics, report = evaluate_binary_classifier(
-            y_true=y_test,
-            y_pred=y_pred,
-            y_score=y_score,
+            x_values=x_values,
+            y_values=y_values,
+            sample_weights=weights,
+            splits=cv_splits,
+            random_state=config.random_state,
         )
         candidate_metrics[model_name] = metrics
         candidate_reports[model_name] = report
@@ -265,9 +328,24 @@ def train_models() -> TrainModelResult:
     else:
         raise RuntimeError(f"Unknown ML model_type: {config.model_type}")
 
-    model = candidates[selected_model]
+    importance_model = clone(candidates[selected_model])
+    _fit_candidate(
+        model_name=selected_model,
+        model=importance_model,
+        x_train=x_train,
+        y_train=y_train,
+        sample_weights=weight_train,
+    )
+    model = clone(candidates[selected_model])
+    _fit_candidate(
+        model_name=selected_model,
+        model=model,
+        x_train=x_values,
+        y_train=y_values,
+        sample_weights=weights,
+    )
     now = datetime.now(timezone.utc)
-    model_version = f"ml_proxy_v1_{now.strftime('%Y%m%dT%H%M%SZ')}_{uuid4().hex[:8]}"
+    model_version = f"ml_proxy_v2_{now.strftime('%Y%m%dT%H%M%SZ')}_{uuid4().hex[:8]}"
     model_path = config.artifact_dir / "models" / f"{model_version}.joblib"
     metrics_path = config.report_dir / "metrics.json"
     report_path = config.report_dir / "classification_report.txt"
@@ -282,7 +360,7 @@ def train_models() -> TrainModelResult:
     joblib.dump(model, model_path)
 
     importances = _model_importances(
-        model=model,
+        model=importance_model,
         x_test=x_test,
         y_test=y_test,
         random_state=config.random_state,
@@ -295,7 +373,11 @@ def train_models() -> TrainModelResult:
         "label_type": "proxy_binary",
         "training_rows": dataset.rows,
         "positive_rows": dataset.positive_rows,
-        "test_rows": int(len(y_test)),
+        "evaluation_method": "stratified_out_of_fold_cross_validation",
+        "evaluation_rows": dataset.rows,
+        "cv_splits": cv_splits,
+        "positive_class_weight": positive_class_weight,
+        "feature_importance_holdout_rows": int(len(y_test)),
         "candidate_metrics": candidate_metrics,
         "selected_metrics": candidate_metrics[selected_model],
         "limitations": [
@@ -326,6 +408,9 @@ def train_models() -> TrainModelResult:
         "feature_importance_path": _relative_path(feature_importance_path),
         "model_candidates": sorted(candidates),
         "selected_model": selected_model,
+        "evaluation_method": "stratified_out_of_fold_cross_validation",
+        "cv_splits": cv_splits,
+        "positive_class_weight": positive_class_weight,
         "proxy_label": "1 revisar/comprar_teste; 0 ignorar",
     }
     metadata_path.write_text(

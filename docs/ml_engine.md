@@ -51,6 +51,7 @@ Treinamento comparativo
   Logistic Regression
   Random Forest
   HistGradientBoosting
+  XGBoost CPU
 
         |
         v
@@ -78,6 +79,12 @@ O dataset inclui sinais de fornecedor, mercado, margem, demanda, match e
 risco. O score final da heuristica nao entra como feature do modelo para evitar
 vazamento direto do rotulo proxy. Ele continua sendo usado apenas na combinacao
 hibrida posterior.
+
+Os candidatos sao comparados com validacao cruzada estratificada out-of-fold.
+Isso reduz a dependencia de uma unica divisao treino/teste quando a classe de
+oportunidades ainda e rara. O XGBoost recebe peso automatico para a classe
+positiva e usa `tree_method=hist` em CPU. Depois da selecao, o vencedor e
+treinado novamente com todo o dataset antes de ser versionado.
 
 As features sao registradas por versao em:
 
@@ -173,6 +180,31 @@ Validado em 2026-06-01:
 
 As metricas de teste sao metricas de imitacao do baseline heuristico. Elas nao
 devem ser interpretadas como validacao comercial.
+
+Esse estado inicial foi registrado antes da inclusao do XGBoost e da validacao
+cruzada estratificada. Novos treinamentos registram `evaluation_method`,
+`cv_splits` e `positive_class_weight` no relatorio de metricas.
+
+## Estado Com XGBoost Validado
+
+Validado em 2026-06-02 com 5 folds estratificados:
+
+| Indicador | Valor |
+| --- | ---: |
+| Produtos avaliados | 5.817 |
+| Rotulos proxy positivos | 43 |
+| Modelo selecionado | `xgboost` |
+| Average precision XGBoost | 0,9862 |
+| Average precision Random Forest | 0,9804 |
+| Positivos encontrados pelo XGBoost | 41 de 43 |
+| `comprar_teste` final | 2 |
+| `revisar` final | 173 |
+| `ignorar` final | 5.642 |
+| Divergencias heuristica x ML | 7 |
+
+O ganho ainda mede imitacao da heuristica. A proxima melhoria de qualidade nao
+e apenas trocar o algoritmo: e registrar resultados reais de compra, venda,
+margem e tempo de giro para criar rotulos comerciais.
 
 ## Evolucao Recomendada
 

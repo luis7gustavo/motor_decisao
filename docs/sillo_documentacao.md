@@ -348,9 +348,10 @@ Antes de comprar:
 ### Evolucao de ML
 
 A primeira camada hibrida ja esta ativa. Ela compara Logistic Regression,
-Random Forest e HistGradientBoosting, versiona o melhor modelo e preserva a
-heuristica como trava de seguranca. Os rotulos atuais ainda sao proxy da
-heuristica, nao resultados comerciais.
+Random Forest, HistGradientBoosting e XGBoost CPU com validacao cruzada
+estratificada, versiona o melhor modelo e preserva a heuristica como trava de
+seguranca. Os rotulos atuais ainda sao proxy da heuristica, nao resultados
+comerciais.
 
 Quando houver dados historicos suficientes, substituir os rotulos proxy por
 resultados reais e evoluir os modelos:

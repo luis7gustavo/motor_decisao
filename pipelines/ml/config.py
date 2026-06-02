@@ -23,6 +23,7 @@ class MlConfig:
     random_state: int
     model_type: str
     test_size: float
+    cv_splits: int
     artifact_dir: Path
     report_dir: Path
     dataset_dir: Path
@@ -77,6 +78,7 @@ def get_ml_config() -> MlConfig:
         random_state=int(config.get("random_state", 42)),
         model_type=str(config.get("model_type", "best")).strip().lower() or "best",
         test_size=_bounded_float(config.get("test_size"), default=0.25, minimum=0.10, maximum=0.45),
+        cv_splits=max(2, min(int(config.get("cv_splits", 5)), 10)),
         artifact_dir=ROOT / str(config.get("artifact_dir", "artifacts/ml")),
         report_dir=ROOT / str(config.get("report_dir", "reports/ml")),
         dataset_dir=ROOT / str(config.get("dataset_dir", "data_processed/ml")),
