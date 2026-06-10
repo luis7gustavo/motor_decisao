@@ -16,6 +16,12 @@ from sqlalchemy import text
 
 from app.core.database import engine
 from app.core.settings import get_settings
+from entity_resolution.product_attributes import (
+    ProductAttributes,
+    attribute_conflicts,
+    conflict_penalty,
+    extract_product_attributes,
+)
 from pipelines.common.run_manager import (
     create_pipeline_run,
     create_source_run,
@@ -79,7 +85,7 @@ GENERIC_PRODUCT_TOKENS = {
     "wireless",
 }
 
-SCORING_VERSION = "heuristic_v2_confidence_guard"
+SCORING_VERSION = "heuristic_v3_attribute_guard"
 QUALIFIED_MATCH_SCORE = 58.0
 BUY_BLOCKING_FLAGS = {
     "demanda_fraca",
@@ -90,6 +96,7 @@ BUY_BLOCKING_FLAGS = {
     "match_fraco",
     "match_revisar",
     "modelo_nao_confirmado",
+    "atributo_tecnico_conflitante",
     "poucas_ofertas_mercado",
     "preco_mercado_muito_disperso",
     "sem_preco_mercado",
@@ -111,6 +118,7 @@ class SupplierProduct:
     ean: str | None
     source_url: str | None
     fetched_date: str | None
+    attributes: ProductAttributes
 
 
 @dataclass(frozen=True)
@@ -128,6 +136,7 @@ class EvidenceItem:
     demand_signal_value: float | None
     item_url: str | None
     fetched_date: str | None
+    attributes: ProductAttributes
 
 
 @dataclass(frozen=True)
@@ -341,6 +350,7 @@ def _fetch_supplier_products() -> list[SupplierProduct]:
                 sku,
                 ean,
                 source_url,
+                payload,
                 fetched_date::text AS fetched_date,
                 ROW_NUMBER() OVER (
                     PARTITION BY supplier_slug, source_product_key
@@ -361,6 +371,7 @@ def _fetch_supplier_products() -> list[SupplierProduct]:
             sku,
             ean,
             source_url,
+            payload,
             fetched_date
         FROM latest_products
         WHERE row_num = 1
@@ -384,6 +395,7 @@ def _fetch_supplier_products() -> list[SupplierProduct]:
                 ean=row["ean"],
                 source_url=row["source_url"],
                 fetched_date=row["fetched_date"],
+                attributes=extract_product_attributes(row["raw_title"], payload=row["payload"] or {}),
             )
         )
     return products
@@ -403,6 +415,7 @@ def _fetch_evidence_items() -> list[EvidenceItem]:
             sold_quantity,
             demand_signal_value,
             item_url,
+            payload,
             fetched_date::text AS fetched_date
         FROM bronze.market_web_listings_raw
         WHERE price IS NOT NULL
@@ -423,6 +436,7 @@ def _fetch_evidence_items() -> list[EvidenceItem]:
             NULL::integer AS sold_quantity,
             NULL::numeric AS demand_signal_value,
             product_url AS item_url,
+            payload,
             fetched_date::text AS fetched_date
         FROM bronze.price_history_raw
         WHERE current_price IS NOT NULL
@@ -443,6 +457,7 @@ def _fetch_evidence_items() -> list[EvidenceItem]:
             offers_count AS sold_quantity,
             offers_count::numeric AS demand_signal_value,
             NULL::text AS item_url,
+            payload,
             fetched_date::text AS fetched_date
         FROM silver.mercado_livre_product_prices
         WHERE COALESCE(avg_price, min_price, max_price) IS NOT NULL
@@ -472,6 +487,7 @@ def _fetch_evidence_items() -> list[EvidenceItem]:
                         demand_signal_value=_to_float(row["demand_signal_value"]),
                         item_url=row["item_url"],
                         fetched_date=row["fetched_date"],
+                        attributes=extract_product_attributes(title, payload=row["payload"] or {}),
                     )
                 )
     return evidence
@@ -515,6 +531,8 @@ def _match_confidence(product: SupplierProduct, item: EvidenceItem) -> float:
         score *= 0.35
     elif product_models and not evidence_models:
         score *= 0.82
+    conflicts = attribute_conflicts(product.attributes, item.attributes)
+    score *= conflict_penalty(conflicts)
     if product.supplier_price and item.price > product.supplier_price * 20 and product.supplier_price < 15:
         score *= 0.85
     return round(min(score, 100.0), 2)
@@ -618,6 +636,8 @@ def _risk_flags(
     model_tokens = _model_tokens(product.tokens)
     if model_tokens and not any(model_tokens & set(item.tokens) for item, score in matches if score >= QUALIFIED_MATCH_SCORE):
         flags.append("modelo_nao_confirmado")
+    if any(attribute_conflicts(product.attributes, item.attributes) for item, _score in matches[:12]):
+        flags.append("atributo_tecnico_conflitante")
 
     prices = [item.price for item, score in matches if score >= QUALIFIED_MATCH_SCORE and item.price > 0]
     if len(prices) >= 4:
@@ -731,12 +751,17 @@ def _best_matches_for_product(
     return matches[:60]
 
 
-def _evidence_payload(matches: list[tuple[EvidenceItem, float]], estimated_price: float | None) -> dict[str, Any]:
+def _evidence_payload(
+    product: SupplierProduct,
+    matches: list[tuple[EvidenceItem, float]],
+    estimated_price: float | None,
+) -> dict[str, Any]:
     top_matches = matches[:12]
     return {
         "scoring_version": SCORING_VERSION,
         "estimated_price_method": "p35_matched_prices",
         "estimated_market_price": estimated_price,
+        "product_attributes": product.attributes.__dict__,
         "top_matches": [
             {
                 "source_kind": item.source_kind,
@@ -749,6 +774,8 @@ def _evidence_payload(matches: list[tuple[EvidenceItem, float]], estimated_price
                 "sold_quantity": item.sold_quantity,
                 "item_url": item.item_url,
                 "fetched_date": item.fetched_date,
+                "evidence_attributes": item.attributes.__dict__,
+                "attribute_conflicts": attribute_conflicts(product.attributes, item.attributes),
             }
             for item, score in top_matches
         ],
@@ -1135,7 +1162,7 @@ def build_decision_opportunities(*, triggered_by: str = "local_cli_decision_engi
                         "recommendation": recommendation,
                         "confidence_level": confidence_level,
                         "risk_flags": risk_flags,
-                        "evidence": to_json_text(_evidence_payload(matches, estimated_price)),
+                        "evidence": to_json_text(_evidence_payload(product, matches, estimated_price)),
                     },
                 )
                 counts[recommendation] += 1
