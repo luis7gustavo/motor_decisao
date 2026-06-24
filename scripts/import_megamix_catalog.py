@@ -8,19 +8,26 @@ from typing import Any
 
 from sqlalchemy import text
 
-from app.core.database import engine
-from app.core.settings import get_settings
-from pipelines.common.run_manager import (
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine
+from motor_decisao.app.core.settings import get_settings
+from motor_decisao.pipelines.common.run_manager import (
     create_pipeline_run,
     create_source_run,
     finish_pipeline_run,
     finish_source_run,
     record_quality_check,
 )
-from pipelines.common.serialization import payload_hash, to_json_text
+from motor_decisao.pipelines.common.serialization import payload_hash, to_json_text
 
 
-DEFAULT_CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "megamix_catalog_raw.json"
+DEFAULT_CATALOG_PATH = (
+    Path(__file__).resolve().parents[1] / "data" / "raw" / "megamix_catalog_raw.json"
+)
 
 
 @dataclass(frozen=True)

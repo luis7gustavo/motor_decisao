@@ -172,7 +172,7 @@ Tabelas principais:
 
 | Fonte | Status | Observacao |
 | --- | --- | --- |
-| MegaMix | Carregado | Catalogo em `data/megamix_catalog_raw.json`. |
+| MegaMix | Carregado | Catalogo em `data/raw/megamix_catalog_raw.json`. |
 | Mirao | Carregado | Scraper configurado; uma categoria retorna 404 e e registrada como execucao parcial. |
 | Coletek | Carregado | Snapshot importado de planilha do fornecedor. |
 

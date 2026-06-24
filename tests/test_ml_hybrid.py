@@ -2,15 +2,15 @@ from pathlib import Path
 
 import numpy as np
 
-from pipelines.ml.augment_training_data import (
+from motor_decisao.pipelines.ml.augment_training_data import (
     FEATURE_INDEX,
     generate_synthetic_training_rows,
 )
-from pipelines.ml.build_features import build_feature_snapshot, proxy_class, proxy_label
-from pipelines.ml.config import MlConfig
-from pipelines.ml.evaluate_model import evaluate_binary_classifier
-from pipelines.ml.hybrid import combine_decisions
-from pipelines.ml.train_model import _effective_cv_splits, _positive_class_weight
+from motor_decisao.pipelines.ml.build_features import build_feature_snapshot, proxy_class, proxy_label
+from motor_decisao.pipelines.ml.config import MlConfig
+from motor_decisao.pipelines.ml.evaluate_model import evaluate_binary_classifier
+from motor_decisao.pipelines.ml.hybrid import combine_decisions
+from motor_decisao.pipelines.ml.train_model import _effective_cv_splits, _positive_class_weight
 
 
 def _config() -> MlConfig:
@@ -35,7 +35,7 @@ def _config() -> MlConfig:
         augmentation_min_average_precision_gain=0.001,
         artifact_dir=Path("artifacts/ml"),
         report_dir=Path("reports/ml"),
-        dataset_dir=Path("data_processed/ml"),
+        dataset_dir=Path("data/processed/ml"),
     )
 
 

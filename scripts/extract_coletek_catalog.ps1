@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Resolve-Path "$PSScriptRoot\.."
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $OutputPath = Join-Path $ProjectRoot "data\coletek_catalog_raw.json"
+    $OutputPath = Join-Path $ProjectRoot "data\raw\coletek_catalog_raw.json"
 }
 
 function Convert-ToPrice {

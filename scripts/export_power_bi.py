@@ -16,12 +16,17 @@ from typing import Any
 
 from sqlalchemy import text
 
-from app.core.database import engine
-from app.core.settings import get_settings
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine
+from motor_decisao.app.core.settings import get_settings
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_DIR = ROOT / "data_processed" / "power_bi"
+DEFAULT_OUTPUT_DIR = ROOT / "data" / "processed" / "power_bi"
 
 
 @dataclass(frozen=True)
@@ -364,7 +369,7 @@ def main() -> int:
         "--output-dir",
         type=Path,
         default=DEFAULT_OUTPUT_DIR,
-        help="Pasta de saida. Padrao: data_processed/power_bi.",
+        help="Pasta de saida. Padrao: data/processed/power_bi.",
     )
     args = parser.parse_args()
     manifest = export_power_bi_data(output_dir=args.output_dir)

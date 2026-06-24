@@ -5,6 +5,29 @@ Integrador 1. O backend continua responsavel por coleta, normalizacao e
 pontuacao. O dashboard consome apenas arquivos CSV gerados a partir das tabelas
 Gold e das tabelas de observabilidade.
 
+## Entrega final da disciplina de BI
+
+Para atender ao enunciado "Data Warehouse com PostgreSQL + Power BI", foi
+adicionada uma camada academica sobre a base real do SILLO:
+
+| Requisito | Implementacao |
+| --- | --- |
+| Schema de repositorio | `repositorio.*`, copia das tabelas brutas e de controle |
+| Schema DW | `dw.*`, modelo dimensional com 8 dimensoes e 3 fatos |
+| Data Mart | `datamart.*`, views analiticas prontas para o Power BI |
+| Scripts de criacao | `scripts/setup_bi_final_project.sql` |
+| Documento resumo | `docs/projeto_final_bi.md` e `output/pdf/projeto_final_bi_sillo.pdf` |
+
+Aplicar a camada no PostgreSQL:
+
+```powershell
+.\scripts\setup_bi_final_project.ps1
+```
+
+No Power BI, conecte ao PostgreSQL local e importe as views do schema
+`datamart`. O dashboard existente tambem pode continuar usando os CSVs
+exportados por `scripts/export_power_bi.py`.
+
 ## Atualizar dados
 
 Com a stack Docker ativa:
@@ -16,7 +39,7 @@ docker compose exec -T api python scripts/export_power_bi.py
 Os arquivos ficam em:
 
 ```text
-data_processed/power_bi/
+data/processed/power_bi/
 ```
 
 O ciclo completo de `scripts/collect_all.py` recalcula as recomendacoes Gold e

@@ -12,18 +12,23 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.core.database import engine  # noqa: E402
-from app.core.mercado_livre_tokens import refresh_mercado_livre_tokens  # noqa: E402
-from app.core.settings import get_settings  # noqa: E402
-from pipelines.common.run_manager import (  # noqa: E402
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine  # noqa: E402
+from motor_decisao.app.core.mercado_livre_tokens import refresh_mercado_livre_tokens  # noqa: E402
+from motor_decisao.app.core.settings import get_settings  # noqa: E402
+from motor_decisao.pipelines.common.run_manager import (  # noqa: E402
     create_pipeline_run,
     create_source_run,
     finish_pipeline_run,
     finish_source_run,
     record_quality_check,
 )
-from pipelines.mercado_livre.client import MercadoLivreClient  # noqa: E402
-from pipelines.mercado_livre.ingest import _insert_raw_product  # noqa: E402
+from motor_decisao.pipelines.mercado_livre.client import MercadoLivreClient  # noqa: E402
+from motor_decisao.pipelines.mercado_livre.ingest import _insert_raw_product  # noqa: E402
 from scripts.collect_mercado_livre_perifericos import DEFAULT_QUERIES  # noqa: E402
 
 

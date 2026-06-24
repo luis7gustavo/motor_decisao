@@ -15,7 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.core.settings import get_settings  # noqa: E402
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.settings import get_settings  # noqa: E402
 
 
 def _require(value: str | None, name: str) -> str:

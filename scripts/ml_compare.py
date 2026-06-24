@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import json
 
-from pipelines.ml.compare import build_comparison_summary
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.pipelines.ml.compare import build_comparison_summary
 
 
 def main() -> int:

@@ -19,7 +19,12 @@ if str(ROOT) not in sys.path:
 
 from sqlalchemy import text  # noqa: E402
 
-from app.core.database import engine  # noqa: E402
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine  # noqa: E402
 
 
 # ── queries ───────────────────────────────────────────────────────────────────

@@ -3,9 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 
-from pipelines.ml.compare import build_comparison_summary
-from pipelines.ml.predict_opportunities import predict_current_opportunities
-from pipelines.ml.train_model import train_models
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.pipelines.ml.compare import build_comparison_summary
+from motor_decisao.pipelines.ml.predict_opportunities import predict_current_opportunities
+from motor_decisao.pipelines.ml.train_model import train_models
 
 
 def main() -> int:

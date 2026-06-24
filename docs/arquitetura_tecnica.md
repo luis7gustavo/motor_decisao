@@ -39,18 +39,20 @@ Portas locais padrao:
 ## Estrutura do Projeto
 
 ```text
-app/
-  api/                         -> rotas FastAPI
-  core/                        -> settings e database
-
-pipelines/
-  common/                      -> run manager, serializacao, browser helpers
-  mercado_livre/               -> API Mercado Livre
-  market_web/                  -> scraping de marketplaces
-  price_history/               -> Zoom/Buscape e comparadores
-  suppliers/                   -> fornecedores B2B por HTML/catalogo
-  decision_engine/             -> motor de decisao
-  ml/                          -> dataset, augmentation, treino, explicacao e score hibrido
+src/
+  motor_decisao/
+    app/
+      api/                       -> rotas FastAPI
+      core/                      -> settings e database
+    pipelines/
+      common/                    -> run manager, serializacao, browser helpers
+      mercado_livre/             -> API Mercado Livre
+      market_web/                -> scraping de marketplaces
+      price_history/             -> Zoom/Buscape e comparadores
+      suppliers/                 -> fornecedores B2B por HTML/catalogo
+      decision_engine/           -> motor de decisao
+      ml/                        -> dataset, augmentation, treino, explicacao e score hibrido
+    entity_resolution/           -> matching e atributos tecnicos de produto
 
 scripts/
   collect_*.py                 -> coletores e rotinas locais
@@ -205,11 +207,11 @@ Estado validado em 2026-06-01:
 
 Componentes:
 
-- `pipelines/mercado_livre/`
+- `src/motor_decisao/pipelines/mercado_livre/`
 - `scripts/collect_mercado_livre.py`
 - `scripts/collect_mercado_livre_catalog_fast.py`
 - `scripts/collect_mercado_livre_perifericos.py`
-- `app/api/mercado_livre_oauth.py`
+- `src/motor_decisao/app/api/mercado_livre_oauth.py`
 
 Uso:
 
@@ -226,7 +228,7 @@ Limitacao:
 
 Componentes:
 
-- `pipelines/market_web/`
+- `src/motor_decisao/pipelines/market_web/`
 - `scripts/collect_market_web.py`
 
 Uso:
@@ -254,7 +256,7 @@ Limitacao:
 
 Componentes:
 
-- `pipelines/price_history/`
+- `src/motor_decisao/pipelines/price_history/`
 - `scripts/collect_price_history_web.py`
 
 Uso:
@@ -272,15 +274,15 @@ Limitacao:
 
 Componentes:
 
-- `pipelines/suppliers/base.py`
-- `pipelines/suppliers/generic_html.py`
-- `pipelines/suppliers/ingest.py`
+- `src/motor_decisao/pipelines/suppliers/base.py`
+- `src/motor_decisao/pipelines/suppliers/generic_html.py`
+- `src/motor_decisao/pipelines/suppliers/ingest.py`
 - `scripts/collect_suppliers.py`
 - `scripts/import_megamix_catalog.py`
 
 Fornecedores:
 
-- MegaMix via arquivo `data/megamix_catalog_raw.json`;
+- MegaMix via arquivo `data/raw/megamix_catalog_raw.json`;
 - Mirao via scraper HTML configurado em `config/config.yaml`.
 - Coletek via planilha importada e snapshot versionado.
 
@@ -299,7 +301,7 @@ Observacao:
 
 Componente principal:
 
-- `pipelines/decision_engine/build.py`
+- `src/motor_decisao/pipelines/decision_engine/build.py`
 
 Execucao CLI:
 

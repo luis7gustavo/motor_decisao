@@ -3,7 +3,12 @@ from __future__ import annotations
 import argparse
 import json
 
-from pipelines.ml.predict_opportunities import predict_current_opportunities
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.pipelines.ml.predict_opportunities import predict_current_opportunities
 
 
 def main() -> int:

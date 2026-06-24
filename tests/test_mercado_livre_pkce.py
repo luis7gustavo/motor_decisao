@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core import mercado_livre_pkce
+from motor_decisao.app.core import mercado_livre_pkce
 
 
 def test_pkce_verifier_is_stored_and_consumed_once(tmp_path, monkeypatch) -> None:

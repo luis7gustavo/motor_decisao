@@ -1,4 +1,4 @@
-from entity_resolution.product_attributes import (
+from motor_decisao.entity_resolution.product_attributes import (
     attribute_conflicts,
     conflict_penalty,
     extract_product_attributes,

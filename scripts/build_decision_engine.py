@@ -3,7 +3,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pipelines.decision_engine.build import build_decision_opportunities
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.pipelines.decision_engine.build import build_decision_opportunities
 from scripts.import_coletek_catalog import (
     DEFAULT_CATALOG_PATH as DEFAULT_COLETEK_CATALOG_PATH,
     import_coletek_catalog,

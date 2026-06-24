@@ -169,4 +169,4 @@ ml:
     min_average_precision_gain: 0.001
   artifact_dir: artifacts/ml
   report_dir: reports/ml
-  dataset_dir: data_processed/ml
+  dataset_dir: data/processed/ml

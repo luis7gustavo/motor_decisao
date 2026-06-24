@@ -5,7 +5,12 @@ import json
 
 from sqlalchemy import text
 
-from app.core.database import engine
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine
 
 
 def main() -> int:

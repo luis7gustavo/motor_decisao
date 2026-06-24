@@ -152,7 +152,11 @@ def main() -> None:
     print(f"Preço mín: R${min(precos):.2f} | máx: R${max(precos):.2f} | médio: R${sum(precos)/len(precos):.2f}")
 
     # Diretório de saída
-    out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+    out_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "data",
+        "raw",
+    )
     os.makedirs(out_dir, exist_ok=True)
 
     json_path = os.path.join(out_dir, "megamix_catalog_raw.json")

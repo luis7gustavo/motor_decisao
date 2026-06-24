@@ -259,7 +259,7 @@ docker compose exec -T api python scripts/import_megamix_catalog.py
 Arquivo padrao:
 
 ```text
-data/megamix_catalog_raw.json
+data/raw/megamix_catalog_raw.json
 ```
 
 ## Rodar Motor de Decisao
@@ -360,7 +360,7 @@ entram na avaliacao principal. Verifique:
 ```text
 reports/ml/augmentation_report.json
 reports/ml/model_card.md
-data_processed/ml/training_dataset_augmented.csv
+data/processed/ml/training_dataset_augmented.csv
 ```
 
 ## Consultas SQL Uteis
@@ -528,9 +528,9 @@ Por padrao, cada maquina tem seu proprio volume Docker de Postgres. GitHub leva 
 
 As bases leves de reproducao ficam versionadas:
 
-- `data/megamix_catalog_raw.csv`;
-- `data/megamix_catalog_raw.json`;
-- `data_processed/`.
+- `data/raw/megamix_catalog_raw.csv`;
+- `data/raw/megamix_catalog_raw.json`;
+- `data/processed/`.
 
 Nao versionar tokens, arquivos PKCE, `.env` ou dumps completos do banco.
 

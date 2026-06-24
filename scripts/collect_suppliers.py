@@ -11,8 +11,13 @@ import argparse
 import sys
 from datetime import datetime
 
-from app.core.settings import get_settings
-from pipelines.suppliers.ingest import ingest_supplier_html
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.settings import get_settings
+from motor_decisao.pipelines.suppliers.ingest import ingest_supplier_html
 
 
 def _ts() -> str:

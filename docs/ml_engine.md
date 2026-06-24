@@ -42,7 +42,7 @@ Gold heuristico
         v
 
 Dataset proxy e features auditaveis
-  data_processed/ml/training_dataset.csv
+  data/processed/ml/training_dataset.csv
 
         |
         v
@@ -181,8 +181,8 @@ Os artefatos e relatorios sao regeneraveis e nao devem ser versionados.
 Datasets locais auditaveis:
 
 ```text
-data_processed/ml/training_dataset_proxy.csv
-data_processed/ml/training_dataset_augmented.csv
+data/processed/ml/training_dataset_proxy.csv
+data/processed/ml/training_dataset_augmented.csv
 ```
 
 ## Tabelas Gold
