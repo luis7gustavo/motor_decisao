@@ -10,8 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from pipelines.mercado_livre.ingest import ingest_mercado_livre_category  # noqa: E402
-from app.core.settings import get_settings  # noqa: E402
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.pipelines.mercado_livre.ingest import ingest_mercado_livre_category  # noqa: E402
+from motor_decisao.app.core.settings import get_settings  # noqa: E402
 
 
 DEFAULT_QUERIES = [
@@ -39,12 +44,21 @@ DEFAULT_QUERIES = [
     "cooler notebook",
     "base notebook",
     "microfone usb",
+    "ssd sata 480gb",
+    "ssd nvme 1tb",
+    "memoria ram ddr4 16gb",
+    "memoria ram ddr5 16gb",
+    "placa mae",
+    "processador ryzen",
+    "fonte 650w",
+    "cooler processador",
+    "gabinete gamer",
 ]
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Coleta ampla de perifericos baratos no Mercado Livre."
+        description="Coleta ampla de perifericos e hardware no Mercado Livre."
     )
     parser.add_argument(
         "--query",

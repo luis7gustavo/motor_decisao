@@ -152,6 +152,8 @@ Tabelas principais:
 - `gold.decision_opportunities`: estado atual, uma linha por produto ativo;
 - `gold.decision_engine_runs`: cada rodada versionada do motor;
 - `gold.decision_opportunity_snapshots`: historico completo das oportunidades por rodada.
+- `gold.ml_model_runs`: modelos treinados, metricas e artefatos versionados;
+- `gold.ml_opportunity_scores_latest`: score hibrido atual e explicacao por produto.
 
 ## Fontes Atuais
 
@@ -170,8 +172,9 @@ Tabelas principais:
 
 | Fonte | Status | Observacao |
 | --- | --- | --- |
-| MegaMix | Carregado | Catalogo em `data/megamix_catalog_raw.json`. |
+| MegaMix | Carregado | Catalogo em `data/raw/megamix_catalog_raw.json`. |
 | Mirao | Carregado | Scraper configurado; uma categoria retorna 404 e e registrada como execucao parcial. |
+| Coletek | Carregado | Snapshot importado de planilha do fornecedor. |
 
 ## Motor de Decisao
 
@@ -223,35 +226,36 @@ O motor calcula:
 - `preco_mercado_muito_disperso`;
 - `ticket_fornecedor_muito_baixo`.
 
-## Resultado Validado em 26/05/2026
+## Resultado Validado em 01/06/2026
 
 Ultima execucao validada:
 
 | Campo | Valor |
 | --- | --- |
-| `decision_run_id` | `e049aa46-1d14-40b1-9e4c-f94d996a10fe` |
+| `decision_run_id` | `4b79565d-51da-4a2c-9c12-cacee5c64843` |
 | `scoring_version` | `heuristic_v2_confidence_guard` |
 | Status | `success` |
-| Produtos pontuados | `5.139` |
-| Evidencias usadas | `18.011` |
+| Produtos pontuados | `5.776` |
+| Evidencias usadas | `21.031` |
 | `comprar_teste` | `2` |
-| `revisar` | `34` |
-| `ignorar` | `5.103` |
+| `revisar` | `38` |
+| `ignorar` | `5.736` |
 
 Distribuicao por confianca:
 
 | Nivel | Produtos |
 | --- | ---: |
 | Alta | 2 |
-| Media | 34 |
-| Baixa | 5.103 |
+| Media | 38 |
+| Baixa | 5.736 |
 
 Distribuicao por fornecedor:
 
 | Fornecedor | Comprar teste | Revisar | Ignorar |
 | --- | ---: | ---: | ---: |
-| MegaMix | 1 | 13 | 2.346 |
-| Mirao | 1 | 21 | 2.757 |
+| Coletek | 0 | 0 | 624 |
+| MegaMix | 1 | 18 | 2.341 |
+| Mirao | 1 | 20 | 2.771 |
 
 Produtos classificados como `comprar_teste` na rodada:
 
@@ -290,6 +294,13 @@ docker compose exec -T api python scripts/build_decision_engine.py --import-mega
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary
+```
+
+### Atualizar camada hibrida de ML
+
+```powershell
+docker compose exec -T api python scripts/ml_run_all.py --predict-only
+Invoke-RestMethod http://127.0.0.1:8010/ml-engine/summary
 ```
 
 ### Ver oportunidades
@@ -336,7 +347,20 @@ Antes de comprar:
 
 ### Evolucao de ML
 
-Quando houver dados historicos suficientes, substituir parte das regras por modelos:
+A primeira camada hibrida ja esta ativa. Ela compara Logistic Regression,
+Random Forest, HistGradientBoosting e XGBoost CPU com validacao cruzada
+estratificada, versiona o melhor modelo e preserva a heuristica como trava de
+seguranca. Os rotulos atuais ainda sao proxy da heuristica, nao resultados
+comerciais.
+
+A evolucao atual compara treino somente real contra treino real com dados
+sinteticos controlados. Os sinteticos entram apenas no treino, recebem peso
+reduzido e so sao aceitos quando melhoram a avaliacao composta exclusivamente
+por registros reais. O model card e o relatorio de augmentation ficam em
+`reports/ml/`.
+
+Quando houver dados historicos suficientes, substituir os rotulos proxy por
+resultados reais e evoluir os modelos:
 
 - modelo de probabilidade de venda;
 - modelo de margem realizada;
@@ -349,7 +373,7 @@ Quando houver dados historicos suficientes, substituir parte das regras por mode
 A SILLO deve falar de forma clara, objetiva e acessivel:
 
 - "2 oportunidades passaram pelos criterios de teste."
-- "34 itens precisam de revisao antes de compra."
+- "171 itens ficaram na fila hibrida de revisao antes de compra."
 - "Este produto tem margem estimada, mas o match ainda precisa de confirmacao."
 - "Nao recomendamos compra automatica sem validar estoque, frete e equivalencia."
 

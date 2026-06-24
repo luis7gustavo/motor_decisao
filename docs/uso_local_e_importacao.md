@@ -1,6 +1,6 @@
 # SILLO - Runbook Operacional Local
 
-Data de referencia: 2026-05-26
+Data de referencia: 2026-06-01
 
 Este documento descreve como instalar, rodar, validar, operar e transportar os dados locais da SILLO em uma maquina Windows com Docker Desktop.
 
@@ -80,6 +80,29 @@ Estado esperado:
 - `motor_postgres` healthy;
 - `motor_redis` healthy;
 - `motor_selenium` healthy.
+- `motor_daemon` ativo quando a coleta continua estiver habilitada.
+
+### Coleta continua gerenciada
+
+Subir ou atualizar o servico:
+
+```powershell
+.\scripts\daemon.ps1
+```
+
+Ver status e logs:
+
+```powershell
+docker compose --profile daemon ps daemon
+docker logs --tail 120 motor_daemon
+```
+
+O servico roda `scripts/collect_all.py`, aguarda o cooldown configurado e
+reinicia automaticamente com Docker. O valor padrao e `4` horas:
+
+```env
+MOTOR_DAEMON_COOLDOWN_HOURS=4
+```
 
 ## Validacao Rapida
 
@@ -114,7 +137,7 @@ docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT versio
 Versao esperada apos a fase atual:
 
 ```text
-20260526_0007
+20260601_0008
 ```
 
 ## Fluxo Operacional Recomendado
@@ -143,6 +166,31 @@ Para status:
 ## Coleta Bronze via API
 
 O caminho operacional preferido para ciclo Bronze e HTTP-first, porque evita duplicar runs e usa os endpoints operacionais da API.
+
+### Escopo atual da coleta
+
+O ciclo coleta novas evidencias de marketplace e historico de preco apenas
+quando o produto esta entre `R$ 100,00` e `R$ 1.500,00`. Snapshots bloqueados
+continuam registrados como diagnostico operacional.
+
+As buscas cobrem perifericos e hardware, incluindo:
+
+- SSD SATA e NVMe;
+- memoria RAM DDR4 e DDR5;
+- placa-mae;
+- processador Ryzen;
+- fonte;
+- cooler de processador;
+- gabinete.
+
+Os catalogos brutos MegaMix e Mirao continuam preservados integralmente. O
+filtro evita ruido nas evidencias de mercado sem descartar dados de origem dos
+fornecedores.
+
+A API oficial do Mercado Livre depende de `ML_ACCESS_TOKEN` e
+`ML_REFRESH_TOKEN`. Quando essas credenciais nao estao configuradas, o estagio
+e registrado como `failed` e encerrado corretamente; as demais fontes continuam
+coletando.
 
 Iniciar ciclo Bronze assincrono:
 
@@ -211,7 +259,7 @@ docker compose exec -T api python scripts/import_megamix_catalog.py
 Arquivo padrao:
 
 ```text
-data/megamix_catalog_raw.json
+data/raw/megamix_catalog_raw.json
 ```
 
 ## Rodar Motor de Decisao
@@ -237,7 +285,7 @@ Invoke-RestMethod -Method Post "http://127.0.0.1:8010/decision-engine/run?import
 Saida esperada no CLI:
 
 ```text
-Motor de decisao: 5139 produtos pontuados / 2 comprar_teste / 34 revisar / 5103 ignorar
+Motor de decisao: 5776 produtos pontuados / 2 comprar_teste / 38 revisar / 5736 ignorar
 pipeline_run_id=...
 decision_run_id=...
 scoring_version=heuristic_v2_confidence_guard
@@ -275,6 +323,46 @@ Historico de rodadas:
 Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/runs?limit=10"
 ```
 
+## Camada Hibrida de Machine Learning
+
+Depois de recalcular o motor heuristico, atualizar o dataset, treinar e pontuar:
+
+```powershell
+docker compose exec -T api python scripts/ml_run_all.py
+```
+
+Nos ciclos seguintes, reutilizar o ultimo modelo:
+
+```powershell
+docker compose exec -T api python scripts/ml_run_all.py --predict-only
+```
+
+Consultar resumo:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/ml-engine/summary
+```
+
+Consultar oportunidades explicadas:
+
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8010/ml-engine/opportunities?final_decision=revisar&limit=30"
+```
+
+O ML atual usa rotulos proxy da heuristica e nao vendas reais. Ele amplia a
+analise, mas nao promove sozinho um produto para `comprar_teste`. Leia
+`docs/ml_engine.md` antes de interpretar as metricas.
+
+Cada treino tambem compara `real_only` contra `real_plus_synthetic`. Os dados
+sinteticos sao gerados somente dentro do treino, recebem peso menor e nunca
+entram na avaliacao principal. Verifique:
+
+```text
+reports/ml/augmentation_report.json
+reports/ml/model_card.md
+data/processed/ml/training_dataset_augmented.csv
+```
+
 ## Consultas SQL Uteis
 
 Resumo por recomendacao:
@@ -309,31 +397,41 @@ docker compose exec -T postgres psql -U motor -d motor_decisao -c "SELECT status
 
 ## Estado Atual Validado
 
-Validado em 2026-05-26:
+Validado em 2026-06-01:
 
 | Indicador | Valor |
 | --- | ---: |
-| `bronze.market_web_listings_raw` | 14.516 |
-| `bronze.price_history_raw` | 3.459 |
-| `bronze.supplier_products_raw` | 7.527 |
-| `silver.supplier_products_normalized` | 7.527 |
-| `gold.decision_opportunities` | 5.139 |
-| `gold.decision_opportunity_snapshots` | 12.661 |
+| `bronze.market_web_listings_raw` | 17.324 |
+| `bronze.price_history_raw` | 3.824 |
+| `bronze.supplier_products_raw` | 18.583 |
+| `silver.supplier_products_normalized` | 15.783 |
+| `gold.decision_opportunities` | 5.776 |
+| `gold.decision_opportunity_snapshots` | 38.993 |
+| `gold.ml_opportunity_scores_latest` | 5.776 |
 
 Fornecedores:
 
 | Fornecedor | Registros Bronze |
 | --- | ---: |
-| MegaMix | 4.720 |
-| Mirao | 2.807 |
+| MegaMix | 9.440 |
+| Mirao | 8.408 |
+| Coletek | 735 |
 
 Resultado atual do motor:
 
 | Recomendacao | Confianca | Produtos |
 | --- | --- | ---: |
 | `comprar_teste` | Alta | 2 |
-| `revisar` | Media | 34 |
-| `ignorar` | Baixa | 5.103 |
+| `revisar` | Media | 38 |
+| `ignorar` | Baixa | 5.736 |
+
+Resultado atual do motor hibrido:
+
+| Recomendacao | Produtos |
+| --- | ---: |
+| `comprar_teste` | 2 |
+| `revisar` | 171 |
+| `ignorar` | 5.603 |
 
 ## Conexao no DBeaver
 
@@ -359,6 +457,9 @@ Tabelas mais uteis:
 - `gold.decision_opportunities`
 - `gold.decision_engine_runs`
 - `gold.decision_opportunity_snapshots`
+- `gold.ml_model_runs`
+- `gold.ml_opportunity_scores`
+- `gold.ml_opportunity_scores_latest`
 
 ## Diagnostico de Problemas
 
@@ -427,9 +528,9 @@ Por padrao, cada maquina tem seu proprio volume Docker de Postgres. GitHub leva 
 
 As bases leves de reproducao ficam versionadas:
 
-- `data/megamix_catalog_raw.csv`;
-- `data/megamix_catalog_raw.json`;
-- `data_processed/`.
+- `data/raw/megamix_catalog_raw.csv`;
+- `data/raw/megamix_catalog_raw.json`;
+- `data/processed/`.
 
 Nao versionar tokens, arquivos PKCE, `.env` ou dumps completos do banco.
 
@@ -487,7 +588,9 @@ Use `.env.example` como referencia.
 4. `docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao`
 5. `docker compose exec -T api python scripts/build_decision_engine.py --import-megamix`
 6. `Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary`
-7. Revisar manualmente os itens `comprar_teste`
+7. `docker compose exec -T api python scripts/ml_run_all.py --predict-only`
+8. `docker compose exec -T api python scripts/export_power_bi.py`
+9. Revisar manualmente os itens `comprar_teste` e a fila `revisar`
 
 ## Regra de Compra
 

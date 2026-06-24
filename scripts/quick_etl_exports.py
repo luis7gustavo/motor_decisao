@@ -20,6 +20,7 @@ csv.field_size_limit(1024 * 1024 * 512)
 MARKET_PATTERN = "market_web_listings_raw_*.csv"
 ML_ITEMS_PATTERN = "mercado_livre_items_raw_*.csv"
 ML_PRODUCTS_PATTERN = "mercado_livre_products_raw_*.csv"
+ROOT = Path(__file__).resolve().parents[1]
 
 
 OFFER_FIELDS = [
@@ -100,14 +101,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "data",
-        help="Pasta com os CSVs exportados da Bronze.",
+        default=ROOT / "data" / "raw",
+        help="Pasta com os CSVs brutos exportados da Bronze.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=None,
-        help="Pasta de saida. Padrao: <data-dir>/processed.",
+        help="Pasta de saida. Padrao: data/processed.",
     )
     parser.add_argument(
         "--timestamp",
@@ -620,7 +621,7 @@ def summarize_offers(offers: list[dict[str, object]]) -> dict[str, object]:
 def main() -> int:
     args = parse_args()
     data_dir = args.data_dir.resolve()
-    output_dir = (args.output_dir or data_dir / "processed").resolve()
+    output_dir = (args.output_dir or ROOT / "data" / "processed").resolve()
     stamp = args.timestamp or datetime.now().strftime("%Y%m%d%H%M")
 
     market_file = latest_file(data_dir, MARKET_PATTERN)

@@ -12,17 +12,23 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.core.database import engine  # noqa: E402
-from app.core.settings import get_settings  # noqa: E402
-from pipelines.common.run_manager import (  # noqa: E402
+try:
+    from scripts import _bootstrap  # noqa: F401
+except ImportError:
+    import _bootstrap  # type: ignore  # noqa: F401
+
+from motor_decisao.app.core.database import engine  # noqa: E402
+from motor_decisao.app.core.mercado_livre_tokens import refresh_mercado_livre_tokens  # noqa: E402
+from motor_decisao.app.core.settings import get_settings  # noqa: E402
+from motor_decisao.pipelines.common.run_manager import (  # noqa: E402
     create_pipeline_run,
     create_source_run,
     finish_pipeline_run,
     finish_source_run,
     record_quality_check,
 )
-from pipelines.mercado_livre.client import MercadoLivreClient  # noqa: E402
-from pipelines.mercado_livre.ingest import _insert_raw_product  # noqa: E402
+from motor_decisao.pipelines.mercado_livre.client import MercadoLivreClient  # noqa: E402
+from motor_decisao.pipelines.mercado_livre.ingest import _insert_raw_product  # noqa: E402
 from scripts.collect_mercado_livre_perifericos import DEFAULT_QUERIES  # noqa: E402
 
 
@@ -40,6 +46,18 @@ def main() -> int:
     args = parse_args()
     queries = args.queries or DEFAULT_QUERIES
     settings = get_settings()
+    access_token = os.getenv("ML_ACCESS_TOKEN") or settings.ml_access_token
+    try:
+        refreshed = refresh_mercado_livre_tokens()
+        access_token = str(refreshed["access_token"])
+        settings = get_settings()
+    except Exception as token_error:  # noqa: BLE001 - fall back to the existing token if still valid.
+        print(
+            f"[WARN] Mercado Livre token refresh skipped: {token_error}",
+            file=sys.stderr,
+            flush=True,
+        )
+
     project_config = settings.load_project_config()
     pipeline_config = project_config["pipeline"]
     source_config = project_config["market_sources"]["mercado_livre"]
@@ -86,7 +104,7 @@ def main() -> int:
             timeout_seconds=int(source_config.get("timeout_seconds", 20)),
             max_retries=int(source_config.get("max_retries", 3)),
             rate_limit_ms=int(source_config.get("rate_limit_ms", 250)),
-            access_token=os.getenv("ML_ACCESS_TOKEN") or None,
+            access_token=access_token,
         ) as client:
             for query in queries:
                 query_extracted = 0

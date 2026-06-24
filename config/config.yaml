@@ -22,6 +22,8 @@ market_sources:
     scroll_pause_ms: 900
     rate_limit_ms: 2500
     max_results_per_query: 30
+    min_price: 100.00
+    max_price: 1500.00
     # 2026-05-20: ciclo padrao estabilizado para uso local e em outra maquina.
     # Fontes experimentais continuam mapeadas, mas ficam fora do ciclo principal.
     # 2026-05-21: 3 workers para rodar amazon+kabum+terabyte simultaneamente.
@@ -86,6 +88,8 @@ market_sources:
     rate_limit_ms: 1000
     timeout_seconds: 30
     max_results: 30
+    min_price: 100.00
+    max_price: 1500.00
     web_history:
       enabled: true
       browser_engine: playwright
@@ -145,13 +149,61 @@ entity_resolution:
 
 portfolio:
   budget_total: 1000.00
+  max_suppliers_per_cart: 1
   max_supplier_risk_pct: 0.30
   min_distinct_products: 3
   use_conservative_estimate: true
   solver_time_limit_seconds: 60
+  inbound_shipping:
+    default_scenario: base
+    scenarios:
+      otimista: 0.07
+      base: 0.09
+      conservador: 0.14
+  supplier_rules:
+    mirao:
+      display_name: Mirão
+      min_order_total: 0.00
+      catalog_mode: web_scraper
+      enabled_for_recommendation: true
+    megamix:
+      display_name: MegaMix
+      min_order_total: 300.00
+      catalog_mode: manual_snapshot
+      enabled_for_recommendation: true
+    coletek:
+      display_name: Coletek
+      min_order_total: 300.00
+      catalog_mode: manual_snapshot
+      catalog_snapshot_date: "2026-06-01"
+      enabled_for_recommendation: true
 
 margin:
   ml_fee_pct: 0.12
   tax_pct: 0.17
   shipping_pct: 0.03
   min_net_margin_pct: 0.20
+
+ml:
+  enabled: true
+  use_heuristic_as_teacher: true
+  use_hybrid_score: true
+  heuristic_weight: 0.70
+  ml_weight: 0.30
+  opportunity_threshold: 0.65
+  review_threshold: 0.45
+  min_training_rows: 50
+  random_state: 42
+  test_size: 0.25
+  cv_splits: 5
+  model_type: best
+  augmentation:
+    enabled: true
+    synthetic_multiplier: 3
+    max_synthetic_rows: 5000
+    synthetic_sample_weight: 0.30
+    noise_level: 0.08
+    min_average_precision_gain: 0.001
+  artifact_dir: artifacts/ml
+  report_dir: reports/ml
+  dataset_dir: data/processed/ml
