@@ -212,12 +212,7 @@ O estado operacional antigo preso em `running` foi reparado via:
 POST /ops/repair-stale-runs?stale_after_hours=8
 ```
 
-Estado final de execucoes:
-
-| Controle | Running |
-| --- | ---: |
-| `control.source_runs` | 0 |
-| `control.pipeline_runs` | 0 |
+Depois da recriacao do servico, o daemon iniciou uma nova coleta ativa. Portanto, `running` pode aparecer novamente para runs recentes e saudaveis. A validacao relevante aqui e que o run antigo travado foi reparado e que a API voltou em estado `healthy`.
 
 ## 8. Limitacoes Tecnicas
 

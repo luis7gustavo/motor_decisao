@@ -358,8 +358,8 @@ O projeto registra execucoes em:
 Estado operacional validado em 2026-06-24:
 
 - API em `healthy`;
-- `source_runs` com `running = 0`;
-- `pipeline_runs` com `running = 0`;
+- run antigo preso em `running` reparado via `/ops/repair-stale-runs`;
+- daemon pode exibir `running` recente enquanto uma coleta ativa esta em andamento;
 - teste Docker com 14 testes passando.
 
 ## Artefatos
