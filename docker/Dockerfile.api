@@ -15,7 +15,11 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /app/requirements.txt \
     && python -m playwright install --with-deps chromium
 
+COPY requirements-control.txt /app/requirements-control.txt
+RUN pip install --no-cache-dir -r /app/requirements-control.txt
+
 COPY . /app
+RUN pip install --no-deps -e /app
 
 EXPOSE 8000
 

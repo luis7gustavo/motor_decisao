@@ -1,0 +1,53 @@
+query_groups:
+  technology:
+    - mouse gamer
+    - mouse sem fio
+    - teclado mecanico
+    - teclado gamer
+    - combo teclado mouse
+    - fone bluetooth
+    - headset gamer
+    - hub usb
+    - adaptador wifi usb
+    - cabo usb c
+    - mousepad gamer
+    - webcam
+    - ssd sata 480gb
+    - ssd nvme 1tb
+    - memoria ram ddr4 16gb
+    - memoria ram ddr5 16gb
+    - placa mae
+    - processador ryzen
+    - fonte 650w
+    - cooler processador
+    - gabinete gamer
+  price_history:
+    - mouse gamer
+    - teclado mecanico
+    - headset gamer
+    - ssd nvme 1tb
+    - memoria ram ddr4 16gb
+
+workers:
+  pc1:
+    http_flow_limit: 3
+    browser_flow_limit: 1
+    http_desired_concurrency: 5
+    http_max_concurrency: 12
+    browser_desired_concurrency: 1
+    browser_max_concurrency: 2
+  pc2:
+    http_flow_limit: 4
+    browser_flow_limit: 2
+    http_desired_concurrency: 8
+    http_max_concurrency: 16
+    browser_desired_concurrency: 2
+    browser_max_concurrency: 3
+
+prefect:
+  work_pool: sillo-collection
+  work_queues:
+    api_http: api-http
+    browser: browser
+    manual: manual
+  schedules_enabled_by_default: false

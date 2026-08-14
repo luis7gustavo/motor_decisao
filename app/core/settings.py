@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 import yaml
@@ -20,6 +21,15 @@ class Settings(BaseSettings):
         alias="SELENIUM_REMOTE_URL",
     )
     config_path: str = Field(default="config/config.yaml", alias="MOTOR_CONFIG_PATH")
+    source_registry_path: str = Field(
+        default="config/sources",
+        alias="SILLO_SOURCE_REGISTRY_PATH",
+    )
+    max_product_price_brl: Decimal = Field(
+        default=Decimal("3000.00"),
+        gt=0,
+        alias="SILLO_MAX_PRODUCT_PRICE_BRL",
+    )
     ml_api_base: str = Field(default="https://api.mercadolibre.com", alias="ML_API_BASE")
     ml_auth_base: str = Field(default="https://auth.mercadolivre.com.br", alias="ML_AUTH_BASE")
     ml_site_id: str = Field(default="MLB", alias="ML_SITE_ID")
@@ -40,6 +50,16 @@ class Settings(BaseSettings):
         if not isinstance(data, dict):
             raise ValueError("Project config must be a YAML mapping")
         return data
+
+    def is_purchase_candidate_price(self, value: Decimal | float | int | str | None) -> bool:
+        """Retorna se o custo do fornecedor esta no teto de compra do SILLO."""
+        if value is None:
+            return False
+        try:
+            price = Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            return False
+        return price > 0 and price <= self.max_product_price_brl
 
 
 @lru_cache

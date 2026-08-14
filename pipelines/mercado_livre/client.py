@@ -2,13 +2,22 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 
 
 class MercadoLivreApiError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        retryable: bool = False,
+        status_code: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+        self.status_code = status_code
 
 
 @dataclass(frozen=True)
@@ -30,6 +39,7 @@ class MercadoLivreClient:
         max_retries: int = 3,
         rate_limit_ms: int = 250,
         access_token: str | None = None,
+        refresh_access_token: Callable[[], str] | None = None,
     ) -> None:
         self.api_base = api_base.rstrip("/")
         self.site_id = site_id
@@ -37,6 +47,12 @@ class MercadoLivreClient:
         self.max_retries = max_retries
         self.rate_limit_seconds = max(rate_limit_ms, 0) / 1000
         self._last_request_at = 0.0
+        self.requests_total = 0
+        self.requests_success = 0
+        self.requests_failed = 0
+        self.retry_count = 0
+        self._refresh_access_token = refresh_access_token
+        self._refresh_attempted = False
         headers = {
             "Accept": "application/json",
             "User-Agent": "motor-decisao-compra/0.1",
@@ -67,27 +83,56 @@ class MercadoLivreClient:
 
         for attempt in range(1, self.max_retries + 1):
             self._throttle()
+            self.requests_total += 1
             try:
                 response = self.client.get(url, params=params)
+                if (
+                    response.status_code == 401
+                    and self._refresh_access_token is not None
+                    and not self._refresh_attempted
+                ):
+                    self.requests_failed += 1
+                    self.retry_count += 1
+                    self._refresh_attempted = True
+                    try:
+                        access_token = self._refresh_access_token()
+                    except Exception as error:  # noqa: BLE001 - expose auth setup failure.
+                        raise MercadoLivreApiError(
+                            f"Token refresh failed: {error}",
+                            status_code=401,
+                        ) from error
+                    self.client.headers["Authorization"] = f"Bearer {access_token}"
+                    return self._get(path, params)
                 if response.status_code in {429, 500, 502, 503, 504}:
                     raise MercadoLivreApiError(
-                        f"Retryable status {response.status_code}: {response.text[:300]}"
+                        f"Retryable status {response.status_code}: {response.text[:300]}",
+                        retryable=True,
+                        status_code=response.status_code,
                     )
                 if response.status_code >= 400:
                     raise MercadoLivreApiError(
-                        f"Status {response.status_code}: {response.text[:500]}"
+                        f"Status {response.status_code}: {response.text[:500]}",
+                        status_code=response.status_code,
                     )
                 data = response.json()
                 if not isinstance(data, dict):
                     raise MercadoLivreApiError("Expected JSON object from Mercado Livre")
+                self.requests_success += 1
                 return data
             except (httpx.HTTPError, MercadoLivreApiError) as error:
                 last_error = error
-                if attempt >= self.max_retries:
+                self.requests_failed += 1
+                retryable = isinstance(error, httpx.HTTPError) or (
+                    isinstance(error, MercadoLivreApiError) and error.retryable
+                )
+                if not retryable or attempt >= self.max_retries:
                     break
+                self.retry_count += 1
                 time.sleep(min(2**attempt, 8))
 
-        raise MercadoLivreApiError(str(last_error))
+        if isinstance(last_error, MercadoLivreApiError):
+            raise last_error
+        raise MercadoLivreApiError(str(last_error), retryable=True)
 
     def search_items(
         self,

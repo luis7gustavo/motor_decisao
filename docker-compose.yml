@@ -1,5 +1,20 @@
 name: motor_decisao
 
+x-prefect-server-environment: &prefect-server-environment
+  PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://${PREFECT_POSTGRES_USER:-prefect}:${PREFECT_POSTGRES_PASSWORD:-prefect}@prefect-postgres:5432/${PREFECT_POSTGRES_DB:-prefect}
+  PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+  PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+  PREFECT_REDIS_MESSAGING_URL: redis://redis:6379/1
+  PREFECT_SERVER_DOCKET_URL: redis://redis:6379/1
+
+x-collection-worker-environment: &collection-worker-environment
+  PREFECT_API_URL: http://prefect-server:4200/api
+  DATABASE_URL: postgresql+psycopg://${MOTOR_POSTGRES_USER:-motor}:${MOTOR_POSTGRES_PASSWORD:-motor}@postgres:5432/${MOTOR_POSTGRES_DB:-motor_decisao}
+  REDIS_URL: redis://redis:6379/0
+  MOTOR_CONFIG_PATH: /app/config/config.yaml
+  SILLO_SOURCE_REGISTRY_PATH: /app/config/sources
+  SILLO_MAX_PRODUCT_PRICE_BRL: ${SILLO_MAX_PRODUCT_PRICE_BRL:-3000.00}
+
 services:
   postgres:
     image: pgvector/pgvector:pg15
@@ -112,8 +127,145 @@ services:
     healthcheck:
       disable: true
 
+  prefect-postgres:
+    profiles: [control]
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${PREFECT_POSTGRES_USER:-prefect}
+      POSTGRES_PASSWORD: ${PREFECT_POSTGRES_PASSWORD:-prefect}
+      POSTGRES_DB: ${PREFECT_POSTGRES_DB:-prefect}
+    ports:
+      - "${PREFECT_POSTGRES_PORT:-55433}:5432"
+    volumes:
+      - prefect_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PREFECT_POSTGRES_USER:-prefect} -d ${PREFECT_POSTGRES_DB:-prefect}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  prefect-server:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    environment:
+      <<: *prefect-server-environment
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+      PREFECT_SERVER_UI_API_URL: http://${SILLO_PREFECT_HOST:-127.0.0.1}:${PREFECT_SERVER_PORT:-4200}/api
+    command: prefect server start --host 0.0.0.0 --port 4200 --no-services
+    ports:
+      - "${PREFECT_SERVER_PORT:-4200}:4200"
+    depends_on:
+      prefect-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  prefect-services:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    environment:
+      <<: *prefect-server-environment
+      PREFECT_API_URL: http://prefect-server:4200/api
+    command: prefect server services start
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  prefect-init:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    environment:
+      <<: *collection-worker-environment
+      SILLO_ENABLE_SCHEDULES: ${SILLO_ENABLE_SCHEDULES:-false}
+    command: python scripts/init_prefect.py
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    restart: "no"
+
+  worker-http-pc1:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    env_file: [.env]
+    environment:
+      <<: *collection-worker-environment
+      SILLO_WORKER_ID: pc1-http
+    command: prefect worker start --pool sillo-collection --work-queue api-http --name pc1-http --limit ${SILLO_PC1_HTTP_FLOW_LIMIT:-3}
+    depends_on:
+      prefect-init:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  worker-browser-pc1:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    env_file: [.env]
+    environment:
+      <<: *collection-worker-environment
+      SILLO_WORKER_ID: pc1-browser
+    command: prefect worker start --pool sillo-collection --work-queue browser --name pc1-browser --limit ${SILLO_PC1_BROWSER_FLOW_LIMIT:-1}
+    depends_on:
+      prefect-init:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  worker-manual-pc1:
+    profiles: [control]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    env_file: [.env]
+    environment:
+      <<: *collection-worker-environment
+      SILLO_WORKER_ID: pc1-manual
+    command: prefect worker start --pool sillo-collection --work-queue manual --name pc1-manual --limit 1
+    depends_on:
+      prefect-init:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
 volumes:
   motor_postgres_data:
     name: motor_postgres_data
   motor_redis_data:
     name: motor_redis_data
+  prefect_postgres_data:
+    name: prefect_postgres_data

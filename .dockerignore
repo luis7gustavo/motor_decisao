@@ -1,4 +1,6 @@
 .venv
+.git
+.gitignore
 __pycache__
 *.py[cod]
 .pytest_cache
@@ -10,7 +12,9 @@ __pycache__
 data
 data_processed
 backups
+output
 notebooks
+sillo_motor_decisao.egg-info
 *.log
 *.sqlite
 *.db

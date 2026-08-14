@@ -22,6 +22,8 @@ O objetivo do MVP e apoiar decisao humana. Ele ainda nao executa compra automati
 | `docs/uso_local_e_importacao.md` | Runbook operacional: setup, coleta, motor, diagnostico e importacao/exportacao. |
 | `docs/power_bi_dashboard.md` | Modelo de dados, atualizacao e paginas recomendadas no Power BI. |
 | `docs/mercado_livre_ngrok.md` | Guia de OAuth Mercado Livre com ngrok. |
+| `docs/collection_v2/README.md` | Plataforma de coleta V2: arquitetura, CLI, Prefect, fontes, operacao e benchmark. |
+| `docs/Relatorio_Mudancas_Coleta_SILLO_2026-08-14.docx` | Relatorio executivo e tecnico das mudancas, validacoes e pendencias da Coleta V2. |
 
 Logo:
 
@@ -40,9 +42,9 @@ output/doc/SILLO_Mercado_Livre_Ngrok.docx
 output/doc/SILLO_Documentacao_Completa.docx
 ```
 
-## Estado Atual Validado
+## Estado do Motor Heuristico
 
-Validado em 2026-05-26:
+Snapshot validado em 2026-05-26 e preservado como base atual do motor:
 
 | Indicador | Valor |
 | --- | ---: |
@@ -70,6 +72,25 @@ Fornecedores carregados:
 | MegaMix | 4.720 |
 | Mirao | 2.807 |
 
+## Estado da Coleta V2
+
+Validado em 2026-08-14:
+
+| Fonte | Agendamento | Situacao operacional |
+| --- | --- | --- |
+| Amazon | ativo | HTTP adaptativo, canario e coleta completa |
+| Kabum | ativo | HTTP adaptativo, 420 itens na validacao de referencia |
+| Cia Informatica | ativo | catalogo publico com canario |
+| Grupo Tek | ativo | catalogo publico com canario |
+| Mirao | ativo | catalogo de fornecedor; itens sem preco valido sao contabilizados e nao persistidos |
+| Mercado Livre | pausado | requer credenciais OAuth completas; renovacao automatica implementada |
+| Terabyte | pausado | acesso publico classificado como bloqueado |
+| Buscape e Zoom | pausado | fontes sem acesso publico estavel; nenhum bloqueio e contornado |
+
+A plataforma usa Prefect para agendamento, retries e observabilidade; Crawlee para
+fila, politicas de requisicao e coleta; e contratos tipados para impedir que uma
+execucao inconsistente seja marcada como sucesso.
+
 ## Stack
 
 - FastAPI
@@ -77,6 +98,8 @@ Fornecedores carregados:
 - Redis
 - Selenium Grid
 - Playwright
+- Crawlee
+- Prefect
 - Alembic
 - Docker Compose
 - Python
@@ -89,17 +112,21 @@ Portas locais:
 | Postgres | `55432` |
 | Redis | `6380` |
 | Selenium | `4444` |
+| Prefect UI | `4200` |
 
 ## Arquitetura Resumida
 
 ```text
-Fontes externas
-  Mercado Livre
+Prefect (agendamentos e retries)
+        |
+        v
+Registro de fontes e contrato de coleta
+        |
+        v
+Crawlee / APIs publicas
   Marketplaces
-  Zoom / Buscape
-  MegaMix
-  Mirao
-  Coletek
+  Catalogos de fornecedores
+  Mercado Livre (quando autenticado)
 
         |
         v
@@ -128,11 +155,11 @@ API FastAPI
 
 ## Setup Rapido
 
-Na raiz do projeto:
+Na raiz do projeto, suba a API, o banco e o plano de controle:
 
 ```powershell
 cd "C:\Users\luisg\revenda assistida\motor_decisao"
-.\SetupMotor.cmd
+docker compose --profile control up -d --build
 ```
 
 Validar API:
@@ -151,12 +178,31 @@ Resposta esperada:
 }
 ```
 
+Validar o plano de controle:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:4200/api/health
+docker compose ps
+```
+
 ## Rodar Coleta e Motor
 
-O ciclo Bronze de mercado coleta perifericos e hardware com preco entre
-`R$ 100,00` e `R$ 1.500,00`. A faixa e aplicada a novas evidencias de
-marketplace e historico de preco; catalogos brutos de fornecedores continuam
-preservados integralmente para auditoria.
+Listar as fontes e seus estados declarativos:
+
+```powershell
+docker compose exec -T api python sillo.py collect list
+```
+
+Executar o canario de uma fonte antes da coleta completa:
+
+```powershell
+docker compose exec -T api python sillo.py collect run --source amazon --canary
+docker compose exec -T api python sillo.py collect run --source amazon
+```
+
+O limite de elegibilidade para compra e aplicado aos candidatos de fornecedor
+no motor de decisao. Evidencias de mercado acima desse limite permanecem no
+Bronze para comparacao, rastreabilidade e auditoria.
 
 Coletar Mirao:
 

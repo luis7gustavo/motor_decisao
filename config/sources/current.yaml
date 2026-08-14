@@ -1,0 +1,424 @@
+sources:
+  - source_id: mercado_livre
+    display_name: Mercado Livre
+    enabled: false
+    source_type: market
+    market_scope: marketplace
+    collector: mercado_livre
+    strategy: api
+    access: PUBLIC_API
+    priority: 10
+    profiles: [market, full]
+    urls: [https://api.mercadolibre.com]
+    retry: {max_retries: 3, backoff_base_seconds: 1, backoff_max_seconds: 30, jitter_seconds: 0.5}
+    timeouts: {request_seconds: 20, handler_seconds: 90, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 4, max_concurrency: 8, max_tasks_per_minute: 120}
+    scheduling: {enabled: true, interval_hours: 2, minute_offset: 0, timezone: America/Sao_Paulo}
+    config:
+      query_group: technology
+      disabled_reason: "Token expirado; reativar somente apos configurar ML_CLIENT_ID, ML_CLIENT_SECRET e renovar ML_ACCESS_TOKEN/ML_REFRESH_TOKEN."
+
+  - source_id: amazon
+    display_name: Amazon Brasil
+    enabled: true
+    source_type: market
+    market_scope: marketplace
+    collector: amazon
+    strategy: adaptive_playwright
+    access: PUBLIC_BROWSER
+    priority: 20
+    profiles: [market, full]
+    urls: [https://www.amazon.com.br]
+    retry: {max_retries: 3, backoff_base_seconds: 2, backoff_max_seconds: 60, jitter_seconds: 1}
+    timeouts: {request_seconds: 45, handler_seconds: 120, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 1, max_concurrency: 2, max_tasks_per_minute: 30}
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: true, interval_hours: 4, minute_offset: 5, timezone: America/Sao_Paulo}
+    config: {query_group: technology}
+
+  - source_id: kabum
+    display_name: KaBuM!
+    enabled: true
+    source_type: market
+    market_scope: retailer
+    collector: kabum
+    strategy: adaptive_playwright
+    access: PUBLIC_BROWSER
+    priority: 30
+    profiles: [market, full]
+    urls: [https://www.kabum.com.br]
+    retry: {max_retries: 3, backoff_base_seconds: 2, backoff_max_seconds: 60, jitter_seconds: 1}
+    timeouts: {request_seconds: 45, handler_seconds: 120, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 1, max_concurrency: 2, max_tasks_per_minute: 30}
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: true, interval_hours: 4, minute_offset: 10, timezone: America/Sao_Paulo}
+    config: {query_group: technology}
+
+  - source_id: terabyte
+    display_name: TerabyteShop
+    enabled: false
+    source_type: market
+    market_scope: retailer
+    collector: terabyte
+    strategy: adaptive_playwright
+    access: COLLECTION_BLOCKED
+    priority: 40
+    profiles: [market, full]
+    urls: [https://www.terabyteshop.com.br]
+    retry: {max_retries: 3, backoff_base_seconds: 2, backoff_max_seconds: 60, jitter_seconds: 1}
+    timeouts: {request_seconds: 45, handler_seconds: 120, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 1, max_concurrency: 2, max_tasks_per_minute: 30}
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: true, interval_hours: 4, minute_offset: 20, timezone: America/Sao_Paulo}
+    config: {query_group: technology}
+
+  - source_id: buscape
+    display_name: Buscape
+    enabled: false
+    source_type: market
+    market_scope: marketplace
+    collector: buscape
+    strategy: adaptive_playwright
+    access: COLLECTION_BLOCKED
+    priority: 50
+    profiles: [market, full]
+    urls: [https://www.buscape.com.br]
+    retry: {max_retries: 3, backoff_base_seconds: 2, backoff_max_seconds: 60, jitter_seconds: 1}
+    timeouts: {request_seconds: 45, handler_seconds: 120, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 1, max_concurrency: 1, max_tasks_per_minute: 20}
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: true, interval_hours: 6, minute_offset: 30, timezone: America/Sao_Paulo}
+    config: {query_group: price_history}
+
+  - source_id: zoom
+    display_name: Zoom
+    enabled: false
+    source_type: market
+    market_scope: marketplace
+    collector: zoom
+    strategy: adaptive_playwright
+    access: COLLECTION_BLOCKED
+    priority: 60
+    profiles: [market, full]
+    urls: [https://www.zoom.com.br]
+    retry: {max_retries: 3, backoff_base_seconds: 2, backoff_max_seconds: 60, jitter_seconds: 1}
+    timeouts: {request_seconds: 45, handler_seconds: 120, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 1, max_concurrency: 1, max_tasks_per_minute: 20}
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: true, interval_hours: 6, minute_offset: 40, timezone: America/Sao_Paulo}
+    config: {query_group: price_history}
+
+  - source_id: mirao
+    display_name: Mirao
+    enabled: true
+    source_type: supplier
+    market_scope: regional_b2b
+    collector: mirao
+    strategy: parsel
+    access: PUBLIC_HTTP
+    priority: 70
+    profiles: [suppliers, local, full]
+    urls:
+      - https://www.mirao.com.br/perifericos.html
+      - https://www.mirao.com.br/hardware.html
+      - https://www.mirao.com.br/cabos.html
+    retry: {max_retries: 3, backoff_base_seconds: 1, backoff_max_seconds: 30, jitter_seconds: 0.5}
+    timeouts: {request_seconds: 30, handler_seconds: 90, collection_seconds: 1800}
+    concurrency: {desired_concurrency: 3, max_concurrency: 5, max_tasks_per_minute: 30}
+    scheduling: {enabled: true, interval_hours: 8, minute_offset: 50, timezone: America/Sao_Paulo}
+    config:
+      pagination: {enabled: true, url_pattern: "{url}?p={page}", max_pages: 60, start_page: 2}
+      selectors: {product: ".product-item", title: "strong", price: "span + span", product_url: "a@href"}
+
+  - source_id: shopee
+    display_name: Shopee
+    enabled: false
+    source_type: market
+    market_scope: marketplace
+    collector: shopee
+    strategy: playwright
+    access: PUBLIC_BROWSER
+    priority: 80
+    profiles: [market, full]
+    urls: [https://shopee.com.br]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+
+  - source_id: magalu
+    display_name: Magazine Luiza
+    enabled: false
+    source_type: market
+    market_scope: retailer
+    collector: magalu
+    strategy: adaptive_playwright
+    access: PUBLIC_BROWSER
+    priority: 81
+    profiles: [market, full]
+    urls: [https://www.magazineluiza.com.br]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+
+  - source_id: pichau
+    display_name: Pichau
+    enabled: false
+    source_type: market
+    market_scope: retailer
+    collector: pichau
+    strategy: adaptive_playwright
+    access: PUBLIC_BROWSER
+    priority: 82
+    profiles: [market, full]
+    urls: [https://www.pichau.com.br]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+
+  - source_id: aliexpress
+    display_name: AliExpress
+    enabled: false
+    source_type: supplier
+    market_scope: international
+    collector: aliexpress
+    strategy: playwright
+    access: PUBLIC_BROWSER
+    priority: 83
+    profiles: [suppliers, full]
+    urls: [https://pt.aliexpress.com]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+
+  - source_id: megamix
+    display_name: MegaMix
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: megamix
+    strategy: json
+    access: PUBLIC_FEED
+    priority: 90
+    profiles: [suppliers, full]
+    config: {path: data/megamix_catalog_raw.json}
+
+  - source_id: coletek
+    display_name: Coletek
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: coletek
+    strategy: json
+    access: PUBLIC_FEED
+    priority: 91
+    profiles: [suppliers, full]
+    config: {path: data/coletek_catalog_raw.json}
+
+  # Fase 9: fontes publicas verificadas e adapters declarativos.
+  - source_id: grupo_tek
+    display_name: Grupo TEK Distribuidor
+    enabled: true
+    source_type: supplier
+    market_scope: regional_b2b
+    collector: grupo_tek
+    strategy: parsel
+    access: PUBLIC_HTTP
+    priority: 72
+    profiles: [suppliers, full]
+    urls: [https://www.tekdistribuidor.com.br/]
+    retry: {max_retries: 3, backoff_base_seconds: 1, backoff_max_seconds: 30, jitter_seconds: 0.5}
+    timeouts: {request_seconds: 30, handler_seconds: 90, collection_seconds: 900}
+    concurrency: {desired_concurrency: 2, max_concurrency: 4, max_tasks_per_minute: 30}
+    scheduling: {enabled: true, interval_hours: 8, minute_offset: 25, timezone: America/Sao_Paulo}
+    config:
+      selectors: {product: "a.product-info", title: ".product-name", price: ".current-price", product_url: "@href"}
+
+  - source_id: cia_informatica
+    display_name: Cia da Informatica
+    enabled: true
+    source_type: market
+    market_scope: local_retailer
+    collector: catalog_market
+    strategy: parsel
+    access: PUBLIC_HTTP
+    priority: 73
+    profiles: [market, local, full]
+    urls: [https://www.ciainfor.com.br/loja/]
+    retry: {max_retries: 3, backoff_base_seconds: 1, backoff_max_seconds: 30, jitter_seconds: 0.5}
+    timeouts: {request_seconds: 30, handler_seconds: 90, collection_seconds: 900}
+    concurrency: {desired_concurrency: 2, max_concurrency: 4, max_tasks_per_minute: 30}
+    scheduling: {enabled: true, interval_hours: 12, minute_offset: 15, timezone: America/Sao_Paulo}
+    config:
+      catalog_mode: true
+      selectors: {product: "ul.products li.product", title: ".woocommerce-loop-product__title", price: ".price", product_url: "a.woocommerce-LoopProduct-link@href"}
+
+  # Acesso publico observado, mas ativacao depende de canary local bem-sucedido.
+  - source_id: fcinfo
+    display_name: FCInfo Computadores
+    enabled: false
+    source_type: market
+    market_scope: local_retailer
+    collector: catalog_market
+    strategy: parsel
+    access: PUBLIC_HTTP
+    priority: 74
+    profiles: [market, local, full]
+    urls: [https://www.fcinfo.com.br/]
+    scheduling: {enabled: false}
+    config:
+      catalog_mode: true
+      selectors: {product: ".product-layout, .product-item", title: ".name, .product-name", price: ".price", product_url: "a@href"}
+
+  - source_id: netshop_informatica
+    display_name: Netshop Informatica
+    enabled: false
+    source_type: market
+    market_scope: local_retailer
+    collector: catalog_market
+    strategy: adaptive_playwright
+    access: PUBLIC_BROWSER
+    priority: 75
+    profiles: [market, local, full]
+    urls: [https://www.netshopinformatica.com.br/produtos]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: false}
+    config:
+      catalog_mode: true
+      selectors: {product: "[class*='product-card'], [class*='produto']", title: "h2, h3, [class*='title']", price: "[class*='price'], [class*='preco']", product_url: "a@href"}
+
+  - source_id: gamerstar
+    display_name: GamerStar
+    enabled: false
+    source_type: market
+    market_scope: local_retailer
+    collector: catalog_market
+    strategy: playwright
+    access: COLLECTION_BLOCKED
+    priority: 76
+    profiles: [market, local, full]
+    urls: [https://www.gamerstar.com.br/]
+    browser: {enabled: true, headless: true, block_images: true, block_fonts: true, block_media: true, block_tracking: true}
+    scheduling: {enabled: false}
+    config: {catalog_mode: true, reason: "HTTP 403 durante reconnaissance; nao contornar"}
+
+  # Fase 10: registrados, nunca executados sem credenciais/contrato autorizado.
+  - source_id: fujioka_distribuidor
+    display_name: Fujioka Distribuidor
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: authenticated_future
+    strategy: manual
+    access: AUTH_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://www.fujiokadistribuidor.com.br/]
+    config: {reason: "Preco correto requer login e CNPJ"}
+
+  - source_id: mega_market
+    display_name: Mega Market
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: reconnaissance_pending
+    strategy: manual
+    access: NOT_VIABLE
+    priority: 100
+    profiles: [suppliers, full]
+    config: {reason: "Identidade/URL oficial inequivoca nao confirmada"}
+
+  - source_id: agis
+    display_name: Agis Distribuicao
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: authenticated_future
+    strategy: manual
+    access: AUTH_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://vendas.agis.com.br/]
+    config: {reason: "Estoque e valores exigem cadastro de revendedor"}
+
+  - source_id: bluevix
+    display_name: Bluevix / Bluecase
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: authenticated_future
+    strategy: manual
+    access: AUTH_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://www.bluevix.com.br/]
+    config: {reason: "Area de conta e sessao autenticada; preco B2B nao validado publicamente"}
+
+  - source_id: martins_atacado
+    display_name: Martins Atacado
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: authenticated_future
+    strategy: manual
+    access: AUTH_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://www.martinsatacado.com.br/departamentos/informatica]
+    config: {reason: "Catalogo e publico, mas preco/estoque dependem de cadastro e regiao"}
+
+  - source_id: allied
+    display_name: Allied Brasil
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: commercial_future
+    strategy: manual
+    access: COMMERCIAL_INTEGRATION_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://alliedbrasil.com.br/nossos-negocios/]
+    config: {reason: "Atendimento corporativo sem catalogo publico com preco"}
+
+  - source_id: td_synnex
+    display_name: TD SYNNEX Brasil
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: commercial_future
+    strategy: manual
+    access: COMMERCIAL_INTEGRATION_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://lac.tdsynnex.com/br/pt-br/seja-um-parceiro/]
+    config: {reason: "Cadastro e aprovacao de parceiro/revendedor"}
+
+  - source_id: band_atacadista
+    display_name: Band Atacadista
+    enabled: false
+    source_type: supplier
+    market_scope: regional_b2b
+    collector: commercial_future
+    strategy: manual
+    access: COMMERCIAL_INTEGRATION_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://bandatacadista.com.br/]
+    config: {reason: "Site institucional sem catalogo/preco publico confirmado"}
+
+  - source_id: omni_distribuidora
+    display_name: OMNI Distribuidora
+    enabled: false
+    source_type: supplier
+    market_scope: regional_b2b
+    collector: commercial_future
+    strategy: manual
+    access: COMMERCIAL_INTEGRATION_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://www.omnidistribuidora.com.br/]
+    config: {reason: "Site institucional sem catalogo/preco publico confirmado"}
+
+  - source_id: sol_atacadista
+    display_name: Sol Atacadista
+    enabled: false
+    source_type: supplier
+    market_scope: national_b2b
+    collector: commercial_future
+    strategy: manual
+    access: COMMERCIAL_INTEGRATION_REQUIRED
+    priority: 100
+    profiles: [suppliers, full]
+    urls: [https://lp.solatacadista.com.br/]
+    config: {reason: "Landing page comercial sem catalogo/preco publico confirmado"}

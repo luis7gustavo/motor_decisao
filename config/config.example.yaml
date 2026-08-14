@@ -22,8 +22,8 @@ market_sources:
     scroll_pause_ms: 900
     rate_limit_ms: 2500
     max_results_per_query: 30
-    min_price: 100.00
-    max_price: 1500.00
+    # A Bronze preserva toda evidencia com preco positivo. O teto de compra e
+    # configurado em SILLO_MAX_PRODUCT_PRICE_BRL.
     sources:
       shopee:
         enabled: true
@@ -61,8 +61,7 @@ market_sources:
     rate_limit_ms: 1000
     timeout_seconds: 30
     max_results: 30
-    min_price: 100.00
-    max_price: 1500.00
+    # Precos de mercado nao usam o teto de elegibilidade do comprador.
     web_history:
       enabled: true
       browser_engine: playwright

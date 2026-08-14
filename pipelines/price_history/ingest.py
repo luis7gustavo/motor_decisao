@@ -33,20 +33,11 @@ class PriceComparisonIngestionResult:
     blocked: int = 0
 
 
-def _is_snapshot_in_price_range(
-    snapshot,
-    *,
-    min_price: float,
-    max_price: float,
-) -> bool:
-    # Keep blocked snapshots as diagnostics. Product records need a current
-    # price inside the configured buying range.
+def _is_snapshot_eligible_for_bronze(snapshot) -> bool:
+    """Precos comparativos positivos sao evidencia, nao custo de compra."""
     if snapshot.blocked:
         return True
-    return (
-        snapshot.current_price is not None
-        and min_price <= snapshot.current_price <= max_price
-    )
+    return snapshot.current_price is not None and snapshot.current_price > 0
 
 
 def _insert_snapshot(connection, *, source_run_id: UUID, snapshot) -> bool:
@@ -129,15 +120,12 @@ def ingest_price_comparison_search(
     project_config = settings.load_project_config()
     source_config = project_config["market_sources"]["price_history"]
     result_limit = int(max_results or source_config.get("max_results", 30))
-    min_price = float(source_config.get("min_price", 100.0))
-    max_price = float(source_config.get("max_price", 1500.0))
 
     metadata: dict[str, Any] = {
         "source_name": source_name,
         "query": query,
         "max_results": result_limit,
-        "min_price": min_price,
-        "max_price": max_price,
+        "price_policy": "positive_market_evidence_no_purchase_ceiling",
         "note": "comparison search current prices; not full historical series yet",
     }
 
@@ -176,11 +164,7 @@ def ingest_price_comparison_search(
 
         with engine.begin() as connection:
             for snapshot in snapshots:
-                if not _is_snapshot_in_price_range(
-                    snapshot,
-                    min_price=min_price,
-                    max_price=max_price,
-                ):
+                if not _is_snapshot_eligible_for_bronze(snapshot):
                     skipped += 1
                     price_filtered += 1
                     continue
@@ -266,16 +250,13 @@ def ingest_price_comparison_web_history(
     web_config = source_config.get("web_history", {})
     result_limit = int(max_results or web_config.get("max_results", source_config.get("max_results", 30)))
     detail_limit = int(product_detail_limit or web_config.get("product_detail_limit", result_limit))
-    min_price = float(web_config.get("min_price", source_config.get("min_price", 100.0)))
-    max_price = float(web_config.get("max_price", source_config.get("max_price", 1500.0)))
 
     metadata: dict[str, Any] = {
         "source_name": source_name,
         "query": query,
         "max_results": result_limit,
         "product_detail_limit": detail_limit,
-        "min_price": min_price,
-        "max_price": max_price,
+        "price_policy": "positive_market_evidence_no_purchase_ceiling",
         "note": "comparison product pages via Playwright; captures raw page state, offers and visible price-history summary",
     }
 
@@ -325,11 +306,7 @@ def ingest_price_comparison_web_history(
 
         with engine.begin() as connection:
             for snapshot in snapshots:
-                if not _is_snapshot_in_price_range(
-                    snapshot,
-                    min_price=min_price,
-                    max_price=max_price,
-                ):
+                if not _is_snapshot_eligible_for_bronze(snapshot):
                     skipped += 1
                     price_filtered += 1
                     continue

@@ -1,0 +1,38 @@
+name: motor_decisao_worker_pc2
+
+x-pc2-environment: &pc2-environment
+  PREFECT_API_URL: http://${SILLO_PREFECT_HOST:?Defina SILLO_PREFECT_HOST com o IP do PC1}:${PREFECT_SERVER_PORT:-4200}/api
+  DATABASE_URL: postgresql+psycopg://${MOTOR_POSTGRES_USER:-motor}:${MOTOR_POSTGRES_PASSWORD:-motor}@${SILLO_DB_HOST:?Defina SILLO_DB_HOST com o IP do PC1}:${MOTOR_POSTGRES_PORT:-55432}/${MOTOR_POSTGRES_DB:-motor_decisao}
+  REDIS_URL: redis://${SILLO_REDIS_HOST:-host.docker.internal}:${MOTOR_REDIS_PORT:-6380}/0
+  MOTOR_CONFIG_PATH: /app/config/config.yaml
+  SILLO_SOURCE_REGISTRY_PATH: /app/config/sources
+  SILLO_MAX_PRODUCT_PRICE_BRL: ${SILLO_MAX_PRODUCT_PRICE_BRL:-3000.00}
+
+services:
+  worker-http-pc2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    env_file: [.env]
+    environment:
+      <<: *pc2-environment
+      SILLO_WORKER_ID: pc2-http
+    command: prefect worker start --pool sillo-collection --work-queue api-http --name pc2-http --limit ${SILLO_PC2_HTTP_FLOW_LIMIT:-4}
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  worker-browser-pc2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: motor_decisao-api
+    env_file: [.env]
+    environment:
+      <<: *pc2-environment
+      SILLO_WORKER_ID: pc2-browser
+    command: prefect worker start --pool sillo-collection --work-queue browser --name pc2-browser --limit ${SILLO_PC2_BROWSER_FLOW_LIMIT:-2}
+    volumes:
+      - .:/app
+    restart: unless-stopped

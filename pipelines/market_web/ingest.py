@@ -148,17 +148,11 @@ def _insert_listing(connection, *, source_run_id: UUID, snapshot: MarketListingS
     return row is not None
 
 
-def _is_listing_in_price_range(
-    snapshot: MarketListingSnapshot,
-    *,
-    min_price: float,
-    max_price: float,
-) -> bool:
-    # Keep blocked snapshots as operational evidence. Normal listings must have
-    # a usable price inside the configured buying range.
+def _is_listing_eligible_for_bronze(snapshot: MarketListingSnapshot) -> bool:
+    """Preserva evidencias de mercado sem confundir preco de venda com custo."""
     if snapshot.blocked:
         return True
-    return snapshot.price is not None and min_price <= snapshot.price <= max_price
+    return snapshot.price is not None and snapshot.price > 0
 
 
 def _market_source_runtime_config(
@@ -261,11 +255,7 @@ def _ingest_single_market_source(
                     extracted += 1
                     if snapshot.blocked:
                         blocked += 1
-                    if not _is_listing_in_price_range(
-                        snapshot,
-                        min_price=float(market_web_config.get("min_price", 100.0)),
-                        max_price=float(market_web_config.get("max_price", 1500.0)),
-                    ):
+                    if not _is_listing_eligible_for_bronze(snapshot):
                         skipped += 1
                         price_filtered += 1
                         continue
@@ -359,8 +349,7 @@ def ingest_market_web(
         "queries": queries,
         "max_results": max_results,
         "engine": "playwright",
-        "min_price": float(market_web_config.get("min_price", 100.0)),
-        "max_price": float(market_web_config.get("max_price", 1500.0)),
+        "price_policy": "positive_market_evidence_no_purchase_ceiling",
         "parallel_workers": parallel_workers,
         "parallel_sources": parallel_sources,
         "sequential_sources": sequential_sources,

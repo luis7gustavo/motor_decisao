@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sillo-motor-decisao"
+version = "2.0.0"
+description = "Motor de decisao e plataforma de coleta do SILLO"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+sillo = "sillo:main"
+
+[tool.setuptools]
+py-modules = ["sillo"]
+
+[tool.setuptools.packages.find]
+include = ["app*", "pipelines*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

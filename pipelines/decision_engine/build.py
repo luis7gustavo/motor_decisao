@@ -326,7 +326,7 @@ def normalize_supplier_products() -> int:
     return normalized
 
 
-def _fetch_supplier_products() -> list[SupplierProduct]:
+def _fetch_supplier_products(*, max_product_price_brl: float) -> list[SupplierProduct]:
     sql = text(
         """
         WITH latest_products AS (
@@ -349,6 +349,7 @@ def _fetch_supplier_products() -> list[SupplierProduct]:
             FROM silver.supplier_products_normalized
             WHERE supplier_price IS NOT NULL
               AND supplier_price > 0
+              AND supplier_price <= :max_product_price_brl
         )
         SELECT
             id,
@@ -368,7 +369,10 @@ def _fetch_supplier_products() -> list[SupplierProduct]:
         """
     )
     with engine.connect() as connection:
-        rows = connection.execute(sql).mappings().all()
+        rows = connection.execute(
+            sql,
+            {"max_product_price_brl": max_product_price_brl},
+        ).mappings().all()
     products = []
     for row in rows:
         products.append(
@@ -1014,7 +1018,8 @@ def build_decision_opportunities(*, triggered_by: str = "local_cli_decision_engi
     min_net_margin_pct = float(margin_config.get("min_net_margin_pct", 0.20))
 
     suppliers_normalized = normalize_supplier_products()
-    products = _fetch_supplier_products()
+    max_product_price_brl = float(settings.max_product_price_brl)
+    products = _fetch_supplier_products(max_product_price_brl=max_product_price_brl)
     evidence_items = _fetch_evidence_items()
     index = _build_candidate_index(evidence_items)
     metadata = {
@@ -1023,6 +1028,7 @@ def build_decision_opportunities(*, triggered_by: str = "local_cli_decision_engi
         "scoring_version": SCORING_VERSION,
         "total_fee_pct": total_fee_pct,
         "min_net_margin_pct": min_net_margin_pct,
+        "max_product_price_brl": max_product_price_brl,
     }
 
     with engine.begin() as connection:
