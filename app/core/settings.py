@@ -30,6 +30,11 @@ class Settings(BaseSettings):
         gt=0,
         alias="SILLO_MAX_PRODUCT_PRICE_BRL",
     )
+    review_csrf_secret: str = Field(
+        default="sillo-review-local-development",
+        min_length=16,
+        alias="SILLO_REVIEW_CSRF_SECRET",
+    )
     ml_api_base: str = Field(default="https://api.mercadolibre.com", alias="ML_API_BASE")
     ml_auth_base: str = Field(default="https://auth.mercadolivre.com.br", alias="ML_AUTH_BASE")
     ml_site_id: str = Field(default="MLB", alias="ML_SITE_ID")

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>{% block title %}Fila de Revisão · SILLO{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/review.css') }}">
+    <script src="{{ url_for('static', path='/review.js') }}" defer></script>
+</head>
+<body data-review-page="{% block page_name %}review{% endblock %}">
+    <header class="topbar">
+        <a class="brand" href="/review" aria-label="SILLO Fila de Revisão">
+            <span class="brand-mark">S</span>
+            <span><strong>SILLO</strong><small>Fila de Revisão</small></span>
+        </a>
+        <nav aria-label="Navegação principal">
+            <a href="/review">Fila</a>
+            <a href="/review/history">Histórico</a>
+            <a href="/docs" target="_blank" rel="noopener noreferrer">API</a>
+        </nav>
+    </header>
+    <main class="page-shell">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends "review/base.html" %}
+{% block title %}Histórico de Revisões · SILLO{% endblock %}
+{% block page_name %}history{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <div><p class="eyebrow">Auditoria preservada</p><h1>Histórico de revisões</h1><p>Decisões e eventos de desfazer permanecem registrados como dados versionados.</p></div>
+    <a class="button primary" href="/review">Voltar à fila</a>
+</section>
+<section class="summary-grid history-summary">
+    <article><span>Pendentes</span><strong>{{ summary.pending }}</strong></article>
+    <article class="approved"><span>Aprovadas</span><strong>{{ summary.approved }}</strong></article>
+    <article class="reanalysis"><span>Nova análise</span><strong>{{ summary.needs_reanalysis }}</strong></article>
+    <article class="rejected"><span>Descartadas</span><strong>{{ summary.rejected }}</strong></article>
+</section>
+{% if history %}
+<section class="history-list">
+    {% for item in history %}
+    <article class="history-item {{ item.event_type }} {% if item.is_active %}active{% endif %}">
+        <div class="history-marker"><span>{{ '↶' if item.event_type == 'undo' else loop.revindex }}</span></div>
+        <div class="history-content">
+            <div class="eyebrow-row">
+                <span class="decision-pill {{ item.human_decision or 'undo' }}">{{ item.decision_label }}</span>
+                {% if item.is_active %}<span class="active-pill">Ativa</span>{% else %}<span>Histórica</span>{% endif %}
+                <time>{{ item.reviewed_at|datetime }}</time>
+            </div>
+            <h2>{{ item.product_title or ('Oportunidade ' ~ item.opportunity_id) }}</h2>
+            <dl class="history-details">
+                <div><dt>Fornecedor</dt><dd>{{ item.supplier_slug or 'Não disponível' }}</dd></div>
+                <div><dt>Motivo</dt><dd>{{ item.reason_label or 'Não informado' }}</dd></div>
+                <div><dt>Revisor</dt><dd>{{ item.reviewer or 'Não informado' }}</dd></div>
+                <div><dt>Preço máximo</dt><dd>{{ item.max_purchase_price|currency }}</dd></div>
+                <div><dt>Recomendação original</dt><dd>{{ item.original_heuristic_recommendation }}</dd></div>
+                <div><dt>Score original</dt><dd>{{ item.original_heuristic_score|score }}</dd></div>
+                <div><dt>Heurística</dt><dd>{{ item.heuristic_version or 'Não disponível' }}</dd></div>
+                <div><dt>Modelo / score ML</dt><dd>{{ item.model_version or 'Não disponível' }} · {{ item.ml_score|score }}</dd></div>
+            </dl>
+            {% if item.notes %}<p class="history-notes">{{ item.notes }}</p>{% endif %}
+            <p class="mono muted">review_id: {{ item.id }} · snapshot_id: {{ item.snapshot_id or 'não disponível' }}</p>
+        </div>
+        <div class="history-actions">
+            {% if item.is_active and item.event_type == 'decision' %}
+            <form method="post" action="/review/{{ item.opportunity_id }}/undo">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="return_to" value="history">
+                <button type="submit" class="button warning">Desfazer</button>
+            </form>
+            {% endif %}
+            {% if item.product_title %}<a href="/review/{{ item.opportunity_id }}" class="button ghost">Abrir</a>{% endif %}
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<section class="empty-state"><strong>Nenhuma revisão registrada.</strong><p>As decisões aparecerão aqui sem apagar versões anteriores.</p><a class="button primary" href="/review">Abrir fila</a></section>
+{% endif %}
+{% endblock %}
