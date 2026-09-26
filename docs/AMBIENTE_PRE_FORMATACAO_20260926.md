@@ -50,4 +50,3 @@ O ultimo motor de decisao registrado antes do snapshot iniciou em `2026-09-25 19
 ## Integridade dos assets
 
 Os hashes oficiais estao em `SHA256SUMS.txt`, publicado no mesmo release dos dumps. O script `scripts/restore_from_github_release.ps1` valida os hashes antes de modificar os bancos.
-
