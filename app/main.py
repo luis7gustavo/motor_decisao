@@ -1,9 +1,16 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.api.decision_engine import router as decision_engine_router
 from app.api.health import router as health_router
 from app.api.mercado_livre_oauth import router as mercado_livre_oauth_router
 from app.api.operations import router as operations_router
+from app.api.review import router as review_router
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def create_app() -> FastAPI:
@@ -16,6 +23,12 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(mercado_livre_oauth_router)
     app.include_router(operations_router)
+    app.include_router(review_router)
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(PROJECT_ROOT / "static")),
+        name="static",
+    )
     return app
 
 

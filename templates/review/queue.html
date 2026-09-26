@@ -1,0 +1,317 @@
+{% extends "review/base.html" %}
+{% block title %}Fila de Revisão · SILLO{% endblock %}
+{% block page_name %}queue{% endblock %}
+
+{% macro preserved_filters() -%}
+    {% for key, value in filters.model_dump().items() %}
+        {% if value is not none %}<input type="hidden" name="filter_{{ key }}" value="{{ value }}">{% endif %}
+    {% endfor %}
+{%- endmacro %}
+
+{% macro evidence_card(item, expanded=false) -%}
+<article class="evidence-card{% if item.comparison.conflicts %} has-conflict{% endif %}">
+    <div class="evidence-media">
+        <img src="{{ item.image_url or url_for('static', path='/review-placeholder.svg') }}"
+             data-fallback="{{ url_for('static', path='/review-placeholder.svg') }}"
+             alt="Imagem da evidência {{ item.title }}" loading="lazy" referrerpolicy="no-referrer">
+    </div>
+    <div class="evidence-body">
+        <div class="eyebrow-row">
+            <span class="source-pill">{{ item.source_name }}</span>
+            <span>{{ item.source_kind|replace('_', ' ') }}</span>
+            <span>{{ item.fetched_date|datetime }}</span>
+        </div>
+        <h4>{{ item.title }}</h4>
+        <dl class="inline-metrics">
+            <div><dt>Preço</dt><dd>{{ item.price|currency }}</dd></div>
+            <div><dt>Matching</dt><dd>{{ item.match_confidence|score }}</dd></div>
+            <div><dt>Disponibilidade</dt><dd>{{ item.availability or 'Não disponível' }}</dd></div>
+        </dl>
+        {% if item.shipping_text %}<p class="muted">Frete informado: {{ item.shipping_text }}</p>{% endif %}
+        {% if item.item_url %}
+            <a class="external-link" href="{{ item.item_url }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir evidência ↗</a>
+        {% endif %}
+
+        <div class="title-comparison">
+            <div><span>Título do fornecedor</span><p>{{ opportunity.product_title }}</p></div>
+            <div><span>Título encontrado</span><p>{{ item.title }}</p></div>
+        </div>
+        {% if item.comparison.matches or item.comparison.common_tokens %}
+            <div class="attribute-line good">
+                <strong>Coincidem:</strong>
+                {{ (item.comparison.matches or item.comparison.common_tokens)|join(' · ') }}
+            </div>
+        {% else %}
+            <div class="attribute-line neutral"><strong>Coincidências:</strong> nenhum atributo técnico explícito.</div>
+        {% endif %}
+        {% if item.comparison.conflicts %}
+            <div class="conflict-list" aria-label="Conflitos técnicos detectados">
+                {% for conflict in item.comparison.conflicts %}
+                    <div><strong>{{ conflict.attribute }}</strong>: fornecedor “{{ conflict.supplier }}” × mercado “{{ conflict.market }}”</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="attribute-line neutral"><strong>Conflitos explícitos:</strong> nenhum detectado nos títulos.</div>
+        {% endif %}
+    </div>
+</article>
+{%- endmacro %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Decisão humana auditável</p>
+        <h1>Fila de Revisão</h1>
+        <p>Analise uma oportunidade por vez. Aprovar não executa compra; apenas autoriza uma futura compra controlada.</p>
+    </div>
+    <div class="queue-position" aria-label="Posição na fila">
+        <span>Posição</span>
+        <strong>{% if position %}{{ position }} / {{ filtered_count }}{% else %}— / {{ filtered_count }}{% endif %}</strong>
+    </div>
+</section>
+
+{% if saved %}
+<div class="flash success" role="status">
+    <strong>Decisão salva.</strong> {{ decision_labels.get(saved, saved) }}. O próximo item pendente foi carregado.
+</div>
+{% endif %}
+{% if undone %}
+<div class="flash info" role="status"><strong>Decisão desfeita.</strong> O item voltou à fila sem apagar o histórico.</div>
+{% endif %}
+{% if form_error %}
+<div class="flash error" role="alert"><strong>Não foi possível salvar.</strong> {{ form_error }}</div>
+{% endif %}
+
+<section class="summary-grid" aria-label="Resumo da fila">
+    <article><span>Pendentes</span><strong>{{ summary.pending }}</strong></article>
+    <article class="approved"><span>Aprovadas</span><strong>{{ summary.approved }}</strong></article>
+    <article class="reanalysis"><span>Nova análise</span><strong>{{ summary.needs_reanalysis }}</strong></article>
+    <article class="rejected"><span>Descartadas</span><strong>{{ summary.rejected }}</strong></article>
+    <article><span>Com os filtros</span><strong>{{ filtered_count }}</strong></article>
+</section>
+
+<details class="filter-panel" {% if active_filters %}open{% endif %}>
+    <summary>Filtros e ordenação <span>{{ active_filters|length }} ativo(s)</span></summary>
+    <form method="get" action="/review" class="filter-grid">
+        <label>Fornecedor
+            <select name="supplier">
+                <option value="">Todos</option>
+                {% for supplier in filter_options.suppliers %}
+                    <option value="{{ supplier }}" {% if filters.supplier == supplier %}selected{% endif %}>{{ supplier }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="span-2">Texto do produto
+            <input type="search" name="q" value="{{ filters.q or '' }}" maxlength="200" placeholder="Nome, modelo ou SKU">
+        </label>
+        <label>Margem mínima (%)
+            <input type="number" name="min_margin" value="{{ filters.min_margin if filters.min_margin is not none else '' }}" min="0" max="1000" step="0.01">
+        </label>
+        <label>Lucro líquido mínimo
+            <input type="number" name="min_profit" value="{{ filters.min_profit if filters.min_profit is not none else '' }}" min="0" step="0.01">
+        </label>
+        <label>Score mínimo
+            <input type="number" name="min_score" value="{{ filters.min_score if filters.min_score is not none else '' }}" min="0" max="100" step="0.01">
+        </label>
+        <label>Matching mínimo
+            <input type="number" name="min_match" value="{{ filters.min_match if filters.min_match is not none else '' }}" min="0" max="100" step="0.01">
+        </label>
+        <label>Flag de risco
+            <select name="risk">
+                <option value="">Todas</option>
+                {% for risk in filter_options.risks %}
+                    <option value="{{ risk }}" {% if filters.risk == risk %}selected{% endif %}>{{ risk_labels.get(risk, risk) }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Ordenar por
+            <select name="sort">
+                <option value="score" {% if filters.sort == 'score' %}selected{% endif %}>Maior decision score</option>
+                <option value="margin" {% if filters.sort == 'margin' %}selected{% endif %}>Maior margem</option>
+                <option value="profit" {% if filters.sort == 'profit' %}selected{% endif %}>Maior lucro</option>
+                <option value="date" {% if filters.sort == 'date' %}selected{% endif %}>Mais recente</option>
+            </select>
+        </label>
+        <div class="filter-actions span-2">
+            <button type="submit" class="button primary">Aplicar filtros</button>
+            <a href="/review" class="button ghost">Limpar</a>
+        </div>
+    </form>
+    {% if active_filters %}
+    <div class="active-filters">
+        {% for key, value in active_filters.items() %}<span>{{ key }}: {{ value }}</span>{% endfor %}
+    </div>
+    {% endif %}
+</details>
+
+{% if opportunity %}
+<section class="workspace">
+    <article class="panel product-panel">
+        <div class="section-heading">
+            <div><p class="eyebrow">Produto do fornecedor</p><h2>{{ opportunity.product_title }}</h2></div>
+            <span class="supplier-badge">{{ opportunity.supplier_slug }}</span>
+        </div>
+        <div class="product-layout">
+            <img class="product-image" src="{{ opportunity.image_url or url_for('static', path='/review-placeholder.svg') }}"
+                 data-fallback="{{ url_for('static', path='/review-placeholder.svg') }}"
+                 alt="Imagem de {{ opportunity.product_title }}" referrerpolicy="no-referrer">
+            <dl class="detail-list">
+                <div><dt>SKU / código</dt><dd>{{ opportunity.sku or opportunity.ean or 'Não disponível' }}</dd></div>
+                <div><dt>Preço de custo</dt><dd>{{ opportunity.supplier_price|currency }}</dd></div>
+                <div><dt>Disponibilidade</dt><dd>{{ opportunity.availability or 'Não disponível' }}</dd></div>
+                <div><dt>Data da coleta</dt><dd>{{ (opportunity.fetched_at or opportunity.fetched_date)|datetime }}</dd></div>
+                <div><dt>UUID da oportunidade</dt><dd class="mono">{{ opportunity.id }}</dd></div>
+                {% if opportunity.source_url %}<div><dt>Origem</dt><dd><a class="external-link" href="{{ opportunity.source_url }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir produto ↗</a></dd></div>{% endif %}
+            </dl>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="section-heading"><div><p class="eyebrow">Cálculo do motor</p><h2>Resumo financeiro</h2></div></div>
+        <div class="financial-grid">
+            <div><span>Fornecedor</span><strong>{{ opportunity.supplier_price|currency }}</strong></div>
+            <div><span>Mercado estimado</span><strong>{{ opportunity.estimated_market_price|currency }}</strong></div>
+            <div class="positive"><span>Lucro líquido estimado</span><strong>{{ opportunity.estimated_net_profit|currency }}</strong></div>
+            <div><span>Margem líquida</span><strong>{{ opportunity.net_margin_pct|percent }}</strong></div>
+            <div><span>Frete estimado</span><strong>{{ opportunity.financial_breakdown.shipping_amount|currency }}</strong><small>{{ opportunity.financial_breakdown.shipping_pct|percent }}</small></div>
+            <div><span>Taxas estimadas</span><strong>{{ opportunity.financial_breakdown.fee_amount|currency }}</strong><small>{{ opportunity.financial_breakdown.fee_pct|percent }}</small></div>
+            <div><span>Impostos</span><strong>{{ opportunity.financial_breakdown.tax_amount|currency }}</strong><small>{{ opportunity.financial_breakdown.tax_pct|percent }}</small></div>
+            <div><span>Outros custos</span><strong>{{ opportunity.financial_breakdown.other_amount|currency }}</strong><small>{{ opportunity.financial_breakdown.other_pct|percent }}</small></div>
+        </div>
+        <p class="footnote">Valores percentuais vêm do snapshot de configuração da execução. Ausências são exibidas sem estimativas inventadas.</p>
+    </article>
+
+    <article class="panel">
+        <div class="section-heading"><div><p class="eyebrow">Sinais e versões</p><h2>Indicadores do motor</h2></div></div>
+        <div class="indicator-grid">
+            <div><span>Demand score</span><strong>{{ opportunity.demand_score|score }}</strong></div>
+            <div><span>Match confidence</span><strong>{{ opportunity.match_confidence|score }}</strong></div>
+            <div class="score-strong"><span>Decision score</span><strong>{{ opportunity.decision_score|score }}</strong></div>
+            <div><span>Recomendação heurística</span><strong>{{ opportunity.recommendation }}</strong></div>
+            <div><span>Confiança</span><strong>{{ opportunity.confidence_level }}</strong></div>
+            <div><span>Score do ML</span><strong>{{ opportunity.ml_score|score }}</strong></div>
+        </div>
+        <dl class="version-list">
+            <div><dt>Heurística</dt><dd>{{ opportunity.heuristic_version or 'Não disponível' }}</dd></div>
+            <div><dt>Modelo</dt><dd>{{ opportunity.model_version or 'Não disponível' }}</dd></div>
+            <div><dt>run_id</dt><dd class="mono">{{ opportunity.run_id or 'Não disponível' }}</dd></div>
+            <div><dt>snapshot_id</dt><dd class="mono">{{ opportunity.snapshot_id or 'Não disponível' }}</dd></div>
+        </dl>
+        {% if opportunity.risk_details %}
+        <div class="risk-box"><strong>Flags de risco</strong><div>{% for risk in opportunity.risk_details %}<span title="{{ risk.code }}">{{ risk.label }}</span>{% endfor %}</div></div>
+        {% endif %}
+        {% if opportunity.matching_guardrails %}
+        <div class="guardrail-box"><strong>Guardrails que influenciaram o matching</strong><ul>{% for guardrail in opportunity.matching_guardrails %}<li>{{ guardrail.label }} <code>{{ guardrail.code }}</code></li>{% endfor %}</ul></div>
+        {% endif %}
+    </article>
+
+    <section class="panel evidence-section">
+        <div class="section-heading">
+            <div><p class="eyebrow">Mercado e matching</p><h2>Principais evidências</h2></div>
+            <span>{{ opportunity.evidence_items|length }} exibida(s)</span>
+        </div>
+        {% if opportunity.evidence_items %}
+            {% for item in opportunity.evidence_items[:3] %}{{ evidence_card(item) }}{% endfor %}
+            {% if opportunity.evidence_items|length > 3 %}
+            <details class="more-evidence"><summary>Mostrar mais {{ opportunity.evidence_items|length - 3 }} evidência(s)</summary>
+                {% for item in opportunity.evidence_items[3:] %}{{ evidence_card(item, true) }}{% endfor %}
+            </details>
+            {% endif %}
+        {% else %}
+            <div class="empty-state compact"><strong>Nenhuma evidência detalhada disponível.</strong><p>Os totais do motor foram preservados, mas não há itens no payload desta oportunidade.</p></div>
+        {% endif %}
+    </section>
+
+    <section class="panel decision-panel" id="decision-panel">
+        <div class="section-heading"><div><p class="eyebrow">Julgamento do operador</p><h2>Registrar decisão humana</h2></div></div>
+        {% if opportunity.active_review_id %}
+            <div class="already-reviewed">
+                <strong>Esta versão já foi julgada:</strong> {{ decision_labels.get(opportunity.active_human_decision, opportunity.active_human_decision) }} em {{ opportunity.active_reviewed_at|datetime }}.
+                <form method="post" action="/review/{{ opportunity.id }}/undo">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">{{ preserved_filters() }}
+                    <button type="submit" class="button warning">Desfazer decisão</button>
+                </form>
+            </div>
+        {% else %}
+        <div class="decision-grid">
+            <details class="decision-card approve" data-action-panel="approve" {% if form_values.decision == 'approved_test_purchase' %}open{% endif %}>
+                <summary><span><kbd>A</kbd></span><strong>Aprovar para compra teste</strong><small>Autoriza apenas a próxima etapa controlada.</small></summary>
+                <form method="post" action="/review/{{ opportunity.id }}/decision">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="decision" value="approved_test_purchase">{{ preserved_filters() }}
+                    <label>Preço máximo de compra
+                        <input type="number" name="max_purchase_price" value="{{ form_values.max_purchase_price or '' }}" min="0.01" step="0.01" inputmode="decimal">
+                    </label>
+                    <label>Revisor
+                        <input type="text" name="reviewer" value="{{ form_values.reviewer or '' }}" maxlength="160">
+                    </label>
+                    <label>Observação
+                        <textarea name="notes" maxlength="3000" rows="3">{{ form_values.notes or '' }}</textarea>
+                    </label>
+                    <button type="submit" class="button approve">Salvar aprovação</button>
+                </form>
+            </details>
+
+            <details class="decision-card reanalysis" data-action-panel="reanalysis" {% if form_values.decision == 'needs_reanalysis' %}open{% endif %}>
+                <summary><span><kbd>N</kbd></span><strong>Solicitar nova análise</strong><small>Retira este snapshot da fila até uma nova execução.</small></summary>
+                <form method="post" action="/review/{{ opportunity.id }}/decision">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="decision" value="needs_reanalysis">{{ preserved_filters() }}
+                    <label>Motivo obrigatório
+                        <select name="reason_code" required>
+                            <option value="">Selecione</option>
+                            {% for code, label in reanalysis_reasons.items() %}<option value="{{ code }}" {% if form_values.reason_code == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </label>
+                    <label>Revisor
+                        <input type="text" name="reviewer" value="{{ form_values.reviewer or '' }}" maxlength="160">
+                    </label>
+                    <label>Observação <small>(obrigatória para “Outro”)</small>
+                        <textarea name="notes" maxlength="3000" rows="3">{{ form_values.notes or '' }}</textarea>
+                    </label>
+                    <button type="submit" class="button reanalysis">Salvar solicitação</button>
+                </form>
+            </details>
+
+            <details class="decision-card reject" data-action-panel="reject" {% if form_values.decision == 'rejected' %}open{% endif %}>
+                <summary><span><kbd>D</kbd></span><strong>Descartar</strong><small>Registra o motivo e preserva o julgamento.</small></summary>
+                <form method="post" action="/review/{{ opportunity.id }}/decision">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="decision" value="rejected">{{ preserved_filters() }}
+                    <label>Motivo obrigatório
+                        <select name="reason_code" required>
+                            <option value="">Selecione</option>
+                            {% for code, label in rejection_reasons.items() %}<option value="{{ code }}" {% if form_values.reason_code == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </label>
+                    <label>Revisor
+                        <input type="text" name="reviewer" value="{{ form_values.reviewer or '' }}" maxlength="160">
+                    </label>
+                    <label>Observação <small>(obrigatória para “Outro”)</small>
+                        <textarea name="notes" maxlength="3000" rows="3">{{ form_values.notes or '' }}</textarea>
+                    </label>
+                    <button type="submit" class="button reject">Salvar descarte</button>
+                </form>
+            </details>
+        </div>
+        {% endif %}
+    </section>
+</section>
+
+<aside class="quick-nav" aria-label="Navegação rápida">
+    {% if next_id %}<a class="button ghost" id="skip-item" href="/review/{{ next_id }}{% if query_string %}?{{ query_string }}{% endif %}"><kbd>S</kbd> Pular</a>{% else %}<span class="button ghost disabled"><kbd>S</kbd> Fim da fila</span>{% endif %}
+    {% if undo_opportunity_id %}
+    <form method="post" action="/review/{{ undo_opportunity_id }}/undo" id="undo-last-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">{{ preserved_filters() }}
+        <button type="submit" class="button warning"><kbd>Z</kbd> Desfazer última</button>
+    </form>
+    {% endif %}
+</aside>
+{% else %}
+<section class="empty-state">
+    <strong>Não há itens pendentes com estes filtros.</strong>
+    <p>A fila usa apenas oportunidades atuais com recomendação heurística <code>revisar</code> e sem decisão humana ativa para o snapshot.</p>
+    {% if active_filters %}<a href="/review" class="button primary">Limpar filtros</a>{% else %}<a href="/review/history" class="button ghost">Ver histórico</a>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

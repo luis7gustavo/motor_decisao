@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title description">
+  <title id="title">Imagem não disponível</title>
+  <desc id="description">Placeholder local da Fila de Revisão SILLO</desc>
+  <rect width="640" height="480" fill="#eef2f3"/>
+  <rect x="160" y="110" width="320" height="230" rx="24" fill="#dce4e6" stroke="#a9b8bc" stroke-width="8"/>
+  <circle cx="245" cy="190" r="34" fill="#a9b8bc"/>
+  <path d="M185 310l86-86 62 58 48-46 74 74z" fill="#7d9196"/>
+  <text x="320" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#53676c">Imagem não disponível</text>
+</svg>

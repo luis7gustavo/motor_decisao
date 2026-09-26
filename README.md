@@ -23,7 +23,10 @@ O objetivo do MVP e apoiar decisao humana. Ele ainda nao executa compra automati
 | `docs/power_bi_dashboard.md` | Modelo de dados, atualizacao e paginas recomendadas no Power BI. |
 | `docs/mercado_livre_ngrok.md` | Guia de OAuth Mercado Livre com ngrok. |
 | `docs/collection_v2/README.md` | Plataforma de coleta V2: arquitetura, CLI, Prefect, fontes, operacao e benchmark. |
+| `docs/fila_revisao.md` | Fila de Revisao: migration, operacao, estados, auditoria e testes. |
 | `docs/Relatorio_Mudancas_Coleta_SILLO_2026-08-14.docx` | Relatorio executivo e tecnico das mudancas, validacoes e pendencias da Coleta V2. |
+| `docs/RESTAURACAO_POS_FORMATACAO.md` | Restauracao completa do ambiente e dos bancos apos formatar o PC. |
+| `docs/AMBIENTE_PRE_FORMATACAO_20260926.md` | Snapshot de versoes, imagens, portas e dados preservados. |
 
 Logo:
 
@@ -229,6 +232,18 @@ Consultar oportunidades:
 Invoke-RestMethod "http://127.0.0.1:8010/decision-engine/opportunities?recommendation=comprar_teste"
 ```
 
+Aplicar a migration e abrir a Fila de Revisao:
+
+```powershell
+docker compose exec -T api alembic upgrade head
+Start-Process "http://127.0.0.1:8010/review"
+```
+
+As decisoes humanas sao versionadas em `feedback.opportunity_reviews`. Aprovar
+para compra teste nao executa uma compra e nao altera a recomendacao original
+do motor. Uso, estados, desfazer e testes estao detalhados em
+`docs/fila_revisao.md`.
+
 Exportar a camada analitica para o Power BI:
 
 ```powershell
@@ -247,6 +262,12 @@ docker compose exec -T api python scripts/export_power_bi.py
 | `/decision-engine/summary` | GET | Resumo das recomendacoes atuais. |
 | `/decision-engine/opportunities` | GET | Lista oportunidades. |
 | `/decision-engine/runs` | GET | Historico de rodadas do motor. |
+| `/review` | GET | Fila server-side de oportunidades `revisar`. |
+| `/review/{opportunity_id}` | GET | Abre uma oportunidade especifica. |
+| `/review/{opportunity_id}/decision` | POST | Registra decisao humana auditavel. |
+| `/review/history` | GET | Exibe o historico de decisoes e desfazimentos. |
+| `/review/{opportunity_id}/undo` | POST | Desfaz sem apagar o historico. |
+| `/review/summary` | GET | Retorna os contadores usados pela interface. |
 
 ## Conexao no DBeaver
 
@@ -297,3 +318,20 @@ Para levar dados a outra maquina, use:
 ```
 
 Detalhes completos em `docs/uso_local_e_importacao.md`.
+
+## Recuperacao apos formatacao
+
+O snapshot completo de 26/09/2026 esta nos assets do release
+`pre-format-2026-09-26`. Em um Windows novo, depois de instalar Git, Docker
+Desktop e PowerShell 7:
+
+```powershell
+git clone https://github.com/luis7gustavo/motor_decisao.git
+cd motor_decisao
+Copy-Item .env.example .env
+.\scripts\restore_from_github_release.ps1
+```
+
+Credenciais e tokens nunca sao publicados. Guarde os valores privados do `.env`
+separadamente antes de formatar. O procedimento completo, inclusive PC2,
+Prefect, DBeaver e Power BI, esta em `docs/RESTAURACAO_POS_FORMATACAO.md`.
