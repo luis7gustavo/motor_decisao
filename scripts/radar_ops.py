@@ -171,6 +171,9 @@ class Runner:
         if set(baseline["counts"]) != expected_tables:
             raise ValueError("Restored tables differ from dump inventory")
         synthetic = target == "synthetic"
+        c1 = target == '20261013_0010' and origin == '20260817_0009'
+        if not synthetic and not c1:
+            raise ValueError('A revision-specific structural verifier is required for this target')
         self.report["expected_table_count"] = len(expected_tables)
         self.report["baseline"] = baseline
         self.report["count_source"] = "restored dump; never independent queries against active principal"
@@ -189,14 +192,30 @@ class Runner:
             parents = {r.revision: r.down_revision for r in revisions.walk_revisions()}
             self.report["new_revisions"] = validate_revision_path(origin, target, parents)
             self.report["migration_hashes"] = {Path(r.path).name: digest(r.path) for r in revisions.walk_revisions()}
+            installed_structure = None
             for direction, destination in [("upgrade", target), ("downgrade", origin), ("upgrade", target)]:
                 self.migrate(name, direction, destination, location)
                 observed = self.inventory(name, tables)
                 if observed["revision"] != destination or observed["counts"] != baseline["counts"]:
                     raise ValueError("Revision or legacy row counts changed unexpectedly")
-                if synthetic and observed["structures"] != baseline["structures"]:
-                    raise ValueError("Synthetic rehearsal changed legacy structure")
-                self.report["steps"].append({"migration": direction, "revision": destination, "legacy_counts_equal": True, "synthetic_structure_equal": synthetic})
+                if observed["structures"] != baseline["structures"]:
+                    raise ValueError("Rehearsal changed legacy structure")
+                if c1:
+                    from scripts.radar_schema import C1_TABLES, verify_c1
+                    with self.connection(name) as conn:
+                        structure = verify_c1(conn, installed=direction == 'upgrade')
+                    complete = self.inventory(name)
+                    expected = set(baseline['counts']) | (C1_TABLES if direction == 'upgrade' else set())
+                    if set(complete['counts']) != expected:
+                        raise ValueError('Unexpected table after C1 migration')
+                    if direction == 'upgrade':
+                        new_structure = {k: v for k, v in complete['structures'].items() if k in C1_TABLES}
+                        combined = [new_structure, structure]
+                        if installed_structure is not None and combined != installed_structure:
+                            raise ValueError('Re-upgrade changed C1 structural fingerprint')
+                        installed_structure = combined
+                    self.report['steps'].append({'c1_structure': structure})
+                self.report["steps"].append({"migration": direction, "revision": destination, "legacy_counts_equal": True, "legacy_structure_equal": True, "synthetic_structure_equal": synthetic})
                 self.save()
         if digest(dump) != before:
             raise ValueError("Dump changed during rehearsal")
