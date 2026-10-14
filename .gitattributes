@@ -5,3 +5,6 @@ tests/test_radar_ops.py text eol=lf
 app/procurement/*.py text eol=lf
 alembic/versions/20261013_0010_procurement_foundation.py text eol=lf
 tests/test_procurement_foundation.py text eol=lf
+tests/test_pncp*.py text eol=lf
+pipelines/procurement/*.py text eol=lf
+config/contracts/pncp-consulta-20261013.json -text
