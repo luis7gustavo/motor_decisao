@@ -1,0 +1,24 @@
+{
+  "source": "PNCP_S05_LEDGER_2026-10-15.json",
+  "official_control_number": "91984492000152-1-000082/2026",
+  "item": {
+    "numeroItem": 1,
+    "descricao": "ARADO SUBSOLADOR DE 07 HASTES C/ KIT DE UNHA RESERVAS",
+    "unidadeMedida": "un",
+    "quantidade": 1.0,
+    "temResultado": true,
+    "situacaoCompraItemNome": "Homologado"
+  },
+  "result": {
+    "niFornecedor": "49552222000106",
+    "tipoPessoa": "PJ",
+    "nomeRazaoSocialFornecedor": "COMERCIAL AGRO VOGEL E ZIMMERMANN LTDA",
+    "sequencialResultado": 1,
+    "quantidadeHomologada": 1.0,
+    "valorUnitarioHomologado": 9600.0,
+    "dataResultado": "2026-08-26",
+    "dataCancelamento": null,
+    "situacaoCompraItemResultadoNome": "Informado",
+    "numeroControlePNCPCompra": "91984492000152-1-000082/2026"
+  }
+}

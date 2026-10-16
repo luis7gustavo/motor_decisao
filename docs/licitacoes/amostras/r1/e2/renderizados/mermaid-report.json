@@ -1,0 +1,136 @@
+{
+  "date_utc": "2026-10-13T05:26:07.425Z",
+  "node": "v18.20.5",
+  "uid": 65534,
+  "results": [
+    {
+      "source": "diagramas/D01-contexto.md",
+      "file": "D01-contexto-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 4.172,
+      "source_sha256": "590f8fefcbcc7846b76ba77940b3c25517fceb4557beaba732a1ca90dede299b"
+    },
+    {
+      "source": "diagramas/D02-containers.md",
+      "file": "D02-containers-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.574,
+      "source_sha256": "d507396e466b48c62012c21a9d2475f7d2b88838bd4a54a9b087461b8152dd36"
+    },
+    {
+      "source": "diagramas/D03-motor.md",
+      "file": "D03-motor-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.612,
+      "source_sha256": "0641f899c08abb60b09149755c605dccc8855d681b2965d87023f409a8b556ed"
+    },
+    {
+      "source": "diagramas/D06-entidades.md",
+      "file": "D06-entidades-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.969,
+      "source_sha256": "181ba910059fc2d1f14ed566ec14d3b46e306f1559bb88dca9e1098c79ea7739"
+    },
+    {
+      "source": "diagramas/D07-atividades.md",
+      "file": "D07-atividades-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.786,
+      "source_sha256": "068f43659f63a1b1c3b80f39173bcd64b2acf3d1a430c33c9fd01ea54b82530e"
+    },
+    {
+      "source": "diagramas/D08-coleta-pncp.md",
+      "file": "D08-coleta-pncp-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.535,
+      "source_sha256": "8b36143e08bd456a1348dddcb471579ca4a01c55714c96f83f740702a2c8fe19"
+    },
+    {
+      "source": "diagramas/D09-analise-oportunidade.md",
+      "file": "D09-analise-oportunidade-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.52,
+      "source_sha256": "45d83277c647ea7f429ede08a5d7325d25ae2fdea88071025a3d8e365826e1ba"
+    },
+    {
+      "source": "diagramas/D10-estados.md",
+      "file": "D10-estados-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.793,
+      "source_sha256": "0f2217ec5abc7a16a9e4a95240bde6d6bde898c5ae594c9bb06a72e4cc594103"
+    },
+    {
+      "source": "diagramas/D10-estados.md",
+      "file": "D10-estados-2.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.564,
+      "source_sha256": "f0fa45d300b46621c69ed9a47fdbea36cfc76fe53554bac4b491917ba8973634"
+    },
+    {
+      "source": "diagramas/D10-estados.md",
+      "file": "D10-estados-3.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.695,
+      "source_sha256": "331abb47ad0df17787d10da0175bd77c0e344ffd384728f07946f30709c376f8"
+    },
+    {
+      "source": "diagramas/D11-dados.md",
+      "file": "D11-dados-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.603,
+      "source_sha256": "ead2c2497c94499bc49f7cc791bddcdcedd779e5622cbb2d91a74dbb10c3eafb"
+    },
+    {
+      "source": "diagramas/D12-implantacao.md",
+      "file": "D12-implantacao-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.568,
+      "source_sha256": "3dabaadcb4734371703a359ca666801fa30a808c664338f225fbc6bb16e64b81"
+    },
+    {
+      "source": "diagramas/D13-entrega-remota.md",
+      "file": "D13-entrega-remota-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.522,
+      "source_sha256": "23cde6b7bc823f7d7b2f70f94adde2a7be7de24d40f277d35124e75204582bf6"
+    },
+    {
+      "source": "diagramas/D14-fluxo-financeiro.md",
+      "file": "D14-fluxo-financeiro-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.569,
+      "source_sha256": "38c61bcefe0b81178267a5e2d0222caa5e5ddb2a8c96288b6dfe499171f3a9cb"
+    },
+    {
+      "source": "diagramas/D15-descoberta-fornecedores.md",
+      "file": "D15-descoberta-fornecedores-1.mmd",
+      "code": 0,
+      "error": "",
+      "duration_seconds": 3.6,
+      "source_sha256": "0b01a879ebb0f5045f1328146ec1ab4ec137351d326d3ae8eef20fbe0422a52f"
+    }
+  ],
+  "versions": {
+    "@mermaid-js/mermaid-cli": "11.12.0",
+    "mermaid": "11.12.0",
+    "puppeteer": "23.11.1"
+  },
+  "script_sha256": "b15157dbc4f67beccf0df67cc465fc281f53d4ec360ccc87f96b55abc32f9a53",
+  "chromium": "Chromium 124.0.6367.78 Alpine Linux",
+  "duration_seconds": 55.529,
+  "complete": true
+}

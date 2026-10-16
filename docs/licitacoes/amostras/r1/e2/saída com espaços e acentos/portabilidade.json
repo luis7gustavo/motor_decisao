@@ -1,0 +1,25 @@
+{
+  "uid": 65534,
+  "input_utf8": "entrada sintética com acentuação",
+  "read_only_checks": {
+    "/input/escrita-proibida.txt": true,
+    "/tool/escrita-proibida.txt": true,
+    "/escrita-proibida.txt": true
+  },
+  "scripts": {
+    "portabilidade.py": {
+      "sha256": "3f2e24abfeae80ab6179868f1350788b9e26fbe48e77cb0783dd50c3f8bc57a8",
+      "lf_only": true
+    },
+    "render-mermaid.cjs": {
+      "sha256": "b15157dbc4f67beccf0df67cc465fc281f53d4ec360ccc87f96b55abc32f9a53",
+      "lf_only": true
+    },
+    "validar-documentos.py": {
+      "sha256": "b55deed25141b23ce9ebe7191d99ab8b9e8729cd06c5d09098b5c68a67ac8b68",
+      "lf_only": true
+    }
+  },
+  "duration_seconds": 0.013,
+  "ok": true
+}

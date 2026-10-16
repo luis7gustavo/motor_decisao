@@ -102,3 +102,39 @@ def test_connected_peer_is_rechecked_after_dns(monkeypatch):
     with pytest.raises(ValueError):
         module.send_get('https://pncp.gov.br/api/consulta/v3/api-docs')
     assert sock.address==('8.8.8.8',443)
+
+
+@pytest.mark.parametrize('field,value', [
+    ('limit', True), ('consumed', False), ('interval', float('nan')),
+    ('not_before', float('nan')), ('not_before', float('inf')),
+    ('session', ''), ('attempts', {}),
+])
+def test_corrupt_budget_refuses_before_send(tmp_path,field,value):
+    """RT-001: corrupted persistent state cannot silently relax quota/spacing."""
+    import json
+    path=tmp_path/'corrupt'
+    Budget.create(path,session_id='test',limit=2,interval=1)
+    state=Budget(path).state()
+    state[field]=value
+    (path/'ledger.json').write_text(json.dumps(state))
+    sent=[]
+    with pytest.raises(ValueError):
+        Budget(path).request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda url: sent.append(url))
+    assert sent==[]
+
+
+def test_attempt_sequence_must_reconcile_before_resume(tmp_path):
+    """RT-001: duplicate receipt numbers cannot overwrite an earlier archive."""
+    import json
+    path=tmp_path/'sequence'
+    Budget.create(path,session_id='test',limit=3,interval=1)
+    budget=Budget(path)
+    budget.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+        lambda _:Response(200,{},b'original'))
+    state=budget.state()
+    state['attempts'][0]['attempt']=2
+    (path/'ledger.json').write_text(json.dumps(state))
+    with pytest.raises(ValueError):
+        budget.state()
+    assert (path/'001.body').read_bytes()==b'original'

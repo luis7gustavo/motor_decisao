@@ -1,0 +1,122 @@
+@startuml D04_casos_de_uso
+' D04 — Diagrama de casos de uso UML do Radar Licita
+' Versão: 0.1. Data: 2026-10-10 (America/Sao_Paulo).
+' Commit base: 261b32107ff7b053c68c1df98e88de329c41c0f5.
+' Status: [PROPOSTO] — capacidades futuras, não implementadas nesta missão.
+'
+' Explicação: os oito casos de uso agrupam os domínios 7.1 a 7.8 dos RF.
+' As associações indicam participação de atores, não ordem de execução.
+' Não há include/extend: sequência de trabalho ou dependência entre RF
+' não implica, por si só, inclusão ou extensão no modelo UML.
+'
+' Fornecedores e assessores são fontes externas consultadas pelo operador.
+' Não são atores com acesso ao aplicativo no MVP; aparecem em nota contextual.
+' Fontes: ../01-visao-produto.md, ../03-analise-negocio-dan.md,
+' ../04-requisitos-funcionais.md e ../06-regras-de-negocio.md.
+'
+' Rastreabilidade para a consolidação futura:
+' UC-01 | domínio 7.1 | RF-001 a RF-005 | RN-001, RN-003, RN-022 a RN-029.
+' UC-02 | domínio 7.2 | RF-006 a RF-009 | RN-002, RN-007, RN-010, RN-022 a RN-028, RN-030.
+' UC-03 | domínio 7.3 | RF-010 a RF-012 | RN-010 a RN-014, RN-027.
+' UC-04 | domínio 7.4 | RF-013 a RF-016 | RN-005, RN-006, RN-014, RN-015, RN-026.
+' UC-05 | domínio 7.5 | RF-017 a RF-019 | RN-007, RN-015, RN-024, RN-027, RN-028, RN-030.
+' UC-06 | domínio 7.6 | RF-020 a RF-024 | RN-004, RN-005, RN-007 a RN-009, RN-016 a RN-021.
+' UC-07 | domínio 7.7 | RF-025 a RF-028 | RN-001 a RN-003, RN-004 a RN-011, RN-015,
+'                                      RN-018, RN-020, RN-022 a RN-030.
+' UC-08 | domínio 7.8 | RF-029 a RF-034 | RN-002, RN-004, RN-005, RN-007 a RN-009,
+'                                      RN-016, RN-024, RN-026 a RN-032.
+'
+' Validação: revisão textual preliminar e conferência com 01–06.
+' PlantUML e Java não localizados no PATH nesta execução; não houve renderização
+' nem validação automatizada de sintaxe. Validação formal prevista na Execução 3.
+
+title D04 — Casos de uso do Radar Licita\n[PROPOSTO] | v0.1 | 2026-10-10
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam defaultFontName Arial
+skinparam usecase {
+    BackgroundColor #DBEAFE
+    BorderColor #1D4ED8
+    FontColor #102348
+}
+skinparam rectangle {
+    BackgroundColor #F8FAFC
+    BorderColor #64748B
+}
+
+actor "Operador" as Operador
+actor "PNCP" as PNCP <<sistema externo oficial>>
+actor "Compras.gov.br\nDados abertos" as Compras <<fonte futura>>
+
+rectangle "Radar Licita — apoio à decisão comercial" as Radar {
+    usecase "UC-01 — Descobrir e sincronizar\ncontratações públicas\nRF-001 a RF-005 | Fase 1" as UC01
+    usecase "UC-02 — Obter, interpretar e revisar\ndocumentos e exigências\nRF-006 a RF-009 | Fase 2" as UC02
+    usecase "UC-03 — Avaliar logística\ne modelos de fornecimento\nRF-010 a RF-012 | Fase 2" as UC03
+    usecase "UC-04 — Gerir fornecedores,\ncatálogos e cotações\nRF-013 a RF-016 | Fase 3" as UC04
+    usecase "UC-05 — Verificar e revisar\ncompatibilidade técnica\nRF-017 a RF-019 | Fase 3" as UC05
+    usecase "UC-06 — Simular finanças,\ncapital e unidade de julgamento\nRF-020 a RF-024 | Fase 4" as UC06
+    usecase "UC-07 — Verificar elegibilidade\ne priorizar com evidências\nRF-025 a RF-027 | Fase 4" as UC07
+    usecase "UC-09 — Investigar candidatos e registrar jornada\nRF-028/035–038 | 2-H e 3" as UC09
+    usecase "UC-08 — Revisar a decisão e\nacompanhar o ciclo comercial\nRF-029 a RF-034 | Fase 5" as UC08
+}
+
+Operador -- UC01
+Operador -- UC02
+Operador -- UC03
+Operador -- UC04
+Operador -- UC05
+Operador -- UC06
+Operador -- UC07
+Operador -- UC08
+Operador -- UC09
+
+PNCP -- UC01 : fornece dados públicos\npara consulta
+PNCP -- UC02 : disponibiliza documentos\nou referências oficiais
+Compras -- UC09 : resultados e itens\ncontratos pendentes
+PNCP -- UC09 : identidade e vínculos\npor recurso validado
+
+note left of Operador
+  Operação inicialmente individual.
+  Revisor, analista e responsável técnico
+  podem ser a mesma pessoa.
+
+  Fornecedores e assessores entregam
+  cotações, evidências e validações fora
+  do aplicativo. O operador registra
+  esses dados com origem e responsável.
+  Eles não têm acesso direto no MVP.
+end note
+
+note right of UC07
+  Bloqueios e pendências precedem ranking.
+  Apenas candidatos viáveis são priorizados.
+  Histórico oficial: RF-028, Should, fase 6;
+  contrato da fonte ainda deve ser validado.
+end note
+
+note right of UC08
+  RN-030 a RN-032: decisão auditada e
+  registro manual de fatos externos.
+  O sistema não envia lance/proposta,
+  compra, paga ou comunica automaticamente.
+  Revisão documental e técnica já ocorre
+  nos casos UC-02, UC-03 e UC-05;
+  a fase 5 consolida a fila comercial.
+end note
+
+legend bottom
+  Pessoa ou sistema externo = ator que participa do caso.
+  Elipse = capacidade do Radar; retângulo = limite do sistema.
+  Linha contínua = associação UML, sem indicar sequência ou chamada de API.
+  [PROPOSTO] aplica-se a todas as capacidades deste diagrama.
+  O fluxo temporal é definido em D07 e os estados em RN-032/D10.
+  Fonte editável PlantUML; consultas públicas não implicam envio de propostas.
+endlegend
+
+footer Commit base: 261b32107ff7b053c68c1df98e88de329c41c0f5 | Documentação, sem implementação
+' Revisado em R1: UC-09 acrescentado, 2026-10-13, v0.3-R1-E2.
+' Histórico de revisões: UC-07 mantém decisão; UC-09 pesquisa/registro manual, sem envio externo.
+@enduml
+

@@ -1,0 +1,151 @@
+{
+  "versao": "1.0",
+  "observado_em": "2026-10-15",
+  "fuso_contexto": "America/Sao_Paulo",
+  "finalidade": "Verificacao pontual e somente leitura de contratos oficiais para planejar o MVP; nao demonstra integracao implementada, cobertura comercial ou capacidade de fornecimento.",
+  "procedencia": "observed",
+  "sem_credenciais": true,
+  "fornecedores_pj_persistidos": 1,
+  "contagem_requisicoes": {
+    "get_http_diretos_executados_com_sucesso": 11,
+    "get_http_diretos_de_openapi": 4,
+    "get_http_diretos_de_dados_publicos": 7,
+    "fornecedores_em_amostra_armazenada": 1,
+    "nota": "A contagem 11 inclui novas leituras repetidas dos dois contratos OpenAPI. Consultas pelo navegador de pesquisa foram separadas e nao permitem contar os GET internos do provedor.",
+    "navegador_pesquisa": {
+      "operacoes_open": 3,
+      "operacoes_find_sobre_pdf_ja_aberto": 4,
+      "open_com_erro_de_acesso_intermediario": 1,
+      "open_bem_sucedidos": [
+        "https://pncp.gov.br/api/consulta/v3/api-docs",
+        "https://www.gov.br/compras/pt-br/acesso-a-informacao/manuais/manual-dados-abertos/manual-api-compras.pdf"
+      ],
+      "nota": "O erro do navegador ao abrir o OpenAPI principal nao ocorreu no acesso HTTP direto subsequente. Uma tentativa de iniciar Python falhou antes de executar qualquer requisicao."
+    }
+  },
+  "fontes": [
+    {
+      "url": "https://pncp.gov.br/api/pncp/v3/api-docs",
+      "tipo": "contrato_oficial",
+      "openapi": "3.0.1",
+      "info_version": "1.0",
+      "titulo": "API PNCP",
+      "leituras_http_diretas": 2,
+      "hash_do_corpo": null,
+      "hash_pendente": "Registrar bytes e SHA-256 na sessao de implementacao, antes de congelar o adapter."
+    },
+    {
+      "url": "https://pncp.gov.br/api/consulta/v3/api-docs",
+      "tipo": "contrato_oficial",
+      "acesso": "navegador_pesquisa",
+      "nota": "Consulta de publicacao tambem foi exercitada por HTTP direto."
+    },
+    {
+      "url": "https://dadosabertos.compras.gov.br/v3/api-docs",
+      "tipo": "contrato_oficial_complementar",
+      "openapi": "3.1.0",
+      "info_version": "1.0.0",
+      "titulo": "API Compras.gov.br",
+      "leituras_http_diretas": 2,
+      "dados_desde_esta_fonte_coletados": false,
+      "nota": "Rotas por identidade consultadas no contrato; nao foram chamadas com dados. A fonte complementar nao e dependencia do primeiro incremento."
+    },
+    {
+      "url": "https://www.gov.br/compras/pt-br/acesso-a-informacao/manuais/manual-dados-abertos/manual-api-compras.pdf",
+      "tipo": "manual_oficial",
+      "secao_itens": "10.6",
+      "secao_resultados": "10.7",
+      "nota": "Manual descreve itens e resultados; sua divergencia Integer/Decimal nao foi resolvida por amostra do Compras. PNCP direto declara number nos valores homologados."
+    }
+  ],
+  "ledger_http_direto": [
+    {"n": 1, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v3/api-docs", "tipo": "contrato", "sucesso": true},
+    {"n": 2, "metodo": "GET", "url": "https://dadosabertos.compras.gov.br/v3/api-docs", "tipo": "contrato", "sucesso": true},
+    {"n": 3, "metodo": "GET", "url": "https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=20261001&dataFinal=20261001&codigoModalidadeContratacao=6&pagina=1&tamanhoPagina=10", "tipo": "dados", "sucesso": true, "registros_retornados": 10},
+    {"n": 4, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v3/api-docs", "tipo": "contrato", "sucesso": true},
+    {"n": 5, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v1/modalidades/6", "tipo": "dados_catalogo", "sucesso": true},
+    {"n": 6, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v1/orgaos/01612441000107/compras/2026/156/itens?pagina=1&tamanhoPagina=10", "tipo": "dados_itens", "sucesso": true, "registros_retornados": 5, "itens_com_resultado": 0, "dados_descartados_da_evidencia": true},
+    {"n": 7, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v1/orgaos/88201298000149/compras/2026/1128/itens?pagina=1&tamanhoPagina=10", "tipo": "dados_itens", "sucesso": true, "registros_retornados": 1, "itens_com_resultado": 0, "dados_descartados_da_evidencia": true},
+    {"n": 8, "metodo": "GET", "url": "https://dadosabertos.compras.gov.br/v3/api-docs", "tipo": "contrato", "sucesso": true},
+    {"n": 9, "metodo": "GET", "url": "https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=20260803&dataFinal=20260803&codigoModalidadeContratacao=6&pagina=1&tamanhoPagina=10", "tipo": "dados", "sucesso": true, "registros_retornados": 10},
+    {"n": 10, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v1/orgaos/91984492000152/compras/2026/82/itens?pagina=1&tamanhoPagina=10", "tipo": "dados_itens", "sucesso": true, "registros_retornados": 1},
+    {"n": 11, "metodo": "GET", "url": "https://pncp.gov.br/api/pncp/v1/orgaos/91984492000152/compras/2026/82/itens/1/resultados", "tipo": "dados_resultados", "sucesso": true, "registros_retornados": 1}
+  ],
+  "contratos_pncp_confirmados": {
+    "modalidade": {
+      "base": "https://pncp.gov.br/api/pncp",
+      "metodo": "GET",
+      "rota": "/v1/modalidades/{id}",
+      "observado": {"id": 6, "nome": "Pregão - Eletrônico", "statusAtivo": true}
+    },
+    "publicacao": {
+      "base": "https://pncp.gov.br/api/consulta",
+      "metodo": "GET",
+      "rota": "/v1/contratacoes/publicacao",
+      "parametros_exercitados": ["dataInicial=yyyyMMdd", "dataFinal=yyyyMMdd", "codigoModalidadeContratacao=6", "pagina=1", "tamanhoPagina=10"],
+      "formato_observado": "Objeto com data array, totalRegistros, totalPaginas, numeroPagina, paginasRestantes e empty.",
+      "busca_textual_ou_categoria_nesta_rota": "Nao declarada no contrato consultado; filtro do primeiro MVP deve ser local sobre escopo limitado."
+    },
+    "itens": {
+      "base": "https://pncp.gov.br/api/pncp",
+      "metodo": "GET",
+      "rota": "/v1/orgaos/{cnpj}/compras/{ano}/{sequencial}/itens",
+      "parametros_path": {"cnpj": "string", "ano": "integer/int32", "sequencial": "integer/int32"},
+      "parametros_query": {"pagina": "integer/int32, opcional, minimo 1", "tamanhoPagina": "integer/int32, opcional, minimo 1"},
+      "resposta_200": "array de RecuperarCompraItemSigiloDTO; nao e o envelope da consulta de publicacao",
+      "campos_minimos_confirmados": {"numeroItem": "integer", "descricao": "string", "unidadeMedida": "string", "quantidade": "number", "valorUnitarioEstimado": "number", "temResultado": "boolean", "situacaoCompraItemNome": "string", "catalogoCodigoItem": "string ou ausente/null na amostra"}
+    },
+    "resultados": {
+      "base": "https://pncp.gov.br/api/pncp",
+      "metodo": "GET",
+      "rota": "/v1/orgaos/{cnpj}/compras/{ano}/{sequencial}/itens/{numeroItem}/resultados",
+      "parametros_path": {"cnpj": "string", "ano": "integer/int32", "sequencial": "integer/int32", "numeroItem": "integer/int32"},
+      "paginacao_query": "Nenhum parametro de paginacao declarado nesta operacao.",
+      "resposta_200": "array de RecuperarCompraItemResultadoDTO",
+      "campos_minimos_confirmados": {"niFornecedor": "string", "tipoPessoa": "string enum PJ/PF/PE", "nomeRazaoSocialFornecedor": "string", "numeroItem": "integer", "sequencialResultado": "integer", "numeroControlePNCPCompra": "string", "valorUnitarioHomologado": "number", "valorTotalHomologado": "number", "quantidadeHomologada": "number", "dataResultado": "string/date", "dataAtualizacao": "string/date-time", "dataCancelamento": "string/date-time no schema, null observado", "situacaoCompraItemResultadoNome": "string"},
+      "divergencia_schema_amostra": "IDs de situacao sao enum de strings no schema; a amostra os retornou como inteiros. Parser deve normalizar de forma explicita preservando o original.",
+      "autenticacao": "Nenhuma credencial usada nas chamadas publicas de leitura. Nao extrapolar para rotas de manutencao."
+    }
+  },
+  "amostra_real_minima_pj": {
+    "procedencia": "observed",
+    "modalidadeId": 6,
+    "numeroControlePNCP": "91984492000152-1-000082/2026",
+    "cnpjOrgao": "91984492000152",
+    "anoCompra": 2026,
+    "sequencialCompra": 82,
+    "numeroItem": 1,
+    "descricao": "ARADO SUBSOLADOR DE 07 HASTES C/ KIT DE UNHA RESERVAS",
+    "unidadeMedida": "un",
+    "situacaoCompraItemNome": "Homologado",
+    "temResultado": true,
+    "sequencialResultado": 1,
+    "tipoPessoa": "PJ",
+    "codigoPais": "BRA",
+    "niFornecedor": "49552222000106",
+    "nomeRazaoSocialFornecedor": "COMERCIAL AGRO VOGEL E ZIMMERMANN LTDA",
+    "quantidadeHomologada": 1.0,
+    "valorUnitarioHomologado": 9600.0,
+    "valorTotalHomologado": 9600.0,
+    "naturezaPreco": "homologado",
+    "dataResultado": "2026-08-26",
+    "dataAtualizacao": "2026-08-26T15:54:39",
+    "dataCancelamento": null,
+    "situacaoCompraItemResultadoNome": "Informado",
+    "fonte_item": "https://pncp.gov.br/api/pncp/v1/orgaos/91984492000152/compras/2026/82/itens?pagina=1&tamanhoPagina=10",
+    "fonte_resultado": "https://pncp.gov.br/api/pncp/v1/orgaos/91984492000152/compras/2026/82/itens/1/resultados",
+    "limite": "Amostra real de contrato, em categoria distinta da hipotese papel A4. Nao valida categoria comercial, capacidade, estoque, interesse em parceria, entrega, custo de aquisicao ou cotacao atual. Nenhum contato realizado."
+  },
+  "pendencias": [
+    "Implementar adapter, persistencia, testes reais de integracao e interface; esta evidencia nao e implementacao.",
+    "Persistir bytes do contrato/bruto e hash na sessao de implementacao para replay auditavel.",
+    "Definir categoria, atributos, janela, UF e teto da busca; manter a opcao de termo livre sem afirmar comparabilidade automaticamente.",
+    "Tratar paginacao de itens sem presumir envelope ou limite maximo nao publicado no schema; mostrar recorte parcial ao atingir teto local.",
+    "Confirmar fuso de dataAtualizacao quando influenciar atualidade; dataResultado e date sem hora.",
+    "Revalidar situacao/cancelamento ao atualizar a evidencia; null isolado nao prova execucao ou vigencia contratual.",
+    "Aceite futuro exige consulta controlada real e candidato com vinculo verificavel ao item, alem de fixtures sinteticas; a amostra de arado nao comprova utilidade para A4.",
+    "Nenhuma quota oficial foi confirmada; limites locais conservadores devem ser rotulados como politica do MVP.",
+    "Suporte fiscal alfanumerico nao foi exercitado; preservar identificadores como string e nao eliminar letras.",
+    "Compras.gov.br permanece fonte complementar documental, sem coleta de dados nesta verificacao."
+  ]
+}
