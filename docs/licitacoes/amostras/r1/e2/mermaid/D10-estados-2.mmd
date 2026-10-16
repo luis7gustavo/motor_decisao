@@ -1,0 +1,41 @@
+stateDiagram-v2
+    direction TB
+    state "E07 — apta para decisão humana de participação" as E07
+    state "E08 — participação registrada manualmente" as E08
+    state "E09 — em disputa" as E09
+    state "E10 — resultado conhecido" as E10
+    state "E11 — vencida" as E11
+    state "E12 — perdida" as E12
+    state "E13 — contrato em execução" as E13
+    state "E14 — entrega concluída" as E14
+    state "E15 — recebimento financeiro" as E15
+
+    E07 --> E08 : ato externo comprovado e aptidão reavaliada na decisão
+    E08 --> E09 : registrar início de disputa externa
+    E08 --> E10 : resultado sem etapa de disputa aplicável
+    E09 --> E10 : resultado oficial conhecido e evidenciado
+    E10 --> E11 : resultado vencedor fundamentado, provisório ou definitivo
+    E10 --> E12 : resultado não vencedor fundamentado, provisório ou definitivo
+    E10 --> E09 : reabertura oficial da disputa comprovada
+    E11 --> E10 : resultado retificado, anulado ou reaberto oficialmente
+    E12 --> E10 : resultado retificado, anulado ou reaberto oficialmente
+    E11 --> E13 : fundamento contratual e início de execução comprovados
+    E13 --> E14 : todas as entregas e condições de aceite atendidas
+    E14 --> E15 : total devido recebido e conciliado
+
+    note right of E08
+        A ferramenta registra atos externos.
+        Não envia lance ou proposta.
+        Retificação posterior abre revisão
+        da análise sem apagar participação.
+    end note
+    note right of E13
+        Vitória não cria contrato.
+        Eventos parciais mantêm saldos.
+        Entrega física não equivale a aceite.
+        Faturamento não equivale a recebimento.
+    end note
+    note right of E15
+        Recebimento integral conciliado.
+        Encerramento está na vista 3.
+    end note

@@ -1,0 +1,31 @@
+# D14 — Fluxo financeiro, precificação e capital
+
+Versão: 0.1. Data: 2026-10-12 (America/Sao_Paulo).  
+Commit base: `261b32107ff7b053c68c1df98e88de329c41c0f5`.  
+Status: [PROPOSTO]; fonte editável, sem implementação.
+
+```mermaid
+flowchart TD
+    I["Unidade de julgamento completa<br/>Itens, quantidades, cotações, plano e parâmetros"] --> C{"Insumos obrigatórios suficientes?"}
+    C -->|Não| N["Salvar cenário incompleto<br/>Saídas afetadas NULL e pendências"]
+    C -->|Sim| D["Decimal desde a entrada<br/>Limites e política v0.1-financeiro"]
+    D --> V["Aquisição e custos variáveis V<br/>Custos fixos F, financeiros J e reserva econômica Z"]
+    D --> R["Preços hipotéticos por item<br/>Receita R: soma de linhas em centavos"]
+    V --> T["Bases tributárias validadas T de R<br/>Ratear custo compartilhado sem duplicação"]
+    R --> T
+    T --> L["Custo C = V + F + J + Z + T<br/>Lucro = R - C; contribuição = R - V - T"]
+    L --> P["Preço mínimo e meta<br/>Resolver modelo aplicável e revalidar arredondamento"]
+    D --> X["Entradas e saídas datadas<br/>Garantia recuperável separada de despesa"]
+    X --> G["G_base: maior déficit<br/>G: déficit mais reserva de liquidez pertinente"]
+    G --> K{"Capital livre e limite suficientes em cada data?"}
+    K -->|Não ou desconhecido| B["Bloqueio ou pendência<br/>Sem ranking positivo"]
+    K -->|Sim| A["Verificar base e adverso exigido<br/>Margem, prazo e cotação atual"]
+    P --> A
+    L --> ROI["Margens com R positivo<br/>ROI ajustado = lucro / G quando G positivo"]
+    G --> ROI
+    A --> S["Consolidar elegibilidade e revisão<br/>Sensibilidade ampliada RF-024 é opcional"]
+    ROI --> S
+    N --> B
+```
+
+F neste diagrama é custo fixo de [12](../12-simulacao-financeira.md), não componente financeiro F do ranking de 09. Cada cenário refaz custo e caixa; Z não é automaticamente desembolso e garantia recuperável não é despesa integral. Referência oficial não é receita garantida. RN-004–009/016–021, RF-020–024; TST-020–024/044.

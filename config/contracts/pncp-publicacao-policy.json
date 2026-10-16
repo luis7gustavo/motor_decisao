@@ -1,0 +1,12 @@
+{
+  "schema_version": "pncp-source-policy-1",
+  "enabled": false,
+  "contract_sha256": "a5d87b60a54acfd681e84e0a77d541b0db7065401171508c53c911d12bdd121d",
+  "contract_url": "https://pncp.gov.br/api/consulta/v3/api-docs",
+  "resource": "/v1/contratacoes/publicacao",
+  "filtered_field": "dataPublicacaoPncp",
+  "bounds_evidence": null,
+  "limits_reviewed": false,
+  "verified_modalities": [],
+  "reason": "OpenAPI confirms query format but not date-boundary inclusion/timezone; public manual could not be retrieved. Terms/quota and modality catalogue remain unverified. Do not collect procurement data until resolved."
+}

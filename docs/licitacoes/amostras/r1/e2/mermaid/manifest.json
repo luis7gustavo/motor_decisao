@@ -1,0 +1,62 @@
+[
+  {
+    "source": "diagramas/D01-contexto.md",
+    "file": "D01-contexto-1.mmd"
+  },
+  {
+    "source": "diagramas/D02-containers.md",
+    "file": "D02-containers-1.mmd"
+  },
+  {
+    "source": "diagramas/D03-motor.md",
+    "file": "D03-motor-1.mmd"
+  },
+  {
+    "source": "diagramas/D06-entidades.md",
+    "file": "D06-entidades-1.mmd"
+  },
+  {
+    "source": "diagramas/D07-atividades.md",
+    "file": "D07-atividades-1.mmd"
+  },
+  {
+    "source": "diagramas/D08-coleta-pncp.md",
+    "file": "D08-coleta-pncp-1.mmd"
+  },
+  {
+    "source": "diagramas/D09-analise-oportunidade.md",
+    "file": "D09-analise-oportunidade-1.mmd"
+  },
+  {
+    "source": "diagramas/D10-estados.md",
+    "file": "D10-estados-1.mmd"
+  },
+  {
+    "source": "diagramas/D10-estados.md",
+    "file": "D10-estados-2.mmd"
+  },
+  {
+    "source": "diagramas/D10-estados.md",
+    "file": "D10-estados-3.mmd"
+  },
+  {
+    "source": "diagramas/D11-dados.md",
+    "file": "D11-dados-1.mmd"
+  },
+  {
+    "source": "diagramas/D12-implantacao.md",
+    "file": "D12-implantacao-1.mmd"
+  },
+  {
+    "source": "diagramas/D13-entrega-remota.md",
+    "file": "D13-entrega-remota-1.mmd"
+  },
+  {
+    "source": "diagramas/D14-fluxo-financeiro.md",
+    "file": "D14-fluxo-financeiro-1.mmd"
+  },
+  {
+    "source": "diagramas/D15-descoberta-fornecedores.md",
+    "file": "D15-descoberta-fornecedores-1.mmd"
+  }
+]

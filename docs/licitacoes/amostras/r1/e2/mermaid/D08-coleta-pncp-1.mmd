@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant P as Prefect
+    participant W as Worker HTTP
+    participant A as API publica por recurso validado
+    participant D as PostgreSQL dominio
+    P->>W: Executar escopo e janela fixos
+    W->>D: Obter lease e fencing token
+    D-->>W: Checkpoint duravel ou pagina 1
+    loop Paginas da janela
+        W->>A: Reservar tentativa na quota e GET validado
+        alt Falha transitoria
+            A-->>W: Erro ou timeout
+            W->>W: Ate 3 tentativas dentro da quota do job e Retry-After
+            W->>D: Falha parcial sem avancar checkpoint
+        else Resposta recebida
+            A-->>W: Envelope e dados
+            W->>W: Validar pagina, schema, identidade e etapa
+            alt Inconsistencia
+                W->>D: Preservar bruto e registrar quarentena
+            else Valida
+                W->>D: BEGIN e validar token
+                W->>D: Preservar bruto e deduplicar
+                opt Conteudo ou atualidade mudou
+                    W->>D: Versao, observacao e invalidacoes
+                end
+                W->>D: Checkpoint e COMMIT
+            end
+        end
+    end
+    alt Janela coerente e persistida
+        W->>D: Concluir janela
+        W-->>P: Sucesso com escopo e contagens
+    else Falha ou instabilidade
+        W-->>P: Parcial, retomar checkpoint confirmado
+    end

@@ -1,0 +1,29 @@
+flowchart TB
+    U["Navegador do operador"] -->|Loopback host:8010| API
+    U -->|Administração loopback:4200| PF
+    subgraph HOST["Host com Docker e Compose"]
+        subgraph NET["Redes propostas de aplicação e controle"]
+            API["api: FastAPI + Jinja2"] -->|5432 interno| DB["postgres existente"]
+            W["worker-http-pc1: fontes oficiais e coordenador"] --> DB
+            W -->|4200 interno| PF["prefect-server / prefect-services"]
+            PF --> PDB["prefect-postgres existente"]
+            PF -->|6379 interno| R["redis existente"]
+            LEG["Workers comerciais opcionais"] --> DB
+            LEG --> PF
+            LEG --> SEL["selenium opcional"]
+        end
+        PAR["document-parser novo<br/>Sem rede, não root, sem segredos"]
+        DB --> VD[("motor_postgres_data preservado")]
+        PDB --> VP[("prefect_postgres_data preservado")]
+        R --> VR[("motor_redis_data preservado")]
+        W --> DOC[("radar_documents novo")]
+        DOC -->|Leitura de liberados| API
+        W --> IN[("radar_parser_input novo")]
+        IN -->|Somente leitura| PAR
+        PAR --> OUT[("radar_parser_output novo")]
+        OUT --> W
+    end
+    W -->|HTTPS e política de saída| PNCP["PNCP / Compras / origens aprovadas"]
+    BK["Cópia independente protegida"] -.-> VD
+    BK -.-> VP
+    BK -.-> DOC
