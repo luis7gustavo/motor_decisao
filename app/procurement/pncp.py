@@ -97,7 +97,7 @@ def live_transport(budget_path,scope=None):
     if (not policy.get('bounds_evidence') or not policy.get('filtered_field')
             or not policy.get('limits_reviewed') or scope.modality not in policy.get('verified_modalities',[])):
         raise ValueError('Incomplete live source policy')
-    budget=Budget(budget_path)
+    budget=Budget(budget_path,category='data')
     budget.state()
     return budget.request
 

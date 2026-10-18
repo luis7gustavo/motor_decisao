@@ -120,6 +120,38 @@ C3 nem declarar C2 concluído enquanto os aceites reais estiverem pendentes.
 
 ## Plano original preservado
 
+## Retomada por decisão do operador — 2026-10-18
+
+Decisões recebidas em 15/10 e reafirmadas na solicitação de continuação: contadores
+separados DOCUMENTAÇÃO (limite 15) e DADOS (limite 50), sete chamadas passadas
+reclassificadas como documentação; não buscar manual por rede; usar sobreposição de
+um dia em cada borda, mantendo a janela original; sonda de até três requisições de
+dados (dia 13/10–13/10 e 13/10–14/10, comparar publicação); depois coleta mínima
+isolada. Principal continua sem migração.
+
+`docs/licitacoes/fontes/` não existe; nenhum manual local disponível. O código de
+validação e sequência de tentativas foi incorporado em df6320e. Nesta retomada,
+foram adicionados ao working tree seleção de categoria, comando de migração do
+ledger e testes unitários para as cotas. O ledger real ainda não foi migrado.
+O commit df6320e já inclui a correção inicial de validação do ledger. O teste
+subsequente, ainda com a versão anterior ao fix, registrou 8 falhas de ledger e
+128 aprovações; o daemon caiu antes que a suíte pudesse ser repetida após o fix.
+
+Bloqueio de execução: Docker Desktop mostra erro interno. `docker info` falha com
+ausência do pipe `npipe:////./pipe/dockerDesktopLinuxEngine`; `wsl --list --verbose`
+mostra `docker-desktop` running, sem daemon acessível. Os testes foram tentados,
+mas não iniciaram. Não fiz chamadas HTTP em 18/10. Contadores permanecem por
+conciliar no formato v1: 7 documentação classificadas pela decisão do operador,
+8 documentação disponíveis; dados 0/50 e a sonda de até 3 dentro desse limite.
+
+Assim que o Docker voltar: executar `--split-budget` exatamente uma vez; conferir
+reconciliação/backup dos sete recibos; validar a suíte inteira; preparar banco e
+papel persistentes próprios sobre revisão C1, fora do principal; registrar a
+modalidade/filtros estritos; sondar no máximo três vezes e, se houver resultado,
+coletar apenas páginas mínimas de forma retomável. Evidências e limitações em
+[ADR-024](19-adr-024-calibracao-janela-e-cotas.md). Ciclo permanece em andamento;
+nenhuma sonda ou coleta foi realizada, portanto não declarar aceite real.
+
 ## Sessão C2 — plano antes da implementação (2026-10-13)
 
 Nova execução explicitamente autorizada por “faça isso”. Base af1a5e0353947342462cc5c01d369f0e4c569309, encerramento C1; branch feat/radar-licita-implementacao; nenhum diff rastreado inicial. Documentação alheia não rastreada preservada. Docker Compose 5.5.1 e Engine 29.8.2 respondem.

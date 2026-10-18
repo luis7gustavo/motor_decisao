@@ -138,3 +138,36 @@ def test_attempt_sequence_must_reconcile_before_resume(tmp_path):
     with pytest.raises(ValueError):
         budget.state()
     assert (path/'001.body').read_bytes()==b'original'
+
+
+def test_operator_split_preserves_seven_documentation_attempts(tmp_path):
+    """Operator decision reclassifies, never erases, the seven existing calls."""
+    path=tmp_path/'split'
+    Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
+    docs=Budget(path)
+    for _ in range(7):
+        docs.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    state=docs.split_operator_budgets()
+    assert state['consumed']==7
+    assert state['counters']=={'documentation':{'limit':15,'consumed':7},
+                               'data':{'limit':50,'consumed':0}}
+    assert all(x['category']=='documentation' for x in state['attempts'])
+    data=Budget(path,category='data')
+    data.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+        lambda _:Response(200,{},b'{}'))
+    assert data.state()['counters']['data']['consumed']==1
+
+
+def test_split_budget_requires_explicit_category(tmp_path):
+    path=tmp_path/'split'
+    Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
+    docs=Budget(path)
+    for _ in range(7):
+        docs.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    docs.split_operator_budgets()
+    with pytest.raises(ValueError):
+        docs.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    assert docs.state()['consumed']==7
