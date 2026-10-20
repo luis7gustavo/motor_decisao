@@ -133,9 +133,10 @@ def durable_write(path, body):
 
 
 class Budget:
-    def __init__(self,path,*,category=None):
+    def __init__(self,path,*,category=None,purpose=None):
         self.path = Path(path).resolve()
         self.category = category
+        self.purpose = purpose
 
     @classmethod
     def create(cls,path,*,session_id,limit,interval):
@@ -172,6 +173,11 @@ class Budget:
                         or not 0<=counter['consumed']<=limit
                         or counter['consumed']!=sum(e.get('category')==category for e in data['attempts'])):
                     raise ValueError('Split counter cannot be reconciled')
+                if category=='data' and 'calibration_limit' in counter and (
+                        counter.get('calibration_limit')!=3
+                        or type(counter.get('calibration_consumed')) is not int
+                        or counter['calibration_consumed']!=sum(e.get('purpose')=='calibration' for e in data['attempts'])):
+                    raise ValueError('Calibration counter cannot be reconciled')
             if sum(c['consumed'] for c in counters.values())!=data['consumed'] or data['limit']!=65:
                 raise ValueError('Split totals cannot be reconciled')
         return data
@@ -181,6 +187,13 @@ class Budget:
         with self.lock():
             state=self.state()
             if 'counters' in state:
+                data_counter=state['counters']['data']
+                if 'calibration_limit' not in data_counter:
+                    if data_counter['consumed']!=0 or any('purpose' in e for e in state['attempts']):
+                        raise ValueError('Existing data attempts need manual purpose reconciliation')
+                    data_counter.update(calibration_limit=3,calibration_consumed=0)
+                    self.save(state)
+                    return self.state()
                 return state
             if state['session']!='c2-20261013' or state['consumed']!=7:
                 raise ValueError('Unexpected legacy session; manual reconciliation required')
@@ -193,7 +206,8 @@ class Budget:
             for entry in state['attempts']:
                 entry['category']='documentation'
             state.update(limit=65,counters={'documentation':{'limit':15,'consumed':7},
-                                           'data':{'limit':50,'consumed':0}})
+                                           'data':{'limit':50,'consumed':0,
+                                                   'calibration_limit':3,'calibration_consumed':0}})
             self.save(state)
             return self.state()
 
@@ -220,6 +234,11 @@ class Budget:
                 counter=state['counters'][self.category]
                 if counter['consumed']>=counter['limit']:
                     raise BudgetExhausted('Category quota exhausted')
+                if self.category=='data':
+                    if self.purpose not in ('calibration','collection'):
+                        raise ValueError('Explicit data request purpose required')
+                    if self.purpose=='calibration' and counter['calibration_consumed']>=counter['calibration_limit']:
+                        raise BudgetExhausted('Calibration quota exhausted')
             if state['consumed'] >= state['limit']:
                 raise BudgetExhausted('Session quota exhausted')
             wait = max(0,state['not_before']-time.time(),minimum_delay)
@@ -232,6 +251,10 @@ class Budget:
             if 'counters' in state:
                 entry['category']=self.category
                 state['counters'][self.category]['consumed']+=1
+                if self.category=='data':
+                    entry['purpose']=self.purpose
+                    if self.purpose=='calibration':
+                        state['counters']['data']['calibration_consumed']+=1
             state['attempts'].append(entry)
             state['not_before'] = time.time()+state['interval']
             self.save(state)  # Commit reservation BEFORE DNS/connect/send.

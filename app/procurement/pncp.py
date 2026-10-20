@@ -97,7 +97,7 @@ def live_transport(budget_path,scope=None):
     if (not policy.get('bounds_evidence') or not policy.get('filtered_field')
             or not policy.get('limits_reviewed') or scope.modality not in policy.get('verified_modalities',[])):
         raise ValueError('Incomplete live source policy')
-    budget=Budget(budget_path,category='data')
+    budget=Budget(budget_path,category='data',purpose='collection')
     budget.state()
     return budget.request
 
@@ -286,12 +286,15 @@ class Collector:
     def __init__(self,store,send,*,sleep=time.sleep):
         self.store,self.send,self.sleep=store,send,sleep
 
-    def run(self,job_id):
+    def run(self,job_id,*,max_pages=None):
+        if max_pages is not None and (type(max_pages) is not int or max_pages<1):
+            raise ValueError('max_pages must be a positive integer')
         row=self.store.get(job_id)
         if row['state']=='success' or row['checkpoint'].get('not_before',0)>time.time():
             return row
         owner=str(uuid4())
         token=self.store.claim(job_id,owner)
+        pages_completed=0
         try:
             while True:
                 row=self.store.get(job_id)
@@ -316,6 +319,10 @@ class Collector:
                 if response.status in (200,204):
                     if self.store.apply_page(job_id,owner,token,response,raw):
                         self.store.release(job_id,owner,token,'success')
+                        return self.store.get(job_id)
+                    pages_completed+=1
+                    if max_pages is not None and pages_completed>=max_pages:
+                        self.store.release(job_id,owner,token,'partial','sample_page_limit')
                         return self.store.get(job_id)
                     continue
                 if response.status==429 or 500<=response.status<600:

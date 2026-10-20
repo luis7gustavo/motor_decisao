@@ -221,3 +221,21 @@ def test_json_decimal_never_roundtrips_through_float(store):
     with store.engine.connect() as conn:
         value=conn.scalar(text('SELECT v.snapshot FROM procurement.procurement_versions v JOIN procurement.procurements p ON p.id=v.procurement_id WHERE p.source_id=:id'),{'id':identity})
         assert value['valorTotalEstimado']=='123456.123456789012345678'
+
+
+def test_manual_collection_can_stop_after_one_page_and_resume(store):
+    """A real validation can persist one bounded page without losing its cursor."""
+    prefix=str(uuid4())
+    job_id=job(store)
+    calls=[]
+    replies=[page(1,[record(prefix+'a'),record(prefix+'b')]),
+             page(2,[record(prefix+'c')])]
+    def send(_url):
+        response=replies[len(calls)]
+        calls.append(_url)
+        return response
+    result=Collector(store,send,sleep=lambda _:None).run(job_id,max_pages=1)
+    assert result['state']=='partial' and result['error_code']=='sample_page_limit'
+    assert result['next_page']==2 and result['records_seen']==2 and result['request_count']==1
+    resumed=Collector(store,send,sleep=lambda _:None).run(job_id,max_pages=1)
+    assert resumed['state']=='success' and resumed['records_seen']==3 and resumed['request_count']==2

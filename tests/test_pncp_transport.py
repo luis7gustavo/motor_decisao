@@ -140,8 +140,10 @@ def test_attempt_sequence_must_reconcile_before_resume(tmp_path):
     assert (path/'001.body').read_bytes()==b'original'
 
 
-def test_operator_split_preserves_seven_documentation_attempts(tmp_path):
+def test_operator_split_preserves_seven_documentation_attempts(tmp_path,monkeypatch):
     """Operator decision reclassifies, never erases, the seven existing calls."""
+    from app.procurement import pncp_transport
+    monkeypatch.setattr(pncp_transport.time,'sleep',lambda _:None)
     path=tmp_path/'split'
     Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
     docs=Budget(path)
@@ -151,15 +153,18 @@ def test_operator_split_preserves_seven_documentation_attempts(tmp_path):
     state=docs.split_operator_budgets()
     assert state['consumed']==7
     assert state['counters']=={'documentation':{'limit':15,'consumed':7},
-                               'data':{'limit':50,'consumed':0}}
+                               'data':{'limit':50,'consumed':0,
+                                       'calibration_limit':3,'calibration_consumed':0}}
     assert all(x['category']=='documentation' for x in state['attempts'])
-    data=Budget(path,category='data')
+    data=Budget(path,category='data',purpose='collection')
     data.request('https://pncp.gov.br/api/consulta/v3/api-docs',
         lambda _:Response(200,{},b'{}'))
     assert data.state()['counters']['data']['consumed']==1
 
 
-def test_split_budget_requires_explicit_category(tmp_path):
+def test_split_budget_requires_explicit_category(tmp_path,monkeypatch):
+    from app.procurement import pncp_transport
+    monkeypatch.setattr(pncp_transport.time,'sleep',lambda _:None)
     path=tmp_path/'split'
     Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
     docs=Budget(path)
@@ -171,3 +176,24 @@ def test_split_budget_requires_explicit_category(tmp_path):
         docs.request('https://pncp.gov.br/api/consulta/v3/api-docs',
             lambda _:Response(200,{},b'{}'))
     assert docs.state()['consumed']==7
+
+
+def test_calibration_counter_caps_requests_at_three(tmp_path,monkeypatch):
+    from app.procurement import pncp_transport
+    monkeypatch.setattr(pncp_transport.time,'sleep',lambda _:None)
+    path=tmp_path/'calibration'
+    Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
+    old=Budget(path)
+    for _ in range(7):
+        old.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    old.split_operator_budgets()
+    data=Budget(path,category='data',purpose='calibration')
+    for _ in range(3):
+        data.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    with pytest.raises(BudgetExhausted):
+        data.request('https://pncp.gov.br/api/consulta/v3/api-docs',
+            lambda _:Response(200,{},b'{}'))
+    assert data.state()['counters']['data']=={'limit':50,'consumed':3,
+        'calibration_limit':3,'calibration_consumed':3}

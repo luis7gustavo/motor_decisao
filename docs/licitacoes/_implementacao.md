@@ -120,7 +120,7 @@ C3 nem declarar C2 concluído enquanto os aceites reais estiverem pendentes.
 
 ## Plano original preservado
 
-## Retomada por decisão do operador — 2026-10-18
+## Retomada por decisão do operador — 2026-10-18 a 2026-10-20
 
 Decisões recebidas em 15/10 e reafirmadas na solicitação de continuação: contadores
 separados DOCUMENTAÇÃO (limite 15) e DADOS (limite 50), sete chamadas passadas
@@ -130,27 +130,41 @@ dados (dia 13/10–13/10 e 13/10–14/10, comparar publicação); depois coleta 
 isolada. Principal continua sem migração.
 
 `docs/licitacoes/fontes/` não existe; nenhum manual local disponível. O código de
-validação e sequência de tentativas foi incorporado em df6320e. Nesta retomada,
-foram adicionados ao working tree seleção de categoria, comando de migração do
-ledger e testes unitários para as cotas. O ledger real ainda não foi migrado.
-O commit df6320e já inclui a correção inicial de validação do ledger. O teste
-subsequente, ainda com a versão anterior ao fix, registrou 8 falhas de ledger e
-128 aprovações; o daemon caiu antes que a suíte pudesse ser repetida após o fix.
+validação e sequência de tentativas foi incorporado em df6320e. O bloqueio de
+daemon registrado em 18/10 foi resolvido em 20/10. Na retomada, selecionamos
+categoria, migração persistente de cotas e limite separado da sonda; o ledger foi
+migrado sem apagar os recibos. A falha anterior de oito testes de ledger foi
+registrada antes do fix em df6320e e a suíte final passou depois dele.
 
-Bloqueio de execução: Docker Desktop mostra erro interno. `docker info` falha com
-ausência do pipe `npipe:////./pipe/dockerDesktopLinuxEngine`; `wsl --list --verbose`
-mostra `docker-desktop` running, sem daemon acessível. Os testes foram tentados,
-mas não iniciaram. Não fiz chamadas HTTP em 18/10. Contadores permanecem por
-conciliar no formato v1: 7 documentação classificadas pela decisão do operador,
-8 documentação disponíveis; dados 0/50 e a sonda de até 3 dentro desse limite.
+As decisões e o desfecho completos ficam em [ADR-024](19-adr-024-calibracao-janela-e-cotas.md).
 
-Assim que o Docker voltar: executar `--split-budget` exatamente uma vez; conferir
-reconciliação/backup dos sete recibos; validar a suíte inteira; preparar banco e
-papel persistentes próprios sobre revisão C1, fora do principal; registrar a
-modalidade/filtros estritos; sondar no máximo três vezes e, se houver resultado,
-coletar apenas páginas mínimas de forma retomável. Evidências e limitações em
-[ADR-024](19-adr-024-calibracao-janela-e-cotas.md). Ciclo permanece em andamento;
-nenhuma sonda ou coleta foi realizada, portanto não declarar aceite real.
+## Evidência final da retomada — 2026-10-20
+
+Docker 29.8.2 / Compose 5.5.1 retomados. Ledger migrado e validado: documentação
+7/15, dados 3/50, calibração 2/3. Não houve chamada de manual após decisão do
+operador. Diretório local `docs/licitacoes/fontes/` ausente.
+
+Suíte final no Docker: **140 aprovados**, zero falhas/erros/ignorados, um aviso
+Starlette/httpx; manifesto `20261020T152553Z_78c9da2b.json`, cleanup sem recursos
+pendentes. Dump C1 restaurado no destino persistente
+`test_20261020_ba894ce71405` (OID 2508600), SHA256
+`ad9ad83e61b8db747dfaed022ffa2f077a3340e3abe24c7084825f3ae1763fef`; revisão
+isolada 20261013_0010, nove tabelas, 19 FKs RESTRICT, role sem privilégios fora
+da lista de ingestão. Verificação em `20261020T152131Z_e6215d7c.json`.
+
+Calibração executou duas consultas de dados, datas 13–13 e 13–14; ambas retornaram
+dez registros de 13/10. O conjunto não continha publicações de 14/10, então a
+inclusão da borda permanece inconclusiva. Código 6 retornou modalidade
+“Pregão - Eletrônico” nos registros observados. Coleta de uma página executou um
+GET 200 e persistiu dez contratações, versões e observações; publicação 06/10.
+Job e checkpoint persistentes: `e47c6fe2-2cc9-4b58-803a-49a4aa44a443`, parcial,
+próxima página 2. Evidências e hashes em `backups/c2/c2-20261013/`.
+
+Consulta final confirmou principal em 20260817_0009, sem schemas procurement ou
+commercial nele. Nenhum schedule, push ou serviço legado iniciado por este ciclo.
+C2 segue em andamento: amostra mínima de uma modalidade/página concluída; coleta
+completa, termos oficiais, semântica geral das bordas e execução do flow Prefect
+permanecem por validar.
 
 ## Sessão C2 — plano antes da implementação (2026-10-13)
 

@@ -62,6 +62,7 @@ class Runner:
         self.server = self.admin.execute("SELECT system_identifier::text FROM pg_control_system()").fetchone()[0]
         self.created = {}
         self.roles = {}
+        self.keep_resources = False
         self.run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "_" + secrets.token_hex(4)
         self.report = {"run_id": self.run_id, "mode": mode, "principal": self.principal,
                        "server": self.server, "created": {}, "cleaned": [], "steps": []}
@@ -269,7 +270,75 @@ class Runner:
         if result.returncode:
             raise RuntimeError("Test suite failed; see sanitized report")
 
+    def prepare_real_target(self, dump, origin, target):
+        """Restore a registered isolated copy and grant only ingestion objects."""
+        if (origin,target)!=('20260817_0009','20261013_0010'):
+            raise ValueError('Real validation target must be the explicit C1 descendant')
+        dump=Path(dump).resolve()
+        if dump.parent!=Path('/evidence') or not dump.is_file() or dump.stat().st_size==0:
+            raise ValueError('A nonempty backup directly under /evidence is required')
+        before=digest(dump)
+        main=self.admin.execute('SELECT version_num FROM alembic_version').fetchall()
+        if main!=[(origin,)]:
+            raise ValueError('Principal revision differs from explicit origin')
+        toc=self.command(['pg_restore','--list',str(dump)]).decode()
+        expected=dump_tables(toc)
+        name=self.create('test')
+        self.command(['pg_restore','--exit-on-error','--single-transaction','--no-owner','--dbname',name,str(dump)],name=name)
+        baseline=self.inventory(name)
+        if baseline['revision']!=origin or set(baseline['counts'])!=expected:
+            raise ValueError('Isolated restore does not match declared origin/backup')
+        self.migrate(name,'upgrade',target)
+        after=self.inventory(name)
+        if any(after['counts'].get(key)!=value for key,value in baseline['counts'].items()):
+            raise ValueError('C1 migration changed legacy table counts')
+        if any(after['structures'].get(key)!=value for key,value in baseline['structures'].items()):
+            raise ValueError('C1 migration changed legacy table structure')
+        from scripts.radar_schema import C1_TABLES,verify_c1
+        with self.connection(name) as conn:
+            structure=verify_c1(conn,installed=True)
+        role='radar_test_'+secrets.token_hex(6)
+        password=secrets.token_urlsafe(36)
+        self.admin.execute(sql.SQL('CREATE ROLE {} LOGIN PASSWORD {} NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION').format(sql.Identifier(role),sql.Literal(password)))
+        role_oid=self.admin.execute('SELECT oid FROM pg_roles WHERE rolname=%s',(role,)).fetchone()[0]
+        self.roles[role]=role_oid
+        with self.connection(name) as conn:
+            for schema in ('commercial','control','bronze','procurement'):
+                conn.execute(sql.SQL('GRANT USAGE ON SCHEMA {} TO {}').format(sql.Identifier(schema),sql.Identifier(role)))
+            for qualified in C1_TABLES:
+                schema,table=qualified.split('.')
+                conn.execute(sql.SQL('GRANT SELECT,INSERT,UPDATE ON {}.{} TO {}').format(sql.Identifier(schema),sql.Identifier(table),sql.Identifier(role)))
+            conn.execute(sql.SQL('GRANT SELECT ON control.pipeline_runs TO {}').format(sql.Identifier(role)))
+            conn.execute(sql.SQL('GRANT INSERT (id,pipeline_name,status),UPDATE (status,finished_at) ON control.pipeline_runs TO {}').format(sql.Identifier(role)))
+        forbidden=self.admin.execute("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND c.relkind IN ('r','p') AND has_table_privilege(%s,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AND NOT (n.nspname||'.'||c.relname=ANY(%s))",(role,sorted(C1_TABLES|{'control.pipeline_runs'}))).fetchone()[0]
+        if forbidden:
+            raise ValueError('Ingestion role has privileges outside the isolated ingestion allowlist')
+        oid=self.created[name]
+        from sqlalchemy.engine import URL
+        url=URL.create('postgresql+psycopg',username=role,password=password,host=os.environ['PGHOST'],port=int(os.environ['PGPORT']),database=name).render_as_string(hide_password=False)
+        secret_path=Path('/evidence/c2/c2-20261013/target-credentials.json')
+        secret_path.parent.mkdir(parents=True,exist_ok=True)
+        secret_path.write_text(json.dumps({'database':name,'database_oid':oid,'role':role,
+            'role_oid':role_oid,'url':url,'server':self.server},indent=2)+'\n')
+        secret_path.chmod(0o600)
+        self.report.update(backup={'name':dump.name,'bytes':dump.stat().st_size,'sha256':before},
+            baseline_revision=origin,target_revision=target,isolated_database=name,database_oid=oid,
+            ingestion_role=role,role_oid=role_oid,privileges_outside_allowlist=forbidden,
+            c1_structure=structure,credentials_file='c2/c2-20261013/target-credentials.json',
+            database_counts=self.inventory(name)['counts'])
+        self.save()
+        if digest(dump)!=before:
+            raise ValueError('Backup changed during restore')
+        self.keep_resources=True
+
     def cleanup(self):
+        if self.keep_resources:
+            self.report['retained_for_real_validation']=True
+            self.report['cleanup_errors']=[]
+            self.report['finished_utc']=datetime.now(timezone.utc).isoformat()
+            self.save()
+            self.admin.close()
+            return
         errors = []
         for name in list(self.created):
             try:
@@ -303,7 +372,7 @@ class Runner:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["tests", "rehearse"])
+    parser.add_argument("mode", choices=["tests", "rehearse", "real-target"])
     parser.add_argument("--origin", required=True)
     parser.add_argument("--dump")
     parser.add_argument("--target", default="synthetic")
@@ -317,6 +386,8 @@ def main():
     try:
         if args.mode == "tests":
             runner.tests(args.origin, args.baseline)
+        elif args.mode=='real-target':
+            runner.prepare_real_target(args.dump,args.origin,args.target)
         else:
             runner.rehearse(args.dump, args.origin, args.target)
         runner.report["operation_passed"] = True
