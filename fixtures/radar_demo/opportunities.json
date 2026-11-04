@@ -1,0 +1,46 @@
+{
+  "observed_at": "2026-11-04T16:00:00Z",
+  "source_available": true,
+  "versions": [
+    {
+      "source_id": "SINTETICO-001", "version": 1,
+      "object": "Papel para impressão", "uf": "SP", "municipality": "Campinas",
+      "category": "material de escritório", "opening_state": "open",
+      "deadline": "2026-11-18", "source_url": "https://example.invalid/sintetico/001",
+      "source_hash": "fixture-001-v1", "published_at": "2026-11-01T12:00:00Z",
+      "change": "Publicação inicial"
+    },
+    {
+      "source_id": "SINTETICO-001", "version": 2,
+      "object": "Papel para impressão e envelopes", "uf": "SP", "municipality": "Campinas",
+      "category": "material de escritório", "opening_state": "open",
+      "deadline": "2026-11-25", "source_url": "https://example.invalid/sintetico/001",
+      "source_hash": "fixture-001-v2", "published_at": "2026-11-04T15:00:00Z",
+      "change": "Retificação sintética: objeto e prazo alterados"
+    },
+    {
+      "source_id": "SINTETICO-001", "version": 2,
+      "object": "Papel para impressão e envelopes", "uf": "SP", "municipality": "Campinas",
+      "category": "material de escritório", "opening_state": "open",
+      "deadline": "2026-11-25", "source_url": "https://example.invalid/sintetico/001",
+      "source_hash": "fixture-001-v2", "published_at": "2026-11-04T15:00:00Z",
+      "change": "Retificação sintética: objeto e prazo alterados"
+    },
+    {
+      "source_id": "SINTETICO-002", "version": 1,
+      "object": "Papel para impressão", "uf": "RJ", "municipality": "Niterói",
+      "category": "material de escritório", "opening_state": "closed",
+      "deadline": "2026-10-20", "source_url": "https://example.invalid/sintetico/002",
+      "source_hash": "fixture-002-v1", "published_at": "2026-10-01T12:00:00Z",
+      "change": "Publicação inicial"
+    },
+    {
+      "source_id": "SINTETICO-003", "version": 1,
+      "object": "Equipamento de rede", "uf": "MG", "municipality": "Belo Horizonte",
+      "category": "informática", "opening_state": "unknown",
+      "deadline": null, "source_url": "https://example.invalid/sintetico/003",
+      "source_hash": "fixture-003-v1", "published_at": "2026-11-03T12:00:00Z",
+      "change": "Publicação inicial; prazo não informado"
+    }
+  ]
+}

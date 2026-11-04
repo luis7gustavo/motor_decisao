@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Radar Licita — demonstração sintética{% endblock %}</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #193042; background: #f4f7f8; }
+    body { margin: 0; } header, main { max-width: 1100px; margin: auto; padding: 1.2rem; }
+    header { background: #12364b; color: white; max-width: none; }
+    header > div { max-width: 1100px; margin: auto; }
+    header a { color: white; margin-right: 1.2rem; }
+    h1, h2 { line-height: 1.2; } .notice { background: #fff4d6; border-left: 4px solid #bd7819; padding: .8rem 1rem; }
+    .panel { background: white; padding: 1rem; margin: 1rem 0; border-radius: .35rem; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; }
+    label { display: block; font-weight: 600; margin-bottom: .25rem; }
+    input, select, button { box-sizing: border-box; width: 100%; min-height: 2.4rem; padding: .4rem; font: inherit; }
+    button { background: #0b566b; color: white; border: 0; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; } th, td { padding: .55rem; border-bottom: 1px solid #d8e0e4; text-align: left; }
+    .table-wrap { overflow-x: auto; } a { color: #07536c; } a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #dc8015; outline-offset: 2px; }
+    .muted { color: #4f6470; } .pagination { display: flex; gap: 1.5rem; }
+  </style>
+</head>
+<body>
+  <header><div><strong>Radar Licita — protótipo com dados sintéticos</strong><nav aria-label="Navegação principal"><a href="/radar-demo">Busca</a><a href="/radar-demo/alteracoes">Alterações</a></nav></div></header>
+  <main>
+    <p class="notice">Todos os registros desta tela são fixtures inventadas. Nenhuma oportunidade, abertura ou análise comercial real é afirmada.</p>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

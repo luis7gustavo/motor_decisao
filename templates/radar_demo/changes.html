@@ -1,0 +1,5 @@
+{% extends "radar_demo/base.html" %}
+{% block title %}Alterações — Radar Licita sintético{% endblock %}
+{% block content %}<h1>Alterações preservadas</h1><p>Snapshot sintético: {{ observed_at }}.</p>
+{% if changed %}{% for source_id, versions in changed %}<section class="panel"><h2><a href="/radar-demo/{{ source_id }}">{{ source_id }}</a></h2><ol>{% for row in versions %}<li>Versão {{ row.version }} — {{ row.published_at }}: {{ row.change }}. Prazo: {{ row.deadline or 'não informado' }}.</li>{% endfor %}</ol></section>{% endfor %}{% else %}<p>Nenhuma alteração na fixture.</p>{% endif %}
+{% endblock %}

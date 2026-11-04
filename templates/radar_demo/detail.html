@@ -1,0 +1,6 @@
+{% extends "radar_demo/base.html" %}
+{% block title %}{{ row.source_id }} — Radar Licita sintético{% endblock %}
+{% block content %}<h1>{{ row.object }}</h1><p><strong>{{ row.source_id }}</strong> · versão atual {{ row.version }} · {% if not source_available %}fonte sintética indisponível, registro local desatualizado{% elif fresh %}fixture recente{% else %}fixture desatualizada{% endif %}</p>
+<section class="panel"><h2>Fonte e atualidade</h2><dl><dt>Origem</dt><dd>Fixture inventada: {{ row.source_url }}</dd><dt>Hash de demonstração</dt><dd>{{ row.source_hash }}</dd><dt>Snapshot observado</dt><dd>{{ observed_at }}</dd><dt>Local</dt><dd>{{ row.municipality }}/{{ row.uf }}</dd><dt>Categoria</dt><dd>{{ row.category }}</dd><dt>Prazo na fixture</dt><dd>{{ row.deadline or 'Não informado' }}</dd></dl></section>
+<section class="panel"><h2>Versões</h2><ol>{% for version in versions %}<li>Versão {{ version.version }} — {{ version.published_at }}: {{ version.change }} (prazo {{ version.deadline or 'não informado' }})</li>{% endfor %}</ol><p>Uma retificação muda a versão exibida como atual; as anteriores permanecem visíveis.</p></section>
+{% endblock %}
