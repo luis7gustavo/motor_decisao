@@ -1,0 +1,32 @@
+{
+  "as_of_date": "2026-11-04",
+  "scenario": {
+    "scenario_id": "LOTE-SINTETICO-01",
+    "source_version": 2,
+    "source_fresh": true,
+    "participation_deadline": "2026-11-18",
+    "required_item_keys": ["A", "B"],
+    "items": [
+      {"key": "A", "quantity": "100", "acquisition_unit": "80.00", "sale_unit": "120.00", "acquisition_due": "2026-11-04", "quote_valid_until": "2026-11-10", "compatible": true, "stock_confirmed": true, "source_version": 2},
+      {"key": "B", "quantity": "10", "acquisition_unit": "150.00", "sale_unit": "130.00", "acquisition_due": "2026-11-04", "quote_valid_until": "2026-11-10", "compatible": true, "stock_confirmed": true, "source_version": 2}
+    ],
+    "logistics_feasible": true,
+    "obligations_resolved": true,
+    "costs": [
+      {"kind": "variable", "amount": "800.00", "due": "2026-11-09"},
+      {"kind": "fixed", "amount": "200.00", "due": "2026-11-09"},
+      {"kind": "finance", "amount": "180.00", "due": "2026-12-04"}
+    ],
+    "tax_rate": "0.06",
+    "tax_due": "2027-01-03",
+    "receipt_due": "2027-01-03",
+    "finance_valid_through": "2027-01-03",
+    "risk_reserve": "200.00",
+    "liquidity_reserve": "200.00",
+    "guarantee": "500.00",
+    "guarantee_due": "2026-11-04",
+    "guarantee_return_due": "2027-01-18",
+    "available_capital": "13000.00",
+    "minimum_margin": "0.10"
+  }
+}
