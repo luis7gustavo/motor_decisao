@@ -18,6 +18,6 @@ O protótipo cobre apenas um caminho dos 16 estados e 45 transições propostos 
 | Aprovação e reanálise | D sintética com hash por versão; guarda testada | Gate A3/A4, documentos/exigências, fornecimento e capital atuais, revisão humana autenticada |
 | Participação e resultado | Eventos `synthetic://`, transições e idempotência | Evidências externas verificadas, atores, autorização e persistência auditável |
 | Execução e recebimento | Entrega por item e saldo monetário em memória | Contrato, aceite, cobrança, conciliação e cronograma reais |
-| Carteira e métricas | Replay CLI de um caso | Fila, filtros, métricas MN, RNF, persistência e G0–G6 |
+| Carteira e métricas | Replay CLI de um caso e fila sintética em memória descrita em `radar-review-queue-offline.md` | Tela/filtros, métricas MN, RNF, persistência e G0–G6 |
 
 E permanece **parcial**. `E16` no replay é apenas o estado da fixture. Não equivale ao MVP, que exige todos os requisitos Must/RNF do PRD e piloto medido.

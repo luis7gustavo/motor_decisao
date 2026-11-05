@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "opportunities": ["LOTE-SINTETICO-01", "LOTE-SINTETICO-02"],
+  "actions": [
+    {"action_id":"Q-01","opportunity_id":"LOTE-SINTETICO-01","kind":"request_complement","minute":0,"expected_revision":0,"expected_source_version":2,"gap":"confirmar documento sintetico de entrega","assignee":"revisor-sintetico"},
+    {"action_id":"Q-02","opportunity_id":"LOTE-SINTETICO-02","kind":"discard","minute":1,"expected_revision":0,"expected_source_version":2,"reason":"decisao humana sintetica de nao prosseguir"},
+    {"action_id":"Q-03","opportunity_id":"LOTE-SINTETICO-01","kind":"resolve_complement","minute":2,"expected_revision":1,"expected_source_version":2,"reason":"documento sintetico examinado","evidence_ref":"synthetic://document/review/1"},
+    {"action_id":"Q-04","opportunity_id":"LOTE-SINTETICO-01","kind":"approve","minute":3,"expected_revision":2,"expected_source_version":2,"reason":"revisao humana sintetica favoravel"}
+  ]
+}
