@@ -11,7 +11,13 @@ def main() -> None:
     print(json.dumps({
         "data_kind": "synthetic_historical_observations",
         "warning": "Historical prices are not current quotations, stock, delivery, or supplier capacity.",
-        "target": vars(target),
+        "target": {
+            "specification": target.specification, "unit": target.unit,
+            "currency": target.currency,
+            "quantity_min": str(target.quantity_min), "quantity_max": str(target.quantity_max),
+            "result_from": target.result_from.isoformat(), "result_to": target.result_to.isoformat(),
+            "terms": target.terms,
+        },
         "sample": {"usable": len(result.usable), "excluded": len(result.excluded), "sufficient": result.sample_sufficient},
         "historical_unit_price": {
             "currency": target.currency,
@@ -28,6 +34,7 @@ def main() -> None:
             "unit_price": str(row.unit_price),
             "supplier_id": row.supplier_id,
             "source_ref": row.source_ref,
+            "review_ref": row.review_ref,
         } for row in result.usable],
         "excluded": [{"result_key": key, "reason": reason} for key, reason in result.excluded],
         "candidates_for_manual_investigation": [{

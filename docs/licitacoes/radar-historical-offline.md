@@ -5,18 +5,18 @@ Esta é a Etapa C **offline** no worktree `motor_decisao_produto`. `python -m sc
 ## Contrato demonstrado
 
 - Cada resultado conserva chave, versão, item de origem, data, etapa, quantidade, unidade, moeda, fornecedor e referência de fonte sintética. A versão mais nova substitui a antiga; revogação da mais nova não ressuscita preço anterior. Versões conflitantes ou uma identidade que abranja itens diferentes falham.
-- O filtro conservador usa apenas resultado homologado, especificação **exatamente igual** à meta, mesma unidade e moeda, identidade de estabelecimento preenchida e ausência de possível duplicidade. Conversões e equivalências sem prova ficam excluídas com motivo. A comparação técnica por atributos e revisão humana ainda não foi implementada.
+- O filtro conservador usa apenas resultado homologado, especificação **exatamente igual** à meta, mesma unidade e moeda, quantidade e data dentro de faixas declaradas, condições textuais iguais, identidade de estabelecimento preenchida, ausência de possível duplicidade e referência explícita de revisão sintética. Conversões e equivalências sem prova ficam excluídas com motivo. A comparação técnica por atributos e revisão humana real ainda não foi implementada.
 - A faixa nominal mínima, mediana e máxima usa `Decimal` sobre as observações utilizáveis, sem corrigir inflação nem ponderar por quantidade. O limiar de três observações é apenas uma regra de demonstração; amostra menor é marcada insuficiente.
 - Candidatos são agrupados por identificador sintético de estabelecimento, nunca por nome. Frequência histórica indica somente eventos observados, sem estimar capacidade, taxa de vitória ou aptidão atual.
 
-Na fixture, três observações são utilizáveis e seis versões atuais são excluídas: unidade sem conversão, etapa diferente, especificação diferente, duplicidade pendente, identidade pendente e revogação. A faixa é R$ 1,20–1,80 por unidade, mediana R$ 1,50. Dois estabelecimentos inventados têm o mesmo nome e permanecem separados.
+Na fixture, três observações passam pelo contexto inventado: 300–1.200 unidades, resultado de janeiro a junho de 2026 e entrega única em até 30 dias. Seis versões atuais são excluídas: unidade sem conversão, etapa diferente, especificação diferente, duplicidade pendente, identidade pendente e revogação. A faixa é R$ 1,20–1,80 por unidade, mediana R$ 1,50. Dois estabelecimentos inventados têm o mesmo nome e permanecem separados. O `review_ref` é uma referência **sintética**, não comprovação de revisão humana real.
 
 ## Liberação por capacidade
 
 | Saída | Evidência offline | Evidência faltante para dados reais |
 | --- | --- | --- |
 | Identidade, versão e proveniência | IDs e referências inventados, retificação e revogação testadas | Gate A3: vínculo real resultado–item–versão, Bronze/hash, duplicidade e integridade |
-| Faixa histórica | Etapa, especificação, unidade, moeda e data explícitas na fixture | Gate A4 resultados: paginação, semeadura por item, cobertura, qualidade e revisão de equivalência |
+| Faixa histórica | Etapa, especificação, unidade, moeda, quantidade, período, condições e revisão inventada explícitos na fixture | Gate A4 resultados: paginação, semeadura por item, cobertura, qualidade e revisão humana de equivalência |
 | Candidatos | IDs sintéticos distintos apesar de nome igual | Validação fiscal/estabelecimento, possíveis duplicidades e cobertura de resultados |
 | Uso no produto | CLI sem efeitos externos | G0–G4 em cópia, revisão humana, política de amostra e integração de leitura validada |
 

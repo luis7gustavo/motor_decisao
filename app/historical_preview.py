@@ -23,6 +23,11 @@ class Target:
     specification: str
     unit: str
     currency: str
+    quantity_min: Decimal
+    quantity_max: Decimal
+    result_from: date
+    result_to: date
+    terms: str
 
 
 @dataclass(frozen=True)
@@ -40,6 +45,8 @@ class Observation:
     supplier_id: str | None
     supplier_name: str
     source_ref: str
+    terms: str
+    review_ref: str
     revoked: bool = False
     duplicate_pending: bool = False
 
@@ -71,7 +78,15 @@ def load_fixture(path: Path = FIXTURE_PATH) -> tuple[Target, tuple[Observation, 
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("synthetic") is not True:
         raise ValueError("historical preview accepts only synthetic fixtures")
-    target = Target(**payload["target"])
+    raw_target = payload["target"]
+    target = Target(
+        specification=raw_target["specification"], unit=raw_target["unit"],
+        currency=raw_target["currency"],
+        quantity_min=_decimal(raw_target["quantity_min"], "quantity_min"),
+        quantity_max=_decimal(raw_target["quantity_max"], "quantity_max"),
+        result_from=date.fromisoformat(raw_target["result_from"]),
+        result_to=date.fromisoformat(raw_target["result_to"]), terms=raw_target["terms"],
+    )
     observations = tuple(
         Observation(
             result_key=row["result_key"],
@@ -87,6 +102,8 @@ def load_fixture(path: Path = FIXTURE_PATH) -> tuple[Target, tuple[Observation, 
             supplier_id=row.get("supplier_id"),
             supplier_name=row["supplier_name"],
             source_ref=row["source_ref"],
+            terms=row["terms"],
+            review_ref=row["review_ref"],
             revoked=row.get("revoked", False),
             duplicate_pending=row.get("duplicate_pending", False),
         )
@@ -98,6 +115,8 @@ def load_fixture(path: Path = FIXTURE_PATH) -> tuple[Target, tuple[Observation, 
 def compare(target: Target, observations: tuple[Observation, ...], *, min_sample: int = MIN_SAMPLE) -> Comparison:
     if min_sample < 1:
         raise ValueError("min_sample must be positive")
+    if target.quantity_min > target.quantity_max or target.result_from > target.result_to or not target.terms:
+        raise ValueError("invalid comparison context")
     latest: dict[str, Observation] = {}
     seen_versions: dict[tuple[str, int], Observation] = {}
     for row in observations:
@@ -131,6 +150,14 @@ def compare(target: Target, observations: tuple[Observation, ...], *, min_sample
             reason = "unit_conversion_unproven"
         elif row.currency != target.currency:
             reason = "currency_conversion_unproven"
+        elif not target.quantity_min <= row.quantity <= target.quantity_max:
+            reason = "quantity_outside_reviewed_range"
+        elif not target.result_from <= row.result_date <= target.result_to:
+            reason = "result_outside_reviewed_period"
+        elif row.terms != target.terms:
+            reason = "conditions_not_comparable"
+        elif not row.review_ref:
+            reason = "human_comparability_review_pending"
         elif not row.supplier_id:
             reason = "supplier_identity_pending"
         if reason:

@@ -85,3 +85,20 @@ def test_result_identity_cannot_join_distinct_items_and_currency_is_not_mixed():
     result = compare(target, changed)
     assert ("SYN-R2", "currency_conversion_unproven") in result.excluded
     assert not result.sample_sufficient
+
+
+def test_context_and_human_review_are_required_for_comparable_sample():
+    target, rows = load_fixture()
+    changes = {
+        "SYN-R1": {"quantity": Decimal("200")},
+        "SYN-R2": {"terms": "entrega parcelada"},
+        "SYN-R3": {"review_ref": ""},
+    }
+    changed = tuple(replace(row, **changes.get(row.result_key, {})) for row in rows)
+    result = compare(target, changed)
+    assert dict(result.excluded)["SYN-R1"] == "quantity_outside_reviewed_range"
+    assert dict(result.excluded)["SYN-R2"] == "conditions_not_comparable"
+    assert dict(result.excluded)["SYN-R3"] == "human_comparability_review_pending"
+    assert not result.sample_sufficient and result.price_median is None
+    old = compare(replace(target, result_from=target.result_to), rows)
+    assert ("SYN-R1", "result_outside_reviewed_period") in old.excluded
