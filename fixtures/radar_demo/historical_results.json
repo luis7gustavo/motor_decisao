@@ -1,0 +1,21 @@
+{
+  "synthetic": true,
+  "target": {
+    "specification": "caneta azul esferografica 1.0 mm",
+    "unit": "unidade",
+    "currency": "BRL"
+  },
+  "observations": [
+    {"result_key":"SYN-R1","version":1,"source_item":"SYN-C1/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.10","quantity":"1000","result_date":"2026-01-10","supplier_id":"SYN-EST-1","supplier_name":"Papelaria Exemplo","source_ref":"synthetic://r1/v1"},
+    {"result_key":"SYN-R1","version":2,"source_item":"SYN-C1/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.20","quantity":"1000","result_date":"2026-01-12","supplier_id":"SYN-EST-1","supplier_name":"Papelaria Exemplo","source_ref":"synthetic://r1/v2"},
+    {"result_key":"SYN-R2","version":1,"source_item":"SYN-C2/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.50","quantity":"500","result_date":"2026-03-02","supplier_id":"SYN-EST-2","supplier_name":"Papelaria Exemplo","source_ref":"synthetic://r2/v1"},
+    {"result_key":"SYN-R3","version":1,"source_item":"SYN-C3/I2","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.80","quantity":"800","result_date":"2026-05-20","supplier_id":"SYN-EST-2","supplier_name":"Papelaria Exemplo","source_ref":"synthetic://r3/v1"},
+    {"result_key":"SYN-R4","version":1,"source_item":"SYN-C4/I1","specification":"caneta azul esferografica 1.0 mm","unit":"caixa","currency":"BRL","stage":"homologated","unit_price":"40.00","quantity":"20","result_date":"2026-02-01","supplier_id":"SYN-EST-3","supplier_name":"Outro Exemplo","source_ref":"synthetic://r4/v1"},
+    {"result_key":"SYN-R5","version":1,"source_item":"SYN-C5/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"proposal","unit_price":"0.90","quantity":"1200","result_date":"2026-04-01","supplier_id":"SYN-EST-4","supplier_name":"Outro Exemplo","source_ref":"synthetic://r5/v1"},
+    {"result_key":"SYN-R6","version":1,"source_item":"SYN-C6/I1","specification":"caneta preta esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.00","quantity":"750","result_date":"2026-04-11","supplier_id":"SYN-EST-5","supplier_name":"Outro Exemplo","source_ref":"synthetic://r6/v1"},
+    {"result_key":"SYN-R7","version":1,"source_item":"SYN-C7/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.30","quantity":"900","result_date":"2026-03-18","supplier_id":"SYN-EST-6","supplier_name":"Outro Exemplo","source_ref":"synthetic://r7/v1","duplicate_pending":true},
+    {"result_key":"SYN-R8","version":1,"source_item":"SYN-C8/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.40","quantity":"300","result_date":"2026-06-12","supplier_id":null,"supplier_name":"Nome incompleto","source_ref":"synthetic://r8/v1"},
+    {"result_key":"SYN-R9","version":1,"source_item":"SYN-C9/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.35","quantity":"400","result_date":"2026-01-21","supplier_id":"SYN-EST-7","supplier_name":"Outro Exemplo","source_ref":"synthetic://r9/v1"},
+    {"result_key":"SYN-R9","version":2,"source_item":"SYN-C9/I1","specification":"caneta azul esferografica 1.0 mm","unit":"unidade","currency":"BRL","stage":"homologated","unit_price":"1.35","quantity":"400","result_date":"2026-01-22","supplier_id":"SYN-EST-7","supplier_name":"Outro Exemplo","source_ref":"synthetic://r9/v2","revoked":true}
+  ]
+}
