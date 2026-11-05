@@ -1,0 +1,105 @@
+x-history-dedicated-code: &history-dedicated-code
+  - ./app:/app/app:ro
+  - ./pipelines:/app/pipelines:ro
+  - ./scripts:/app/scripts:ro
+  - ./config:/app/config:ro
+  - ./backups:/evidence
+
+x-history-dedicated-prefect: &history-dedicated-prefect
+  PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect@prefect-history-dedicated-postgres:5432/prefect
+  PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+  PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+  PREFECT_REDIS_MESSAGING_URL: redis://prefect-history-dedicated-redis:6379/1
+  PREFECT_SERVER_DOCKET_URL: redis://prefect-history-dedicated-redis:6379/1
+
+x-history-dedicated-client: &history-dedicated-client
+  PREFECT_API_URL: http://prefect-history-dedicated-server:4200/api
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGUSER: ${MOTOR_POSTGRES_USER:-motor}
+  PGPASSWORD: ${MOTOR_POSTGRES_PASSWORD:-motor}
+  PGDATABASE: ${MOTOR_POSTGRES_DB:-motor_decisao}
+
+services:
+  prefect-history-dedicated-postgres:
+    profiles: [radar-history-dedicated]
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    volumes:
+      - radar_history_prefect_dedicated_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect -d prefect"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  prefect-history-dedicated-redis:
+    profiles: [radar-history-dedicated]
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - radar_history_prefect_dedicated_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  prefect-history-dedicated-server:
+    profiles: [radar-history-dedicated]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    environment:
+      <<: *history-dedicated-prefect
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+    command: prefect server start --host 0.0.0.0 --port 4200 --no-services
+    depends_on:
+      prefect-history-dedicated-postgres:
+        condition: service_healthy
+      prefect-history-dedicated-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  prefect-history-dedicated-services:
+    profiles: [radar-history-dedicated]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    environment:
+      <<: *history-dedicated-prefect
+      PREFECT_API_URL: http://prefect-history-dedicated-server:4200/api
+    command: prefect server services start
+    depends_on:
+      prefect-history-dedicated-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  radar-history-dedicated-ops:
+    profiles: [radar-history-dedicated]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    environment: *history-dedicated-client
+    volumes: *history-dedicated-code
+    command: python -m scripts.radar_pncp_schedule status
+    restart: "no"
+
+  radar-history-dedicated-worker:
+    profiles: [radar-history-dedicated]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    environment: *history-dedicated-client
+    volumes: *history-dedicated-code
+    command: prefect worker start --pool radar-pncp-history --work-queue history --name pncp-history-dedicated-pc1 --limit 1
+    depends_on:
+      prefect-history-dedicated-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  radar_history_prefect_dedicated_pg:
+  radar_history_prefect_dedicated_redis:

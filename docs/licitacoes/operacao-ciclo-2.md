@@ -1,5 +1,38 @@
 # Operação e retomada — Ciclo 2
 
+## Atualização S02 — 27/10/2026
+
+O destino segregado C2, OID 2508600, recebeu somente a migração aditiva
+`20261027_0011`. O backup anterior está em
+`backups/c2/c2-20261013/s02-before-0011.dump` (SHA-256
+`b943710883b92e9bf65e6d3067b0d47376db075f97f0192a67bf566241e8ffa0`),
+com restauração integral conferida em banco descartável. A revisão do principal
+permaneceu `20260817_0009`. A migração acrescentou tabelas vazias de controle;
+o job, o ledger e as 10 versões históricas C2 foram preservados. O verificador
+offline continua com `evidence_integrity_valid=true`, estado `partial` e
+`coverage_verified=false`. Detalhes em
+`plans/coleta-historica-periodica-2026-10-27/S02_RELATORIO.md`.
+
+Os números e a revisão C1 das seções de 20/10 abaixo são registros daquela data.
+O novo limitador persistente ainda não está ligado ao transporte C2, e a nova
+missão histórica segue desabilitada; não execute `collect` nem crie agenda.
+
+## Atualização S01 — 27/10/2026
+
+O job preservado `e47c6fe2-2cc9-4b58-803a-49a4aa44a443` foi classificado **offline**, a partir da resposta Bronze já recebida na página 2. Estado de negócio: `partial`, `error_code=SourceChanged`, `next_page=2`, `records_seen=10`, `request_count=2`. O checkpoint guarda totais 9577/958 → 9562/957, ID da resposta Bronze e política `child_partition_replay_required`, com no máximo duas reexecuções futuras explicitamente controladas. Essa classificação não criou um job filho, não consumiu quota nem alterou as identidades, versões ou observações já persistidas.
+
+O coletor recusa retomar automaticamente um job com `SourceChanged`. O antigo comando `collect` descrito abaixo é histórico; **não o use como continuação direta deste job**. A reconciliação da partição e eventual job filho dependem da persistência/controle das etapas seguintes e dos gates de fonte. O teto de duas reexecuções é política local futura, não autorização de duas chamadas nem quota oficial da PNCP.
+
+Verifique o estado atual sem rede com:
+
+```powershell
+docker compose -f docker-compose.yml -f compose.radar-ops.yml run --rm --no-deps --entrypoint python radar-ops -m scripts.radar_pncp_live_validation verify
+```
+
+O verificador agora confere sessão, contadores reais, recibos, bytes/hashes Bronze, cursor e observações; `evidence_integrity_valid=true` significa apenas integridade do material preservado. A coleta permanece parcial e `coverage_verified=false`. Nenhuma igualdade de totais sem snapshot/controle independente comprova ausência absoluta de lacunas. O procedimento de classificação offline é `... -m scripts.radar_pncp_live_validation classify`; ele foi executado uma vez e é idempotente, mas não avança o cursor.
+
+As seções abaixo registram a operação de 20/10 e instruções de retomada anteriores à S01. Seus números e comando `collect` não substituem este estado atualizado.
+
 Estado em 2026-10-20: sonda e coleta mínima executadas em banco isolado. A coleta
 segue parcial no checkpoint da página 2. Principal permaneceu em 20260817_0009;
 schedules e push continuam não autorizados. Executar aplicação, testes e scripts

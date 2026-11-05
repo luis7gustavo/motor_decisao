@@ -22,9 +22,29 @@ from sqlalchemy.orm import Session
 
 from .repository import ProcurementRepository, Snapshot
 from .pncp_transport import Budget, BudgetExhausted, Response, retry_delay
+from .source_policy import load_source_policy
 
 RESOURCE = '/v1/contratacoes/publicacao'
 BASE = 'https://pncp.gov.br/api/consulta'
+
+
+class SourceChanged(Exception):
+    """A durable page cannot be promoted until its partition is reconciled."""
+
+    def __init__(self, reason, *, page, raw_response_id, expected=None, observed=None):
+        if reason not in {'pagination_totals_changed', 'page_sequence_changed',
+                          'page_disappeared_during_pagination',
+                          'page_record_counts_changed', 'repeated_identity_across_pages',
+                          'repeated_identity_within_page'}:
+            raise ValueError('Invalid source change reason')
+        self.metadata = {
+            'schema_version': 'pncp-source-change-1', 'reason': reason,
+            'page': page, 'raw_response_id': str(raw_response_id),
+            'expected': expected or {}, 'observed': observed or {},
+            'reconciliation_policy': 'child_partition_replay_required',
+            'max_replays': 2, 'replays_started': 0,
+        }
+        super().__init__(reason)
 
 
 def json_text(value):
@@ -85,20 +105,31 @@ class Scope:
         return BASE+RESOURCE+'?'+urlencode(params)
 
 
-def live_transport(budget_path,scope=None):
-    policy=json.loads(Path('config/contracts/pncp-publicacao-policy.json').read_text())
-    if not policy['enabled']:
+def live_transport(budget_path,scope=None,*,session_id=None):
+    policy=load_source_policy('config/contracts/pncp-publicacao-policy.json')
+    grant=policy.get('operator_authorization') or {}
+    operator_scope=(scope is not None and session_id==grant.get('session')
+        and Path(budget_path).name==grant.get('session')
+        and scope.start.isoformat()==grant.get('start')
+        and scope.end.isoformat()==grant.get('end')
+        and scope.modality==grant.get('modality')
+        and scope.page_size==grant.get('page_size')
+        and scope.uf==grant.get('uf'))
+    if not policy['enabled'] and not operator_scope:
         raise ValueError('Live publication blocked: temporal boundaries/terms/modality evidence pending')
     if scope is None or scope.contract_hash!=policy['contract_sha256']:
         raise ValueError('Scope and verified contract differ')
     contract=Path('config/contracts/pncp-consulta-20261013.json').read_bytes()
     if hashlib.sha256(contract).hexdigest()!=policy['contract_sha256']:
         raise ValueError('Contract snapshot integrity failed')
-    if (not policy.get('bounds_evidence') or not policy.get('filtered_field')
+    if policy['enabled'] and (not policy.get('bounds_evidence') or not policy.get('filtered_field')
             or not policy.get('limits_reviewed') or scope.modality not in policy.get('verified_modalities',[])):
         raise ValueError('Incomplete live source policy')
     budget=Budget(budget_path,category='data',purpose='collection')
-    budget.state()
+    state=budget.state()
+    if (state.get('session')!=session_id or state.get('counters',{}).get('data',{}).get('limit')!=50
+            or state.get('counters',{}).get('data',{}).get('calibration_limit')!=3):
+        raise ValueError('Operator session budget is not reconciled')
     return budget.request
 
 
@@ -150,6 +181,43 @@ class Store:
         with self.transaction() as s:
             row=s.execute(text('SELECT * FROM control.ingestion_jobs WHERE id=:id'),{'id':job_id}).mappings().one()
             return dict(row)
+
+    def classify_saved_source_change(self,job_id,*,session_id):
+        """Type a legacy partial result using its retained Bronze page, with no HTTP."""
+        with self.transaction() as s:
+            row=s.execute(text('SELECT * FROM control.ingestion_jobs WHERE id=:id FOR UPDATE'),
+                          {'id':job_id}).mappings().one()
+            cp=row['checkpoint']
+            if cp.get('session')!=session_id or row['state']!='partial' or row['lease_owner'] is not None:
+                raise ValueError('Legacy classification requires the idle isolated partial job')
+            if row['error_code']=='SourceChanged':
+                return dict(row)
+            if row['error_code']!='ValueError' or row['next_page']<2 or 'total' not in cp:
+                raise ValueError('No legacy pagination divergence to classify')
+            raw=s.execute(text('''SELECT id,job_id,page,http_status,body,body_sha256
+                FROM bronze.pncp_responses WHERE id=:id'''),{'id':cp.get('last_raw_id')}).mappings().one()
+            body=bytes(raw['body'])
+            if (raw['job_id']!=job_id or raw['page']!=row['next_page']
+                    or raw['http_status']!=200 or hashlib.sha256(body).hexdigest()!=raw['body_sha256']):
+                raise ValueError('Saved Bronze page does not match the partial job')
+            envelope=json.loads(body)
+            if (not isinstance(envelope,dict) or type(envelope.get('totalRegistros')) is not int
+                    or type(envelope.get('totalPaginas')) is not int
+                    or envelope.get('numeroPagina')!=row['next_page']
+                    or (cp['total'],cp['pages'])==
+                       (envelope['totalRegistros'],envelope['totalPaginas'])):
+                raise ValueError('Saved Bronze page does not prove changed pagination totals')
+            change=SourceChanged('pagination_totals_changed',page=row['next_page'],
+                raw_response_id=raw['id'],
+                expected={'total_records':cp['total'],'total_pages':cp['pages']},
+                observed={'total_records':envelope['totalRegistros'],
+                          'total_pages':envelope['totalPaginas']}).metadata
+            change['classification_source']='saved_bronze_page'
+            cp['source_change']=change
+            s.execute(text('''UPDATE control.ingestion_jobs SET error_code='SourceChanged',
+                checkpoint=CAST(:checkpoint AS jsonb) WHERE id=:id'''),
+                {'id':job_id,'checkpoint':json_text(cp)})
+        return self.get(job_id)
 
     def claim(self,job_id,owner):
         with self.transaction() as s:
@@ -215,7 +283,8 @@ class Store:
             cp=row['checkpoint']
             if response.status==204:
                 if cp['processed']:
-                    raise ValueError('Unexpected empty page during pagination')
+                    raise SourceChanged('page_disappeared_during_pagination',
+                                        page=row['next_page'],raw_response_id=raw['id'])
                 done=True
             else:
                 envelope=json.loads(response.body,parse_float=Decimal,parse_constant=reject_constant)
@@ -228,22 +297,40 @@ class Store:
                 page,total,pages,remaining=(envelope[key] for key in ('numeroPagina','totalRegistros','totalPaginas','paginasRestantes'))
                 empty_ok=(not data and total==0 and page==1 and pages in (0,1)
                           and remaining==0 and cp['processed']==0)
-                if (page!=row['next_page'] or (pages<page and not empty_ok)
-                        or (remaining!=pages-page and not empty_ok)
+                if page!=row['next_page']:
+                    raise SourceChanged('page_sequence_changed',page=row['next_page'],
+                                        raw_response_id=raw['id'],
+                                        expected={'page':row['next_page']},observed={'page':page})
+                if ((pages<page and not empty_ok) or (remaining!=pages-page and not empty_ok)
                         or type(envelope.get('empty')) is not bool or envelope['empty']!= (len(data)==0)
-                        or (not data and not empty_ok) or len(data)>cp['scope']['page_size']):
+                        or len(data)>cp['scope']['page_size']):
                     raise ValueError('Inconsistent or empty page metadata')
+                if not data and not empty_ok:
+                    raise SourceChanged('page_disappeared_during_pagination',
+                                        page=page,raw_response_id=raw['id'],
+                                        expected={'total_records':cp.get('total')},
+                                        observed={'total_records':total})
                 if 'total' in cp and (cp['total']!=total or cp['pages']!=pages):
-                    raise ValueError('Source changed pagination totals')
+                    raise SourceChanged('pagination_totals_changed',page=page,
+                                        raw_response_id=raw['id'],
+                                        expected={'total_records':cp['total'],'total_pages':cp['pages']},
+                                        observed={'total_records':total,'total_pages':pages})
                 if total<cp['processed']+len(data) or (remaining==0 and total!=cp['processed']+len(data)):
-                    raise ValueError('Page record counts do not reconcile')
+                    raise SourceChanged('page_record_counts_changed',page=page,
+                                        raw_response_id=raw['id'],
+                                        expected={'total_records':total},
+                                        observed={'processed_plus_page':cp['processed']+len(data)})
                 ids=[]
                 for record in data:
                     if not isinstance(record,dict) or not isinstance(record.get('numeroControlePNCP'),str) or not record['numeroControlePNCP'].strip():
                         raise ValueError('Missing official source identity')
                     key=hashlib.sha256(record['numeroControlePNCP'].encode()).hexdigest()
-                    if key in cp['seen'] or key in ids:
-                        raise ValueError('Repeated identity within pagination')
+                    if key in cp['seen']:
+                        raise SourceChanged('repeated_identity_across_pages',page=page,
+                                            raw_response_id=raw['id'])
+                    if key in ids:
+                        raise SourceChanged('repeated_identity_within_page',page=page,
+                                            raw_response_id=raw['id'])
                     ids.append(key)
                 repo=ProcurementRepository(s)
                 for record in data:
@@ -263,6 +350,8 @@ class Store:
                         cnpj_original=original),actor='pncp-adapter',correlation_id=job_id)
                 cp.update(processed=cp['processed']+len(data),seen=cp['seen']+ids,total=total,pages=pages)
                 done=remaining==0
+            if done:
+                cp['coverage_status']='pagination_consistent_unverified'
             cp.update(page_attempts=0,not_before=0)
             s.execute(text('''UPDATE control.ingestion_jobs SET checkpoint=CAST(:cp AS jsonb),next_page=next_page+1,
                 records_seen=:count,last_success_at=now(),state=:state,error_code=NULL,
@@ -270,11 +359,16 @@ class Store:
                 {'id':job_id,'cp':json_text(cp),'count':cp['processed'],'state':'success' if done else 'running'})
             return done
 
-    def release(self,job_id,owner,token,state,error=None,*,not_before=0):
+    def release(self,job_id,owner,token,state,error=None,*,not_before=0,source_change=None):
         with self.transaction() as s:
             row=self.locked(s,job_id,owner,token)
             cp=row['checkpoint']
             cp['not_before']=max(cp.get('not_before',0),not_before)
+            if source_change is not None:
+                if (state!='partial' or error!='SourceChanged'
+                        or source_change['raw_response_id']!=cp.get('last_raw_id')):
+                    raise ValueError('Source change must match the durable Bronze receipt')
+                cp['source_change']=source_change
             s.execute(text('''UPDATE control.ingestion_jobs SET state=:state,error_code=:error,
                 checkpoint=CAST(:cp AS jsonb),lease_owner=NULL,lease_until=NULL WHERE id=:id'''),
                 {'id':job_id,'state':state,'error':error,'cp':json_text(cp)})
@@ -290,7 +384,8 @@ class Collector:
         if max_pages is not None and (type(max_pages) is not int or max_pages<1):
             raise ValueError('max_pages must be a positive integer')
         row=self.store.get(job_id)
-        if row['state']=='success' or row['checkpoint'].get('not_before',0)>time.time():
+        if (row['state']=='success' or row['error_code']=='SourceChanged'
+                or row['checkpoint'].get('not_before',0)>time.time()):
             return row
         owner=str(uuid4())
         token=self.store.claim(job_id,owner)
@@ -334,6 +429,10 @@ class Collector:
                     continue
                 self.store.release(job_id,owner,token,'partial','http_'+str(response.status))
                 return self.store.get(job_id)
+        except SourceChanged as exc:
+            self.store.release(job_id,owner,token,'partial','SourceChanged',
+                               source_change=exc.metadata)
+            return self.store.get(job_id)
         except Exception as exc:
             # Persist only error type: source contents and credentials stay out
             # of operational logs. A stale owner cannot release another lease.

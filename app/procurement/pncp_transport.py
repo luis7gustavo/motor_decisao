@@ -35,6 +35,7 @@ class Response:
     body: bytes
     attempt: int | None = None
     received_at: str | None = None
+    elapsed_ms: int | None = None
 
 
 def validate_url(url):
@@ -70,6 +71,7 @@ def retry_delay(value, base, *, now=None):
 
 
 def send_get(url, *, max_bytes=4*1024*1024, timeout=30):
+    started = time.monotonic()
     parts = validate_url(url)
     addresses = socket.getaddrinfo(parts.hostname,443,type=socket.SOCK_STREAM)
     for entry in addresses:
@@ -112,7 +114,9 @@ def send_get(url, *, max_bytes=4*1024*1024, timeout=30):
             if seen > max_bytes:
                 raise ValueError('Response exceeds byte limit')
             chunks.append(chunk)
-        return Response(response.status,headers,b''.join(chunks))
+        return Response(response.status,headers,b''.join(chunks),
+                        received_at=datetime.now(timezone.utc).isoformat(),
+                        elapsed_ms=max(0, int((time.monotonic()-started)*1000)))
     finally:
         connection.close()
         sock.close()

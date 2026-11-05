@@ -1,5 +1,6 @@
 """Operator-bounded PNCP calibration and one-page isolated real collection."""
 import argparse
+from collections import Counter
 from datetime import date, datetime
 import hashlib
 import json
@@ -128,50 +129,174 @@ def collect(store):
         'request_count':result['request_count'],'records_seen':result['records_seen'],
         'next_page':result['next_page'],'window':scope.data(),'quota':budget.state()['counters']}
     print(json.dumps(summary,indent=2))
-    return 0 if result['records_seen'] else 1
+    return 0 if (result['state']=='success' or result['error_code']=='sample_page_limit') else 2
+
+
+def assess_session_evidence(ledger,job_file,jobs,responses,observation_counts):
+    """Reconcile growing C2 receipts and promoted pages without fixed sample counts."""
+    issues=[]
+    warnings=[]
+    attempts=ledger['attempts']
+    data_attempts=[entry for entry in attempts if entry.get('category')=='data']
+    job_ids={str(job['id']) for job in jobs}
+    collection=next((job for job in jobs if str(job['id'])==job_file['job_id']),None)
+    if ledger['session']!=SESSION or collection is None:
+        issues.append('session_or_collection_job_mismatch')
+    elif collection['checkpoint'].get('scope')!=job_file['scope']:
+        issues.append('collection_scope_mismatch')
+    if sum(job['request_count'] for job in jobs)!=len(data_attempts):
+        issues.append('request_count_ledger_mismatch')
+    receipt_signatures=Counter((entry['body_sha256'],entry['status'],entry['bytes'])
+        for entry in data_attempts if 'body_sha256' in entry)
+    bronze_signatures=Counter()
+    public_responses=[]
+    for response in responses:
+        body=bytes(response['body'])
+        if str(response['job_id']) not in job_ids:
+            issues.append('bronze_outside_session')
+        if len(body)!=response['byte_length'] or hashlib.sha256(body).hexdigest()!=response['body_sha256']:
+            issues.append('bronze_body_hash_or_size_mismatch')
+        bronze_signatures[(response['body_sha256'],response['http_status'],response['byte_length'])]+=1
+        metadata={}
+        if response['http_status']==200:
+            try:
+                envelope=json.loads(body)
+                if isinstance(envelope,dict):
+                    metadata={key:envelope.get(key) for key in
+                              ('totalRegistros','totalPaginas','numeroPagina','paginasRestantes')}
+            except (ValueError,UnicodeDecodeError):
+                warnings.append('unparseable_200_receipt_retained')
+        public_responses.append({'job_id':str(response['job_id']),'page':response['page'],
+                                 'status':response['http_status'],'bytes':response['byte_length'],
+                                 'sha256':response['body_sha256'],'page_metadata':metadata})
+    if bronze_signatures!=receipt_signatures:
+        issues.append('bronze_receipt_mismatch')
+    for job in jobs:
+        identity=str(job['id'])
+        cp=job['checkpoint']
+        if cp.get('session')!=SESSION or job['records_seen']!=cp.get('processed'):
+            issues.append('job_checkpoint_mismatch')
+        seen=cp.get('seen',[])
+        if len(seen)!=len(set(seen)) or len(seen)!=job['records_seen']:
+            issues.append('job_identity_count_mismatch')
+        if observation_counts.get(identity,0)!=job['records_seen']:
+            issues.append('job_observation_count_mismatch')
+        accepted={response['page'] for response in responses
+                  if str(response['job_id'])==identity and response['http_status'] in (200,204)}
+        if not set(range(1,job['next_page'])).issubset(accepted):
+            issues.append('advanced_cursor_without_bronze_page')
+        if job['error_code']=='SourceChanged':
+            change=cp.get('source_change')
+            if (not isinstance(change,dict) or change.get('page')!=job['next_page']
+                    or change.get('reconciliation_policy')!='child_partition_replay_required'
+                    or change.get('replays_started',3)>change.get('max_replays',2)
+                    or not any(str(response['id'])==change.get('raw_response_id')
+                               and str(response['job_id'])==identity for response in responses)):
+                issues.append('source_change_evidence_mismatch')
+        elif job['error_code']=='ValueError':
+            # Existing C2 job predates typed SourceChanged; preserve its state.
+            last_page=next((response for response in reversed(public_responses)
+                            if response['job_id']==identity and response['page']==job['next_page']),None)
+            if (last_page and 'total' in cp and
+                    (last_page['page_metadata'].get('totalRegistros')!=cp['total']
+                     or last_page['page_metadata'].get('totalPaginas')!=cp['pages'])):
+                warnings.append('legacy_untyped_pagination_change')
+    return sorted(set(issues)),sorted(set(warnings)),public_responses
 
 
 def verify(store):
     record=json.loads((ROOT/'target-credentials.json').read_text())
     budget=Budget(ROOT,category='data',purpose='collection')
+    ledger=budget.state()
+    job_file=json.loads((ROOT/'collection-job.json').read_text())
+    file_issues=[]
+    for entry in ledger['attempts']:
+        if 'body_file' not in entry:
+            continue
+        name=entry['body_file']
+        if Path(name).name!=name:
+            file_issues.append('invalid_receipt_filename')
+            continue
+        try:
+            body=(ROOT/name).read_bytes()
+        except OSError:
+            file_issues.append('receipt_file_missing')
+            continue
+        if len(body)!=entry['bytes'] or hashlib.sha256(body).hexdigest()!=entry['body_sha256']:
+            file_issues.append('receipt_file_hash_or_size_mismatch')
     with store.transaction() as conn:
         counts={table:conn.execute(text('SELECT count(*) FROM '+table)).scalar_one() for table in (
             'bronze.pncp_responses','control.ingestion_jobs','commercial.system_settings',
             'procurement.procurements','procurement.procurement_versions',
             'procurement.version_observations','procurement.procurement_items','procurement.judgment_units')}
-        jobs=[{'state':row['state'],'error_code':row['error_code'],'page':row['next_page'],
-               'requests':row['request_count'],'records':row['records_seen'],
-               'start':row['window_start'].isoformat(),'end':row['window_end'].isoformat()}
-              for row in conn.execute(text('''SELECT state,error_code,next_page,request_count,records_seen,
-                  window_start,window_end FROM control.ingestion_jobs WHERE checkpoint->>'session'=:session
+        jobs=[dict(row) for row in conn.execute(text('''SELECT id,state,error_code,next_page,
+                  request_count,records_seen,window_start,window_end,checkpoint
+                  FROM control.ingestion_jobs WHERE checkpoint->>'session'=:session
                   ORDER BY created_at,id'''),{'session':SESSION}).mappings()]
-        responses=[{'status':row['http_status'],'bytes':row['byte_length'],
-                    'sha256':row['body_sha256']} for row in conn.execute(text('''SELECT http_status,
-                    octet_length(body) AS byte_length,body_sha256 FROM bronze.pncp_responses
-                    ORDER BY received_at,id''')).mappings()]
+        responses=[dict(row) for row in conn.execute(text('''SELECT b.id,b.job_id,b.page,
+                    b.http_status,b.body,octet_length(b.body) AS byte_length,b.body_sha256
+                    FROM bronze.pncp_responses b JOIN control.ingestion_jobs j ON j.id=b.job_id
+                    WHERE j.checkpoint->>'session'=:session ORDER BY b.received_at,b.id'''),
+                    {'session':SESSION}).mappings()]
+        observation_counts={str(row['correlation_id']):row['records'] for row in conn.execute(text('''
+            SELECT o.correlation_id,count(*) AS records FROM procurement.version_observations o
+            JOIN control.ingestion_jobs j ON j.id=o.correlation_id
+            WHERE j.checkpoint->>'session'=:session GROUP BY o.correlation_id'''),
+            {'session':SESSION}).mappings()}
         modality_distribution=[dict(row) for row in conn.execute(text('''SELECT snapshot->>'modalidadeId' AS code,
             snapshot->>'modalidadeNome' AS label,count(*) AS records FROM procurement.procurement_versions
             GROUP BY 1,2 ORDER BY 1,2''')).mappings()]
         publication_dates=[dict(row) for row in conn.execute(text('''SELECT left(snapshot->>'dataPublicacaoPncp',10) AS date,
             count(*) AS records FROM procurement.procurement_versions GROUP BY 1 ORDER BY 1''')).mappings()]
+    issues,warnings,public_responses=assess_session_evidence(
+        ledger,job_file,jobs,responses,observation_counts)
+    issues=sorted(set(issues+file_issues))
+    public_jobs=[{'job_id':str(row['id']),'state':row['state'],'error_code':row['error_code'],
+                  'page':row['next_page'],'requests':row['request_count'],'records':row['records_seen'],
+                  'start':row['window_start'].isoformat(),'end':row['window_end'].isoformat(),
+                  'source_change':row['checkpoint'].get('source_change')}
+                 for row in jobs]
+    collection=next((row for row in public_jobs if row['job_id']==job_file['job_id']),None)
     result={'database':record['database'],'database_oid':record['database_oid'],'role':record['role'],
-        'counts':counts,'jobs':jobs,'bronze_responses':responses,
+        'evidence_integrity_valid':not issues,'collection_business_state':collection['state'] if collection else 'missing',
+        'coverage_verified':False,'issues':issues,'warnings':warnings,
+        'counts':counts,'jobs':public_jobs,'bronze_responses':public_responses,
         'modality_distribution':modality_distribution,'publication_dates':publication_dates,
-        'quota':budget.state()['counters']}
+        'quota':ledger['counters']}
     print(json.dumps(result,indent=2))
-    return int(counts['bronze.pncp_responses']!=3 or counts['procurement.procurements']!=10
-               or budget.state()['counters']['data']['consumed']!=3)
+    return int(bool(issues))
+
+
+def classify(store):
+    """Classify only the preserved C2 job from its saved Bronze page."""
+    job_file=json.loads((ROOT/'collection-job.json').read_text())
+    job_id=UUID(job_file['job_id'])
+    before=store.get(job_id)
+    if before['checkpoint'].get('scope')!=job_file['scope']:
+        raise ValueError('Saved C2 scope differs from the database job')
+    after=store.classify_saved_source_change(job_id,session_id=SESSION)
+    print(json.dumps({'job_id':str(job_id),'state':after['state'],
+                      'error_code':after['error_code'],'next_page':after['next_page'],
+                      'requests_unchanged':after['request_count']==before['request_count'],
+                      'records_unchanged':after['records_seen']==before['records_seen'],
+                      'source_change':after['checkpoint'].get('source_change')},indent=2))
+    return int(not (after['error_code']=='SourceChanged'
+                    and after['next_page']==before['next_page']
+                    and after['request_count']==before['request_count']
+                    and after['records_seen']==before['records_seen']))
 
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('mode',choices=['calibrate','collect','verify'])
+    parser.add_argument('mode',choices=['calibrate','collect','verify','classify'])
     args=parser.parse_args()
     engine,store=target()
     try:
         if args.mode=='calibrate':
             return calibrate(store)
-        return collect(store) if args.mode=='collect' else verify(store)
+        if args.mode=='collect':
+            return collect(store)
+        return classify(store) if args.mode=='classify' else verify(store)
     finally:
         engine.dispose()
 

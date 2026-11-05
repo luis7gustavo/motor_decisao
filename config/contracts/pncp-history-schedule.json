@@ -1,0 +1,25 @@
+{
+  "schema_version": "pncp-history-schedule-1",
+  "mission_deployment": "radar-pncp-history/mission",
+  "work_pool": "radar-pncp-history",
+  "work_queue": "history",
+  "timezone": "America/Sao_Paulo",
+  "pool_concurrency": 1,
+  "queue_concurrency": 1,
+  "deployment_concurrency": 1,
+  "backfill_interval_minutes": 1,
+  "sync_cron": "0 0,6,12,18 * * *",
+  "reconcile_cron": "30 3 * * 1",
+  "max_scheduled_runs_per_schedule": 3,
+  "backfill_steps": 100,
+  "sync_steps": 4,
+  "reconcile_steps": 4,
+  "enrich_steps": 2,
+  "max_lateness_seconds": {
+    "backfill": 120,
+    "sync": 43200,
+    "reconcile": 604800
+  },
+  "initial_state": "paused",
+  "source_policy": "config/contracts/pncp-history-mission-policy.json"
+}

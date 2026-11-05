@@ -1,0 +1,138 @@
+x-history-code-volumes: &history-code-volumes
+  - ./app:/app/app:ro
+  - ./pipelines:/app/pipelines:ro
+  - ./scripts:/app/scripts:ro
+  - ./config:/app/config:ro
+  - ./backups:/evidence
+
+x-history-test-server-environment: &history-test-server-environment
+  PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect@prefect-history-test-postgres:5432/prefect
+  PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+  PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+  PREFECT_REDIS_MESSAGING_URL: redis://prefect-history-test-redis:6379/1
+  PREFECT_SERVER_DOCKET_URL: redis://prefect-history-test-redis:6379/1
+
+services:
+  radar-history-ops:
+    profiles: [radar-history]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${MOTOR_POSTGRES_USER:-motor}
+      PGPASSWORD: ${MOTOR_POSTGRES_PASSWORD:-motor}
+      PGDATABASE: ${MOTOR_POSTGRES_DB:-motor_decisao}
+    volumes: *history-code-volumes
+    command: python -m scripts.radar_pncp_schedule status
+    restart: "no"
+
+  radar-history-worker:
+    profiles: [radar-history]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      RADAR_HISTORY_RUNTIME_DISABLED: "1"
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${MOTOR_POSTGRES_USER:-motor}
+      PGPASSWORD: ${MOTOR_POSTGRES_PASSWORD:-motor}
+      PGDATABASE: ${MOTOR_POSTGRES_DB:-motor_decisao}
+    volumes: *history-code-volumes
+    command: prefect worker start --pool radar-pncp-history --work-queue history --name pncp-history-pc1 --limit 1
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  prefect-history-test-postgres:
+    profiles: [radar-history-test]
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    volumes:
+      - radar_history_prefect_test_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect -d prefect"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  prefect-history-test-redis:
+    profiles: [radar-history-test]
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - radar_history_prefect_test_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  prefect-history-test-server:
+    profiles: [radar-history-test]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    environment:
+      <<: *history-test-server-environment
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+    command: prefect server start --host 0.0.0.0 --port 4200 --no-services
+    depends_on:
+      prefect-history-test-postgres:
+        condition: service_healthy
+      prefect-history-test-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  prefect-history-test-services:
+    profiles: [radar-history-test]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    environment:
+      <<: *history-test-server-environment
+      PREFECT_API_URL: http://prefect-history-test-server:4200/api
+    command: prefect server services start
+    depends_on:
+      prefect-history-test-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  radar-history-test-worker:
+    profiles: [radar-history-test]
+    image: radar-history-prefect:3.8.8-sa2.0.49
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    environment:
+      PREFECT_API_URL: http://prefect-history-test-server:4200/api
+      RADAR_HISTORY_REHEARSAL: "1"
+    volumes: *history-code-volumes
+    command: prefect worker start --pool radar-pncp-history-s05-test --work-queue probe --name pncp-history-s05-test-pc1 --limit 1
+    depends_on:
+      prefect-history-test-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  radar_history_prefect_test_pg:
+  radar_history_prefect_test_redis:
