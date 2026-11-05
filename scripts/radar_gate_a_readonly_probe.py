@@ -57,6 +57,22 @@ LEFT JOIN procurement.procurements p
   ON p.source = 'pncp' AND p.source_id = h.source_id
 """
 
+REFERENTIAL = """
+SELECT (SELECT count(*) FROM (
+           SELECT source_id FROM procurement.procurements
+           WHERE source = 'pncp' GROUP BY source_id HAVING count(*) > 1
+       ) duplicates) AS duplicate_source_ids,
+       (SELECT count(*) FROM procurement.procurement_versions v
+        LEFT JOIN procurement.procurements p ON p.id = v.procurement_id
+        WHERE p.id IS NULL) AS orphan_versions,
+       (SELECT count(*) FROM procurement.procurement_versions v
+        LEFT JOIN bronze.pncp_responses b ON b.id = v.raw_response_id
+        WHERE b.id IS NULL) AS versions_without_bronze,
+       (SELECT count(*) FROM procurement.version_observations o
+        LEFT JOIN procurement.procurement_versions v ON v.id = o.version_id
+        WHERE v.id IS NULL) AS orphan_observations
+"""
+
 
 def main():
     store, engine = target_store()
@@ -65,6 +81,7 @@ def main():
             conn.exec_driver_sql('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
             fields = dict(conn.execute(text(FIELDS)).mappings().one())
             history = dict(conn.execute(text(HISTORY)).mappings().one())
+            referential = dict(conn.execute(text(REFERENTIAL)).mappings().one())
             extras = dict(conn.execute(text("""
                 SELECT (SELECT count(*) FROM procurement.procurement_items) AS items,
                        (SELECT count(*) FROM procurement.judgment_unit_items) AS judgment_items,
@@ -80,6 +97,7 @@ def main():
             """)).mappings()]
             print(json.dumps({'observed_utc': datetime.now(timezone.utc).isoformat(),
                               'fields': fields, 'history': history,
+                              'referential': referential,
                               'extras': extras, 'official_state_names': states,
                               'pncp_network_calls': 0, 'database_writes': 0},
                              sort_keys=True))

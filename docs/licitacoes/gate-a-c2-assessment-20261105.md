@@ -1,6 +1,6 @@
 # Gate A — avaliação agregada do C2 para a descoberta do Radar Licita
 
-Observação: **2026-11-05 16:05 America/Sao_Paulo**. A consulta foi executada em transação `REPEATABLE READ READ ONLY` pelo contêiner dedicado que valida o destino C2. O programa não chamou o PNCP, não exportou linhas individuais e não escreveu no C2 ou no banco principal. Dados agregados: [gate-a-c2-observation-20261105.json](gate-a-c2-observation-20261105.json).
+Observação: **2026-11-05 16:18 America/Sao_Paulo**. A consulta foi executada em transação `REPEATABLE READ READ ONLY` pelo contêiner dedicado que valida o destino C2. O programa não chamou o PNCP, não exportou linhas individuais e não escreveu no C2 ou no banco principal. Dados agregados: [gate-a-c2-observation-20261105.json](gate-a-c2-observation-20261105.json).
 
 ## Evidência
 
@@ -8,6 +8,7 @@ Observação: **2026-11-05 16:05 America/Sao_Paulo**. A consulta foi executada e
 | --- | ---: |
 | Licitações PNCP com projeção local | 340.985 |
 | Sem versão atual vinculada / identidade PNCP divergente | 0 / 0 |
+| IDs PNCP duplicados / versões órfãs / versões sem Bronze / observações órfãs | 0 / 0 / 0 / 0 |
 | Identidades do marco histórico, sem projeção | 338.407 / 0 |
 | Objeto, ano bruto, valor estimado e UF brutos presentes | 340.985 cada |
 | Prazo bruto de encerramento presente | 340.919 |
