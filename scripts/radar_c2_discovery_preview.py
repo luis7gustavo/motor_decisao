@@ -48,6 +48,7 @@ def main():
     try:
         with engine.connect() as conn:
             conn.exec_driver_sql('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+            conn.exec_driver_sql("SET LOCAL statement_timeout = '15000ms'")
             rows = [dict(row) for row in conn.execute(text(QUERY), {
                 'q': args.q, 'pattern': literal_pattern(args.q),
                 'uf': args.uf.upper(), 'limit': args.limit,
