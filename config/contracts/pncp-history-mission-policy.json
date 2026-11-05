@@ -91,8 +91,8 @@
     "root_consumer_isolation_hold": "/evidence/pncp-control/exclusive.lock",
     "c2_ledger_separate_but_not_a_rate_limit_bypass": true,
     "adaptive_rate_test": true,
-    "test_window_start_utc": "2026-11-04T12:42:00+00:00",
-    "test_window_end_utc": "2026-11-05T12:42:00+00:00"
+    "test_window_start_utc": "2026-11-05T19:30:00+00:00",
+    "test_window_end_utc": "2026-11-06T19:30:00+00:00"
   },
   "resource_gates": {
     "publication": "enabled",
