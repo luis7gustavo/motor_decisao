@@ -163,6 +163,10 @@ def set_running(running):
                 LEFT JOIN control.source_attempt_outcomes o ON o.attempt_id=a.id
                 WHERE a.budget_scope_key=:key AND o.attempt_id IS NULL'''),
                 {'key': BUDGET_KEY}).scalar_one()
+            desired_state = 'enabled' if running else 'paused'
+            previous_state = 'paused' if running else 'enabled'
+            already_target = budget['enabled'] is running and mission['state'] == desired_state
+            transition_ready = budget['enabled'] is not running and mission['state'] == previous_state
             if (budget['attempt_limit'] != source_cap
                     or budget['attempts_consumed'] != BASE_CONSUMED + mission['attempts_consumed']
                     or mission['attempt_limit'] != mission_cap
@@ -175,14 +179,13 @@ def set_running(running):
                     != budget_policy.get('test_window_start_utc')
                     or mission['scope'].get('test_window_end_utc')
                     != budget_policy.get('test_window_end_utc')
-                    or unmatched or budget['enabled'] is running
-                    or mission['state'] != ('paused' if running else 'enabled')):
+                    or unmatched or not (already_target or transition_ready)):
                 raise ValueError('History source state or ledger drift')
-            session.execute(text('''UPDATE control.source_budgets SET enabled=:enabled
-                WHERE scope_key=:key'''), {'enabled': running, 'key': BUDGET_KEY})
-            session.execute(text('''UPDATE control.source_missions SET state=:state
-                WHERE id=:id'''), {'state': 'enabled' if running else 'paused',
-                                   'id': mission['id']})
+            if transition_ready:
+                session.execute(text('''UPDATE control.source_budgets SET enabled=:enabled
+                    WHERE scope_key=:key'''), {'enabled': running, 'key': BUDGET_KEY})
+                session.execute(text('''UPDATE control.source_missions SET state=:state
+                    WHERE id=:id'''), {'state': desired_state, 'id': mission['id']})
         print(json.dumps({'state': 'resumed' if running else 'paused',
                           'source_consumed': budget['attempts_consumed'],
                           'mission_consumed': mission['attempts_consumed']}))
