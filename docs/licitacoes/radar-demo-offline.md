@@ -23,3 +23,5 @@ Branch/worktree isolado: `codex/radar-licita-produto-2026-11-04` em `motor_decis
 Quatro testes focados passaram no container `motor_decisao-api` com `--network none` e mount apenas do worktree. Cobrem retificação, deduplicação, filtros, classificação conservadora, paginação, frescor, páginas HTML, estado vazio, 404 e indisponibilidade. `git diff --check` passou. O runner registrou um aviso de depreciação do `fastapi.testclient`/Starlette, sem falha.
 
 Esta é uma prévia offline da Etapa B, não integração real nem MVP. Não há persistência de alertas, revisão independente do diff, medição de RNF ou liberação de dados PNCP. Antes de integrar com C2/principal, cumprir Gate A pertinente e G0–G4 da migração em cópia. C e D podem usar contratos/fixtures independentes; E depende da jornada de D.
+
+Avaliação agregada posterior do C2 e um diagnóstico limitado de busca estão em [gate-a-c2-assessment-20261105.md](gate-a-c2-assessment-20261105.md). Eles confirmam metadados úteis para descoberta, mas mantêm abertura e frescor desconhecidos; `/radar-demo` segue usando somente a fixture sintética.
