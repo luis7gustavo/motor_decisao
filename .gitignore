@@ -1,6 +1,8 @@
 .env
 .env.*
 !.env.example
+.radar-preview.env
+.radar-preview-*-secret
 .venv/
 *.egg-info/
 storage/

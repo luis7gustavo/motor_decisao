@@ -53,24 +53,24 @@ def test_pages_render_source_versions_empty_state_and_unavailable(monkeypatch):
     app = FastAPI()
     app.include_router(demo_api.router)
     client = TestClient(app)
-    response = client.get("/radar-demo?uf=SP")
+    response = client.get("/radar-demo/sintetico?uf=SP")
     assert response.status_code == 200
     assert "SINTETICO-001" in response.text
     assert "SINTETICO-002" not in response.text
     assert "dados sintéticos" in response.text
     assert "Alertas locais de alteração" in response.text
-    assert "Retificação sintética" in client.get("/radar-demo/alteracoes").text
-    detail = client.get("/radar-demo/SINTETICO-001")
+    assert "Retificação sintética" in client.get("/radar-demo/sintetico/alteracoes").text
+    detail = client.get("/radar-demo/sintetico/SINTETICO-001")
     assert detail.status_code == 200
     assert "Versão 1" in detail.text and "versão atual 2" in detail.text
-    assert "Nenhum registro" in client.get("/radar-demo?uf=BA").text
-    assert client.get("/radar-demo/inexistente").status_code == 404
+    assert "Nenhum registro" in client.get("/radar-demo/sintetico?uf=BA").text
+    assert client.get("/radar-demo/sintetico/inexistente").status_code == 404
 
     original_catalog = load_catalog()
     monkeypatch.setattr(demo_api, "load_catalog", lambda: Catalog(
         original_catalog.observed_at, original_catalog.records, source_available=False,
     ))
-    offline = client.get("/radar-demo")
+    offline = client.get("/radar-demo/sintetico")
     assert offline.status_code == 200
     assert "SINTETICO-001" in offline.text
     assert "Fonte sintética indisponível" in offline.text
@@ -80,6 +80,6 @@ def test_pages_render_source_versions_empty_state_and_unavailable(monkeypatch):
         raise OSError("fixture missing")
 
     monkeypatch.setattr(demo_api, "load_catalog", unavailable)
-    response = client.get("/radar-demo")
+    response = client.get("/radar-demo/sintetico")
     assert response.status_code == 503
     assert "Fixture indisponível" in response.text

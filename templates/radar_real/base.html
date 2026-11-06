@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Radar Licita — prévia real isolada{% endblock %}</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #153043; background: #f2f6f7; }
+    body { margin: 0; line-height: 1.45; }
+    header { background: #12384b; color: white; padding: 1.1rem max(1rem, calc((100vw - 1100px)/2)); }
+    header a { color: white; margin-right: 1.4rem; }
+    main { max-width: 1100px; margin: auto; padding: 1.3rem; }
+    h1 { margin-bottom: .3rem; } h2 { margin-top: 0; }
+    .notice { background: #fff0c6; border-left: 5px solid #a76800; padding: .9rem 1rem; }
+    .panel { background: white; padding: 1.2rem; margin: 1rem 0; border-radius: .4rem; box-shadow: 0 1px 5px #15304314; }
+    .muted { color: #496273; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .8rem; align-items: end; }
+    label { display: block; font-weight: 600; margin-bottom: .3rem; }
+    input, select, button { box-sizing: border-box; width: 100%; min-height: 2.6rem; padding: .5rem; font: inherit; }
+    button { border: 0; background: #075b70; color: white; cursor: pointer; }
+    table { border-collapse: collapse; width: 100%; } th, td { padding: .7rem; border-bottom: 1px solid #dce5e9; text-align: left; vertical-align: top; }
+    .scroll { overflow-x: auto; } .pages { display: flex; gap: 1.3rem; align-items: center; }
+    a { color: #07536b; } a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d57b00; outline-offset: 2px; }
+    dt { font-weight: 700; margin-top: .8rem; } dd { margin-left: 0; overflow-wrap: anywhere; }
+    .tag { display: inline-block; padding: .15rem .5rem; background: #e1edf1; border-radius: .3rem; }
+  </style>
+</head>
+<body>
+  <header><strong>Radar Licita · descoberta em cópia isolada</strong><nav aria-label="Navegação"><a href="/radar-demo">Busca real</a><a href="/radar-demo/sintetico">Demonstração sintética</a></nav></header>
+  <main>
+    <p class="notice"><strong>Cobertura parcial.</strong> Abertura da oportunidade: não verificada. Frescor da fonte: desconhecido. Situação e prazo são textos brutos do PNCP. Esta prévia não recomenda participação nem dispara alertas.</p>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

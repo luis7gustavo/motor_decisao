@@ -1,0 +1,23 @@
+{% extends "radar_real/base.html" %}
+{% block title %}{{ row.source_id }} — Radar Licita{% endblock %}
+{% block content %}
+<p><a href="/radar-demo">← Voltar à busca</a></p>
+<h1>{{ row.object }}</h1>
+<p><span class="tag">{{ row.source_id }}</span> · versão vigente no snapshot: <strong>{{ row.version }}</strong></p>
+<section class="panel"><h2>Identidade e proveniência</h2><dl>
+  <dt>Origem</dt><dd>PNCP, identidade numeroControlePNCP {{ row.source_id }}</dd>
+  <dt>Snapshot da cópia</dt><dd>{{ snapshot_at }} · cobertura parcial</dd>
+  <dt>SHA-256 do dump de origem</dt><dd>{{ backup_sha256 }}</dd>
+  <dt>Versão C2</dt><dd>{{ row.version }} · ID {{ row.version_id }}</dd>
+  <dt>Resposta Bronze vinculada</dt><dd>{{ row.raw_response_id }}</dd>
+  <dt>UF</dt><dd>{{ row.uf }}</dd>
+  <dt>Modalidade bruta</dt><dd>{{ row.modality or 'Não informada' }}</dd>
+  <dt>Situação bruta</dt><dd>{{ row.official_state_raw or 'Não informada' }}</dd>
+  <dt>Prazo bruto do PNCP</dt><dd>{{ row.deadline_text_unverified or 'Não informado' }} (fuso e semântica não verificados)</dd>
+  <dt>Abertura da oportunidade</dt><dd>Não verificada</dd>
+  <dt>Frescor da fonte</dt><dd>Desconhecido</dd>
+</dl></section>
+<section class="panel"><h2>Versões registradas no snapshot</h2><ol>
+{% for version in versions %}<li>Versão {{ version.version_no }}{% if version.version_no == row.version %} — vigente neste snapshot{% endif %}; situação registrada: {{ version.official_status or 'não informada' }}; observada pelo C2 em {{ version.observed_at }}.</li>{% endfor %}
+</ol><p class="muted">Uma versão anterior nunca substitui uma versão atual revogada, anulada ou retificada. Comparação de itens, viabilidade e jornada comercial continuam sintéticas.</p></section>
+{% endblock %}

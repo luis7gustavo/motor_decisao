@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from app.radar_demo import PAGE_SIZE, grouped_versions, is_fresh, load_catalog, search
 
 
-router = APIRouter(prefix="/radar-demo", tags=["radar-demo"])
+router = APIRouter(prefix="/radar-demo/sintetico", tags=["radar-demo-sintetico"])
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parents[2] / "templates"))
 
 
