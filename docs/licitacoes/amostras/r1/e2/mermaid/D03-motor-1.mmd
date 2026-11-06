@@ -1,0 +1,19 @@
+flowchart TD
+    S["Snapshot da unidade completa<br/>Itens, versões e evidências"] --> G["Guardas de prazo, julgamento e habilitação"]
+    S --> M["Matching por atributo"]
+    S --> L["Logística A/B/C/D<br/>L, cobertura e intervalo"]
+    S --> F["Simulador Decimal<br/>Margem, caixa e cenários"]
+    G --> C["Consolidar todos os checks"]
+    M --> C
+    L --> C
+    F --> C
+    C --> B{"Falha impeditiva conhecida?"}
+    B -->|Sim| X["Bloqueada: global NULL"]
+    B -->|Não| P{"Pendência obrigatória?"}
+    P -->|Sim| Y["Pendente: global NULL"]
+    P -->|Não| N["Priorizar viáveis<br/>F, L, T, C, E e penalidades"]
+    N --> V["Verificar atualidade concorrente<br/>Publicar snapshot imutável"]
+    X --> H["Revisão humana fundamentada"]
+    Y --> H
+    V --> H
+    H --> A["Complementar, descartar ou declarar aptidão<br/>Guardas RN-032; sem envio automático"]

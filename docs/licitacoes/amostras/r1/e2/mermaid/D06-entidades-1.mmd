@@ -1,0 +1,109 @@
+erDiagram
+    procurements ||--o{ procurement_versions : possui
+    procurement_versions ||--o{ procurement_items : contem
+    procurement_versions ||--o{ judgment_units : define
+    judgment_units ||--o{ judgment_unit_items : compoe
+    procurement_items ||--o{ judgment_unit_items : integra
+    procurement_versions ||--o{ procurement_documents : referencia
+    procurement_documents ||--o{ document_extractions : extrai
+    procurement_documents o|--o{ evidences : sustenta
+    procurement_versions ||--o{ requirements : exige
+    evidences ||--o{ requirements : fundamenta
+    requirements ||--o| delivery_requirements : detalha
+    suppliers ||--o{ supplier_products : oferece
+    supplier_products ||--o{ supplier_quotes : cota
+    supplier_products ||--o{ product_matches : compara
+    procurement_items ||--o{ product_matches : recebe
+    procurements ||--o{ opportunities : acompanha
+    opportunities ||--o{ financial_scenarios : simula
+    judgment_units ||--o{ financial_scenarios : delimita
+    opportunities ||--o{ opportunity_analyses : analisa
+    financial_scenarios ||--o{ opportunity_analyses : fundamenta
+    opportunity_analyses ||--o| opportunity_scores : pontua
+    opportunity_analyses ||--o{ analysis_invalidations : invalida
+    opportunity_analyses ||--o{ opportunity_reviews : revisa
+    opportunities ||--o{ opportunity_status_history : registra
+    ingestion_jobs ||--o{ pncp_responses : recebe
+    pncp_responses ||--o{ procurement_versions : origina
+    system_settings ||--o{ financial_scenarios : parametriza
+    procurements o|--o{ public_events : contextualiza
+    suppliers o|--o{ public_events : identificado
+    public_events ||--o{ event_links : origem
+    public_events ||--o{ event_links : destino
+    public_events o|--o{ historical_prices : fundamenta
+    supplier_quotes o|--o{ historical_prices : projeta
+    historical_prices ||--o{ historical_comparisons : compara
+    procurement_items ||--o{ historical_comparisons : pesquisa
+    suppliers ||--o{ supplier_candidates : identifica
+    procurement_items ||--o{ supplier_candidates : investiga
+    supplier_candidates ||--o{ candidate_interactions : registra
+    supplier_quotes o|--o{ candidate_interactions : vincula
+    procurements {
+        uuid id PK
+        text source_id
+        uuid current_version_id FK
+    }
+    procurement_versions {
+        uuid id PK
+        uuid procurement_id FK
+        uuid raw_response_id FK
+        int version_no
+    }
+    procurement_items {
+        uuid id PK
+        uuid version_id FK
+        text source_item_key
+    }
+    judgment_units {
+        uuid id PK
+        uuid version_id FK
+        string kind
+    }
+    judgment_unit_items {
+        uuid unit_id PK, FK
+        uuid item_id PK, FK
+    }
+    suppliers {
+        uuid id PK
+        text legal_id
+        text legal_id_original
+        text legal_root
+        text identity_status
+    }
+    supplier_products {
+        uuid id PK
+        uuid supplier_id FK
+        int version_no
+    }
+    supplier_quotes {
+        uuid id PK
+        uuid product_id FK
+        decimal unit_price
+    }
+    product_matches {
+        uuid id PK
+        uuid item_id FK
+        uuid product_id FK
+    }
+    opportunities {
+        uuid id PK
+        uuid procurement_id FK
+        uuid current_unit_id FK
+        string state
+    }
+    financial_scenarios {
+        uuid id PK
+        uuid opportunity_id FK
+        uuid unit_id FK
+        uuid settings_id FK
+    }
+    opportunity_analyses {
+        uuid id PK
+        uuid opportunity_id FK
+        uuid scenario_id FK
+    }
+    opportunity_scores {
+        uuid id PK
+        uuid analysis_id FK, UK
+        decimal global_score
+    }

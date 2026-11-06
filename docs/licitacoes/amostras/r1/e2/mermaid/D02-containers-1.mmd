@@ -1,0 +1,17 @@
+flowchart TB
+    U["Operador no navegador local"] --> API["API FastAPI + Jinja2<br/>Consulta, revisão e domínio"]
+    API --> DB[("PostgreSQL de domínio<br/>Legado + novos schemas")]
+    W["Worker HTTP Prefect<br/>Ingestão oficial, resultados e coordenação documental"] --> DB
+    W --> PNCP["PNCP / Compras / origens aprovadas"]
+    W --> PF["Prefect server + services"]
+    PF --> PDB[("PostgreSQL Prefect")]
+    PF --> R[("Redis de controle")]
+    W --> DOC[("Volume de documentos")]
+    DOC --> API
+    W --> IN[("Spool de entrada")]
+    IN --> PAR["Parser documental isolado<br/>Sem rede, banco ou segredos"]
+    PAR --> OUT[("Spool de saída")]
+    OUT --> W
+    LEG["Workers comerciais opcionais<br/>Crawlee / browser"] --> DB
+    LEG --> PF
+    LEG --> EXT["Fontes comerciais"]

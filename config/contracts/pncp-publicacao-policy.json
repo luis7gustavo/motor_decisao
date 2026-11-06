@@ -1,0 +1,22 @@
+{
+  "schema_version": "pncp-source-policy-1",
+  "enabled": false,
+  "contract_sha256": "a5d87b60a54acfd681e84e0a77d541b0db7065401171508c53c911d12bdd121d",
+  "contract_url": "https://pncp.gov.br/api/consulta/v3/api-docs",
+  "resource": "/v1/contratacoes/publicacao",
+  "filtered_field": "dataPublicacaoPncp",
+  "bounds_evidence": null,
+  "limits_reviewed": false,
+  "verified_modalities": [],
+  "reason": "General collection remains disabled. A single operator-authorized isolated-session grant allows only the fixed C2 window, one observed modality, and the persistent 50-request data ledger. Official terms and general boundary semantics remain unverified.",
+  "operator_authorization": {
+    "session": "c2-20261013",
+    "start": "2026-10-06",
+    "end": "2026-10-14",
+    "modality": 6,
+    "page_size": 10,
+    "uf": null,
+    "scope_source": "ADR-024 and operator continuation instruction on 2026-10-21",
+    "applies_to": "manual Prefect validation and resume in the isolated test database only"
+  }
+}

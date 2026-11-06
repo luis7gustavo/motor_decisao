@@ -1,0 +1,35 @@
+{
+  "title": "Acervo real de tecnologia da demonstracao",
+  "recorded_at": "2026-10-16T01:51:50.157894+00:00",
+  "source": "PNCP public production API",
+  "source_requests": 33,
+  "counts": {
+    "procurements": 7,
+    "items": 19,
+    "results": 19,
+    "distinct_companies": 11
+  },
+  "files": [
+    {
+      "path": "examples/demo/fixtures/official/PNCP_TECNOLOGIA_HISTORICA_EXPANDIDA_2026-10-15.json",
+      "bytes": 100280,
+      "sha256": "503ce560e9a0ef8ca755cec706ac0be2a3170a78878777e337fa661bda9f064d"
+    },
+    {
+      "path": "backend/data/demo/radar_real_history_snapshot.db",
+      "bytes": 552960,
+      "sha256": "a1bd7ec47ac0f07d448470848ca26d6011fb546de7ca2c1fd6b6a612baeb09f9"
+    },
+    {
+      "path": "output/demo/evidencias/s09_historico_real_resumo.png",
+      "bytes": 67406,
+      "sha256": "c10b172725725dfa4a69680782f16ab051b8a7cc89ca5bfd6c9ba560b987316a"
+    },
+    {
+      "path": "output/demo/evidencias/s09_radar_acervo_real.png",
+      "bytes": 105835,
+      "sha256": "96d6cd504ad0a3239b3111368e90a2c4e2b92f926f9360a00c27dee1bc06b739"
+    }
+  ],
+  "note": "Imagem da interface local. Resultado historico nao comprova contrato executado ou cotacao atual."
+}

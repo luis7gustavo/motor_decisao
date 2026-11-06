@@ -1,0 +1,29 @@
+# Additive one-shot service; no operational service is overridden.
+services:
+  radar-ops:
+    profiles: [radar-ops]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.radar-ops
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${MOTOR_POSTGRES_USER:-motor}
+      PGPASSWORD: ${MOTOR_POSTGRES_PASSWORD:-motor}
+      PGDATABASE: ${MOTOR_POSTGRES_DB:-motor_decisao}
+    volumes:
+      - ./app:/app/app:ro
+      - ./pipelines:/app/pipelines:ro
+      - ./config:/app/config:ro
+      - ./templates:/app/templates:ro
+      - ./static:/app/static:ro
+      - ./alembic.ini:/app/alembic.ini:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./scripts:/app/scripts:ro
+      - ./tests:/app/tests:ro
+      - ./alembic:/app/alembic:ro
+      - ./backups:/evidence
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"

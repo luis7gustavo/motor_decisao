@@ -1,0 +1,66 @@
+flowchart TD
+    INICIO(["Início da análise"])
+    DESCOBRIR["Consultar fonte oficial e preservar origem<br/>Normalizar identidade e versões<br/>E01 — oportunidade descoberta | RF-001 a RF-005"]
+    ENRIQUECER["Iniciar ou retomar enriquecimento<br/>E02 — em enriquecimento"]
+    DOCUMENTOS["Obter documentos com controles de segurança<br/>Extrair texto, exigências, evidências e lacunas<br/>RF-006 a RF-009; RNF-003 e RNF-004"]
+    UNIDADE["Identificar unidade de julgamento e itens obrigatórios<br/>Conferir prazo, regime e checklist de habilitação<br/>RN-001 a RN-003, RN-007, RN-022 a RN-025"]
+    ORIENTACAO{"Precisa de revisão preliminar<br/>ou resolução de conflito?"}
+    LOGISTICA["Avaliar modelos de fornecimento e obrigações<br/>Classificar A/B/C/D e calcular prontidão com cobertura<br/>RF-010 a RF-012; RN-010 a RN-014"]
+    PRECISA_COTAR{"Cotação ou confirmação<br/>comercial necessária?"}
+    COTAR["Registrar item e lacuna; operador consulta fornecedor fora do app<br/>E03 — aguardando cotação | RF-013 a RF-016"]
+    RESPOSTA{"Cotação ou dado recebido?"}
+    REGISTRAR_COTACAO["Registrar evidência, validade, quantidade e condições<br/>Retornar ao enriquecimento com a nova versão"]
+    MATCHING["Conferir cada produto, quantidade, unidade e atributo obrigatório<br/>Registrar revisão humana e compatibilidade por versão<br/>RF-017 a RF-019; RN-015 e RN-024"]
+    FINANCAS["Simular todos os itens da unidade de julgamento<br/>Custos, preço hipotético, cronograma, capital e incertezas<br/>RF-020 a RF-024; RN-004 a RN-009, RN-016 a RN-021"]
+    CONTROLES["Avaliar elegibilidade e viabilidade atuais<br/>Guardar todos os bloqueios e pendências com evidência<br/>RF-025 e RF-027; RN-026 a RN-029"]
+    BLOQUEIO{"Há falha impeditiva conhecida?"}
+    BLOQUEADA["Resultado analítico: bloqueada<br/>Manter também pendências; fora do ranking positivo"]
+    LACUNA{"Há pendência obrigatória?"}
+    PENDENTE["Resultado analítico: pendente<br/>Lacuna não gera condição favorável"]
+    RANKING["Resultado analítico: viável para priorização<br/>Calcular ranking explicável e preservar snapshot<br/>RF-026 e RF-027; RN-029"]
+    REVISAO["Operador confere evidências, versões e consequências<br/>E04 — aguardando revisão | RF-029"]
+    ESCOLHA{"Ação humana fundamentada"}
+    ESTUDO["E05 — pré-aprovada para estudo<br/>Autorizar aprofundamento; lacunas continuam visíveis"]
+    DESCARTE["E06 — descartada<br/>Registrar motivo e histórico; sem participação prévia"]
+    APTA["E07 — apta para decisão humana de participação<br/>Somente revisão final favorável e guardas atendidas"]
+    ATUAL["Conferir novamente prazo, cotação, dados e demais guardas<br/>Imediatamente antes da decisão de participar<br/>RN-001, RN-003, RN-006, RN-028; RNF-018"]
+    MUDOU{"Análise mudou, venceu<br/>ou deixou de atender guardas?"}
+    DECISAO{"Operador decide participar?"}
+    DECIDIDA(["Decisão humana favorável registrada<br/>Ato externo e comprovante seguem D10: E07 para E08"])
+    ADIAR["Adiar decisão enquanto as condições forem atuais<br/>Manter E07; conferir novamente antes de decidir"]
+
+    INICIO --> DESCOBRIR --> ENRIQUECER --> DOCUMENTOS --> UNIDADE --> ORIENTACAO
+    ORIENTACAO -->|"Sim"| REVISAO
+    ORIENTACAO -->|"Não"| LOGISTICA --> PRECISA_COTAR
+    PRECISA_COTAR -->|"Sim"| COTAR --> RESPOSTA
+    RESPOSTA -->|"Sim"| REGISTRAR_COTACAO --> ENRIQUECER
+    RESPOSTA -->|"Sem resposta ou condição a revisar"| REVISAO
+    PRECISA_COTAR -->|"Não; condições disponíveis"| MATCHING --> FINANCAS --> CONTROLES --> BLOQUEIO
+    BLOQUEIO -->|"Sim"| BLOQUEADA --> REVISAO
+    BLOQUEIO -->|"Não"| LACUNA
+    LACUNA -->|"Sim"| PENDENTE --> REVISAO
+    LACUNA -->|"Não"| RANKING --> REVISAO
+    REVISAO --> ESCOLHA
+    ESCOLHA -->|"Pedir complemento com lacuna e responsável"| ENRIQUECER
+    ESCOLHA -->|"Pré-aprovar somente o estudo"| ESTUDO
+    ESTUDO -->|"Complementar estudo, matching ou simulação"| ENRIQUECER
+    ESTUDO -->|"Estudo pronto ou conflito a resolver"| REVISAO
+    ESCOLHA -->|"Descartar com motivo"| DESCARTE
+    ESCOLHA -->|"Revisão final; todos os controles atuais atendidos"| APTA
+    DESCARTE -->|"Reabertura justificada e nova evidência"| ENRIQUECER
+    APTA --> ATUAL --> MUDOU
+    MUDOU -->|"Sim; invalidar atualidade e preservar histórico"| REVISAO
+    MUDOU -->|"Não"| DECISAO
+    DECISAO -->|"Sim; decisão auditada"| DECIDIDA
+    DECISAO -->|"Não prosseguir; motivo"| DESCARTE
+    DECISAO -->|"Adiar"| ADIAR --> ATUAL
+
+    COTAR -.->|Pesquisa opcional| HISTORIA["Comparáveis, identidade e candidatos<br/>Contato manual e cotação por escopo: D15"]
+    HISTORIA --> COTAR
+
+    classDef humana fill:#fff1d6,stroke:#8a5a00,color:#241b0b;
+    classDef impedida fill:#fff1f2,stroke:#be123c,color:#4c0519;
+    classDef apta fill:#dcfce7,stroke:#15803d,color:#052e16;
+    class REVISAO,ESCOLHA,ESTUDO,DECISAO,ADIAR humana;
+    class BLOQUEADA,PENDENTE,DESCARTE impedida;
+    class RANKING,APTA,DECIDIDA apta;

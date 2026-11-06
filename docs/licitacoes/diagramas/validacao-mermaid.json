@@ -1,0 +1,92 @@
+{
+  "r1_scope_addendum": {"date": "2026-10-13", "version": "0.3-R1-E2", "scope": "Resultados originais preservados; não abrangem R1. Validação R1-E2 em amostras/r1/e2/relatorio-validacao.md, relativa à raiz docs/licitacoes. Adendo de autoria, sem reexecutar o método original."},
+  "date": "2026-10-12",
+  "version": "11.12.0",
+  "method": "mermaid.parse e mermaid.render locais em Chromium headless; somente biblioteca carregada do CDN; fontes não enviadas a serviço remoto",
+  "results": [
+    {
+      "file": "D01-contexto.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 19280
+    },
+    {
+      "file": "D02-containers.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 31313
+    },
+    {
+      "file": "D03-motor.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 30792
+    },
+    {
+      "file": "D06-entidades.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 171429
+    },
+    {
+      "file": "D07-atividades.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 167160
+    },
+    {
+      "file": "D08-coleta-pncp.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 31773
+    },
+    {
+      "file": "D09-analise-oportunidade.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 35010
+    },
+    {
+      "file": "D10-estados.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 274902
+    },
+    {
+      "file": "D10-estados.md",
+      "block": 2,
+      "ok": true,
+      "svgLength": 337825
+    },
+    {
+      "file": "D10-estados.md",
+      "block": 3,
+      "ok": true,
+      "svgLength": 405160
+    },
+    {
+      "file": "D11-dados.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 30596
+    },
+    {
+      "file": "D12-implantacao.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 43506
+    },
+    {
+      "file": "D13-entrega-remota.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 32135
+    },
+    {
+      "file": "D14-fluxo-financeiro.md",
+      "block": 1,
+      "ok": true,
+      "svgLength": 33854
+    }
+  ]
+}

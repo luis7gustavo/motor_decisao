@@ -1,0 +1,28 @@
+{
+  "r1_scope_addendum": {"date": "2026-10-13", "version": "0.3-R1-E2", "scope": "Resultados originais preservados; não abrangem R1. Validação R1-E2 em amostras/r1/e2/relatorio-validacao.md, relativa à raiz docs/licitacoes. Adendo de autoria, sem reexecutar o método original."},
+  "date": "2026-10-12",
+  "baseline": "261b32107ff7b053c68c1df98e88de329c41c0f5",
+  "checks": {
+    "markdownAndPlantumlFiles": 40,
+    "localLinksChecked": 179,
+    "rf": 34,
+    "must": 32,
+    "cp": 10,
+    "rt": 16,
+    "rnfMapped": 21,
+    "plannedTests": 55,
+    "diagramSources": 14,
+    "mermaidBlocks": 14,
+    "stateTransitions": 44,
+    "gitChangesOnlyDocumentation": true,
+    "initialStateArc": 1,
+    "totalStateArcs": 45,
+    "gitUntrackedDocumentationFiles": 42
+  },
+  "errors": [],
+  "limitations": [
+    "Validação de conteúdo sem executar aplicação, testes, migrations, coleta ou restore.",
+    "D04/D05: revisão estrutural, sem parse/render PlantUML por ferramenta indisponível no PATH.",
+    "GitHub UI não inspecionada; Mermaid validado localmente."
+  ]
+}

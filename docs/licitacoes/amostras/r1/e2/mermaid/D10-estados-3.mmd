@@ -1,0 +1,36 @@
+stateDiagram-v2
+    direction TB
+    state "E04 — aguardando revisão" as E04
+    state "E06 — descartada" as E06
+    state "E08 — participação registrada manualmente" as E08
+    state "E09 — em disputa" as E09
+    state "E10 — resultado conhecido" as E10
+    state "E11 — vencida" as E11
+    state "E12 — perdida" as E12
+    state "E13 — contrato em execução" as E13
+    state "E14 — entrega concluída" as E14
+    state "E15 — recebimento financeiro" as E15
+    state "E16 — encerrada" as E16
+
+    E06 --> E16 : fechar estudo descartado com motivo e pendências residuais
+    E12 --> E16 : fechar oportunidade perdida com motivo e pendências residuais
+    E15 --> E16 : fechar normalmente com obrigações residuais tratadas
+    E08 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E09 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E10 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E11 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E13 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E14 --> E16 : encerramento excepcional com evidência, saldos e plano
+    E16 --> E04 : reabrir estudo com justificativa, se nunca houve participação
+    E16 --> E10 : reabrir excepcionalmente no resultado factual comprovado
+    E16 --> E13 : reabrir excepcionalmente na execução factual comprovada
+    E16 --> E14 : reabrir excepcionalmente na entrega factual comprovada
+    E16 --> E15 : reabrir excepcionalmente no recebimento factual comprovado
+
+    note right of E16
+        Encerramento não apaga saldo ou obrigação.
+        Cancelamento, rescisão ou outro fato
+        comprovado exige motivo, evidência,
+        saldos, plano e responsável pelas pendências.
+        Garantias residuais mantêm acompanhamento.
+    end note

@@ -1,0 +1,19 @@
+flowchart TD
+    I["Unidade completa: itens, requisitos e evidências"] --> Q{"Lacuna ou conflito crítico<br/>de obrigação, destino, prazo ou plano?"}
+    Q -->|Sim| D["Classe D<br/>Guardar também presença já conhecida"]
+    D --> P["Pedir evidência e revisão<br/>Sem ranking positivo"]
+    Q -->|Não| C{"Presença local relevante comprovada?"}
+    C -->|Sim| CL["Classe C<br/>Validar prestador, permissão, prazo e custo"]
+    C -->|Não| B{"Restrição remota relevante conhecida?"}
+    B -->|Sim| BL["Classe B<br/>Validar parcelas, agendamento e compromissos"]
+    B -->|Não| AL["Classe A<br/>Envio convencional suficientemente demonstrado"]
+    CL --> V["Verificar modelo escolhido e todas as obrigações"]
+    BL --> V
+    AL --> V
+    V --> E{"Envio direto selecionado?"}
+    E -->|Sim| ED["Exigir compromisso do fornecedor<br/>e validação contratual e fiscal aplicável"]
+    E -->|Não| T["Custear operador e transportadora<br/>Não aplicável exige fundamento"]
+    ED --> G["Consolidar bloqueios e pendências<br/>com produto, habilitação, prazo e capital"]
+    T --> G
+    G --> R["Revisão humana<br/>Classe não equivale a autorização"]
+    I -.-> S["L e cobertura são indicadores separados<br/>Não renormalizar desconhecidos"]

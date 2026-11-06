@@ -1,0 +1,24 @@
+flowchart LR
+    PNCP["JSON oficial PNCP / Compras"] --> B[("Bronze: pncp_responses<br/>Bytes, hash e recebimento")]
+    CSV["Catálogo e cotação com origem"] --> S[("sourcing: produtos e cotações versionados")]
+    B --> N["Normalização e validação<br/>Papel Silver público"]
+    N --> P[("procurement: versões, itens e unidades")]
+    PDF["Documentos autorizados"] --> V[("Originais em volume<br/>Metadados no banco")]
+    V --> X["Extração isolada e revisão"]
+    X --> P
+    P --> A["Matching, logística e finanças"]
+    S --> A
+    A --> C[("commercial: cenários e análises")]
+    U["Operador e fatos comprovados"] --> H[("commercial: revisões e eventos")]
+    C --> G["Gold público: projeções reconstruíveis"]
+    H --> G
+    G --> UI["Carteira e explicações"]
+    N --> EV["Eventos por etapa e correspondencias entre fontes"]
+    EV --> HP["historical_prices e comparacoes versionadas"]
+    HP --> CA["Candidatos por estabelecimento e item"]
+    U --> REL["Registro manual de contato e disposicao"]
+    CA --> REL --> S
+    HP -.->|Hipotese de venda selecionada| A
+    EV --> G
+    CA --> G
+    LEG[("Bronze/Silver/Gold legados preservados")] -.-> S

@@ -1,0 +1,22 @@
+flowchart TD
+    I["Item versionado: especificacao, quantidade e prazo"] --> Q["Pesquisar resultados no recorte e contrato validados"]
+    Q --> E["Preservar fonte, etapa, natureza, situacao e versao"]
+    E --> ID["Identificar estabelecimento completo<br/>Deduplicar mesmo evento; vincular etapas distintas"]
+    ID --> C["Revisar qualidade e comparabilidade<br/>Atributos, unidade, fator, datas e contexto"]
+    C --> OK{"Comparavel com evidencia suficiente?"}
+    OK -->|Nao| P["Rejeitado ou pendente com motivo<br/>Sem agregado enganoso"]
+    OK -->|Sim| CA["Candidato explicavel por item<br/>Historico nao confirma capacidade"]
+    CA --> O["Operador avalia e registra contato externo manual"]
+    O --> R{"Resposta no escopo?"}
+    R -->|Ainda nao| ESP["Aguardar ou encerrar ciclo<br/>Registrar duracao e ausencia de resposta"]
+    R -->|Sim| D["Disposicao para vender: desconhecida,<br/>aceita sob condicoes ou recusada"]
+    D -->|Aceita cotar| CO["Registrar cotacao por estabelecimento,<br/>produto, quantidade, condicoes e validade"]
+    D -->|Recusa no escopo| ALT["Registrar motivo e investigar alternativa"]
+    CO --> V["Verificar validade, disponibilidade, produto,<br/>logistica, capital e demais requisitos atuais"]
+    V --> SUF{"Insumos obrigatorios suficientes?"}
+    SUF -->|Nao| PEN["Analise pendente; sem margem ou capacidade afirmadas"]
+    SUF -->|Sim| A["Analise pelas regras atuais<br/>Formula global preservada e revisao humana"]
+    I -.->|Fornecedor e cotacao ja disponiveis| V
+    Q -.->|Historico indisponivel| SEM["Sinalizar cobertura; manter cadastro e cotacao"]
+    SEM --> V
+    CA -.->|Hipotese explicita de venda, nunca custo| V

@@ -1,0 +1,41 @@
+stateDiagram-v2
+    direction TB
+    state "E01 — oportunidade descoberta" as E01
+    state "E02 — em enriquecimento" as E02
+    state "E03 — aguardando cotação" as E03
+    state "E04 — aguardando revisão" as E04
+    state "E05 — pré-aprovada para estudo" as E05
+    state "E06 — descartada" as E06
+    state "E07 — apta para decisão humana de participação" as E07
+
+    [*] --> E01 : identidade suficiente e origem registrada
+    E01 --> E02 : iniciar enriquecimento
+    E02 --> E03 : solicitar cotação ou confirmação com lacuna definida
+    E02 --> E04 : submeter dados ou conflito à revisão
+    E03 --> E02 : receber cotação ou revisar escopo
+    E03 --> E04 : revisar falta de resposta ou condição comercial
+    E04 --> E02 : pedir complemento, corrigir premissa ou reabrir estudo
+    E04 --> E05 : revisão preliminar favorável ao estudo
+    E05 --> E02 : complementar estudo, matching ou simulação
+    E05 --> E04 : estudo pronto ou conflito para revisão
+    E04 --> E07 : revisão final favorável e todas as guardas atuais atendidas
+    E01 --> E06 : descarte manual com motivo, sem participação
+    E02 --> E06 : descarte manual com motivo, sem participação
+    E03 --> E06 : descarte manual com motivo, sem participação
+    E04 --> E06 : descarte manual com motivo, sem participação
+    E05 --> E06 : descarte manual com motivo, sem participação
+    E07 --> E06 : descarte manual com motivo, sem participação
+    E06 --> E02 : reabrir com justificativa e nova evidência
+    E07 --> E04 : mudança, expiração ou desfazimento exige revalidação
+
+    note right of E05
+        Autoriza aprofundar o estudo.
+        Lacunas continuam visíveis.
+        Não libera participação.
+    end note
+    note right of E07
+        Guarda inclui prazo, dados, produto,
+        logística, habilitação e capital.
+        Decisão humana não envia proposta.
+        E07 para E08 está na vista 2.
+    end note

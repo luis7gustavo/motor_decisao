@@ -1,0 +1,12 @@
+FROM motor_decisao-api
+
+# PostgreSQL 15 tools match the existing server. Never install on the host.
+RUN mkdir -p /usr/share/postgresql-common/pgdg \
+    && curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/key.asc \
+    && echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/key.asc] https://apt.postgresql.org/pub/repos/apt trixie-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-15 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/usr/lib/postgresql/15/bin:${PATH}"
+ENTRYPOINT ["python", "-m", "scripts.radar_ops"]

@@ -1,0 +1,123 @@
+@startuml D05_classes
+' D05 — Classes centrais | v0.1 | 2026-10-11 | [PROPOSTO]
+' Commit base: 261b32107ff7b053c68c1df98e88de329c41c0f5
+' Fonte conceitual: ../08-modelo-de-dados.md
+' Revisao estrutural em 2026-10-12; Java/PlantUML indisponiveis no PATH.
+' 0..* versoes admite identidade inicial ainda sem snapshot publicado, conforme 08/D06.
+title D05 — Domínio Radar Licita [PROPOSTO]
+hide empty members
+class Contratacao {
+  identidadeOficial
+}
+class VersaoContratacao {
+  hashConteudo
+}
+class Item {
+  quantidade
+  unidade
+}
+class UnidadeJulgamento {
+  tipo
+  composicaoCompleta
+}
+class Documento
+class Evidencia
+class Fornecedor {
+  estabelecimentoCompletoTextual
+  raizSomenteAnalitica
+}
+class ProdutoVersionado
+class Cotacao {
+  validade
+  precoDecimal
+}
+class Matching {
+  status
+  verificacoes
+}
+class Oportunidade {
+  estadoE01aE16
+  lockVersion
+}
+class Cenario {
+  entradasDecimais
+  fluxoCaixa
+}
+class Analise {
+  elegibilidade
+  manifestoVersoes
+}
+class Score {
+  globalOpcional
+}
+class Revisao {
+  autor
+  motivo
+}
+class EventoComercial
+Contratacao "1" -- "0..*" VersaoContratacao
+VersaoContratacao "1" -- "0..*" Item
+VersaoContratacao "1" -- "0..*" UnidadeJulgamento
+UnidadeJulgamento "0..*" -- "0..*" Item : composicao
+VersaoContratacao "1" -- "0..*" Documento
+Documento "0..1" -- "0..*" Evidencia
+Fornecedor "1" -- "0..*" ProdutoVersionado
+ProdutoVersionado "1" -- "0..*" Cotacao
+Item "1" -- "0..*" Matching
+ProdutoVersionado "1" -- "0..*" Matching
+Contratacao "1" -- "0..*" Oportunidade
+Oportunidade "1" -- "0..*" Cenario
+UnidadeJulgamento "1" -- "0..*" Cenario
+Oportunidade "1" -- "0..*" Analise
+Cenario "1" -- "0..*" Analise
+Analise "1" -- "0..1" Score
+Analise "1" -- "0..*" Revisao
+Oportunidade "1" -- "0..*" EventoComercial
+note bottom of Analise
+  Imutavel: referencia versoes e evidencias.
+  Invalidacao e um evento separado.
+end note
+note bottom of UnidadeJulgamento
+  Item, lote, grupo ou global.
+  Composicao vazia indica incompletude;
+  unidade apta precisa de todos os itens.
+end note
+class EventoPublico {
+  etapa
+  versao
+}
+class Correspondencia {
+  equivalenteOuRelacionado
+  evidencia
+}
+class PrecoHistorico {
+  natureza
+  qualidade
+}
+class ComparacaoHistorica
+class Candidato
+class InteracaoManual {
+  dimensao
+  escopo
+  evidencia
+}
+EventoPublico "1" -- "0..*" PrecoHistorico
+EventoPublico "1" -- "0..*" Correspondencia : origem
+EventoPublico "1" -- "0..*" Correspondencia : destino
+PrecoHistorico "1" -- "0..*" ComparacaoHistorica
+Item "1" -- "0..*" ComparacaoHistorica
+Fornecedor "1" -- "0..*" Candidato
+Item "1" -- "0..*" Candidato
+Candidato "1" -- "0..*" InteracaoManual
+Cotacao "0..1" -- "0..*" InteracaoManual
+' Revisado em R1, v0.3-R1-E2, 2026-10-13.
+' Histórico de revisões: eventos/correspondência/comparação/candidatos; cadastro único e cotação por escopo.
+legend bottom
+  Linhas = associacoes conceituais; numeros = cardinalidades.
+  Evidencia tambem pode ser JSON/manual sem Documento.
+  Cotacoes e matches entram no manifesto de Cenario/Analise.
+  Classes nao sao containers; detalhes fisicos em 08.
+endlegend
+@enduml
+
+
