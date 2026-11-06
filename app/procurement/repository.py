@@ -55,6 +55,7 @@ class Snapshot:
     deadline_at: datetime | None = None
     official_status: str | None = None
     cnpj_original: str | None = None
+    canonicalizer_version: str = 'radar-internal-1'
 
 
 def _json(value):
@@ -72,6 +73,8 @@ def _json(value):
 def validate(value):
     if not value.source.strip() or not value.source_id.strip() or not value.schema_version.strip():
         raise ValueError('Source identity/schema required')
+    if value.canonicalizer_version not in ('radar-internal-1', 'radar-internal-2'):
+        raise ValueError('Unknown canonicalizer version')
     for instant in (value.observed_at, value.source_updated_at, value.deadline_at):
         if instant is not None:
             _json(instant)
@@ -102,6 +105,19 @@ def content(value):
     # resource hashes and schema changes in the manifest DO change the version.
     for key in ('observed_at','raw_response_id'):
         del data[key]
+    if value.canonicalizer_version == 'radar-internal-1':
+        # The original digest did not include a canonicalizer field.
+        del data['canonicalizer_version']
+    else:
+        # Route and source update time describe observations, not business
+        # content. The original text remains in Bronze and observation rows.
+        for key in ('source_updated_at', 'source_time_text', 'timezone_status'):
+            del data[key]
+        data['source_manifest'] = dict(data['source_manifest'])
+        data['source_manifest'].pop('resource', None)
+        data['snapshot'] = dict(data['snapshot'])
+        data['snapshot'].pop('dataAtualizacaoGlobal', None)
+        data['snapshot'].pop('dataAtualizacao', None)
     data['items'] = sorted(data['items'], key=lambda item: item['key'])
     data['units'] = sorted(data['units'], key=lambda unit: unit['key'])
     for unit in data['units']:
@@ -149,7 +165,7 @@ class ProcurementRepository:
                     schema_version=value.schema_version, observed_at=value.observed_at,
                     source_updated_at=value.source_updated_at, source_time_text=value.source_time_text,
                     timezone_status=value.timezone_status, deadline_at=value.deadline_at,
-                    official_status=value.official_status, canonicalizer_version='radar-internal-1', publication_state='rascunho')
+                    official_status=value.official_status, canonicalizer_version=value.canonicalizer_version, publication_state='rascunho')
                 self.session.add(version)
                 self.session.flush()
                 items = {}
@@ -171,12 +187,38 @@ class ProcurementRepository:
                     self.session.flush()
                 version.publication_state = 'publicada'
                 self.session.flush()
-            latest = self.session.scalar(select(func.max(VersionObservation.observed_at)).where(VersionObservation.procurement_id==parent.id))
-            # Out-of-order observations are retained but cannot regress current.
-            change = (latest is None or value.observed_at > latest) and parent.current_version_id != version.id
+            current=self.session.get(ProcurementVersion,parent.current_version_id) if parent.current_version_id else None
+            current_time=None
+            if current is not None:
+                current_time=self.session.scalar(select(func.max(VersionObservation.source_updated_at)).where(
+                    VersionObservation.procurement_id==parent.id,
+                    VersionObservation.version_id==current.id,
+                    VersionObservation.changed.is_(True) | (VersionObservation.ordering_status=='same_content')))
+                if current_time is None:
+                    current_time=current.source_updated_at
+            if current is None:
+                change,ordering_status=True,'initial'
+            elif current.id==version.id:
+                change,ordering_status=False,'same_content'
+            elif (current.source_manifest.get('resource')!=value.source_manifest.get('resource')
+                  and not ({current.source_manifest.get('resource'),value.source_manifest.get('resource')}
+                           <= {'/v1/contratacoes/publicacao','/v1/contratacoes/atualizacao'})):
+                change,ordering_status=False,'cross_resource_pending'
+            elif current_time is None or value.source_updated_at is None:
+                # Observation time is acquisition time, not source chronology.
+                change,ordering_status=False,'unknown_source_time'
+            elif value.source_updated_at>current_time:
+                change,ordering_status=True,'source_newer'
+            elif value.source_updated_at<current_time:
+                change,ordering_status=False,'stale_replay'
+            else:
+                change,ordering_status=False,'ambiguous_equal'
             self.session.add(VersionObservation(procurement_id=parent.id, version_id=version.id,
                 previous_version_id=parent.current_version_id, raw_response_id=value.raw_response_id,
-                observed_at=value.observed_at, actor=actor, correlation_id=correlation_id, changed=change))
+                observed_at=value.observed_at, actor=actor, correlation_id=correlation_id,
+                changed=change,ordering_status=ordering_status,
+                source_updated_at=value.source_updated_at,source_time_text=value.source_time_text,
+                observed_resource=value.source_manifest.get('resource','unknown')))
             self.session.flush()
             if change:
                 parent.current_version_id = version.id

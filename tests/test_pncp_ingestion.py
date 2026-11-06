@@ -35,7 +35,11 @@ def store():
     # This file owns synthetic data only, in the runner-verified disposable DB.
     with engine.begin() as conn:
         added_runs = set(conn.execute(text('SELECT id FROM control.pipeline_runs')).scalars())-original_runs
-        conn.execute(text('''TRUNCATE procurement.version_observations,
+        conn.execute(text('''TRUNCATE control.source_attempt_outcomes,
+            control.source_attempts, control.source_partition_identities,
+            control.source_queue, control.source_watermarks,
+            control.source_partitions, control.source_missions,
+            control.source_budgets, procurement.version_observations,
             procurement.judgment_unit_items, procurement.judgment_units,
             procurement.procurement_items, procurement.procurement_versions,
             procurement.procurements, bronze.pncp_responses, control.ingestion_jobs,
@@ -160,6 +164,26 @@ def test_unverified_live_contract_blocks_before_send(tmp_path):
         live_transport(tmp_path/'not-created')
 
 
+def test_operator_flow_grant_matches_only_fixed_isolated_scope(tmp_path,monkeypatch):
+    """The temporary user grant is bound to this session, window and modality."""
+    from app.procurement import pncp_transport
+    from app.procurement.pncp_transport import Budget,Response
+    monkeypatch.setattr(pncp_transport.time,'sleep',lambda _:None)
+    path=tmp_path/'c2-20261013'
+    Budget.create(path,session_id='c2-20261013',limit=50,interval=1)
+    budget=Budget(path)
+    for _ in range(7):
+        budget.request('https://pncp.gov.br/api/consulta/v3/api-docs',lambda _:Response(200,{},b'{}'))
+    budget.split_operator_budgets()
+    contract='a5d87b60a54acfd681e84e0a77d541b0db7065401171508c53c911d12bdd121d'
+    authorized=Scope(date(2026,10,6),date(2026,10,14),6,contract)
+    send=live_transport(path,authorized,session_id='c2-20261013')
+    assert send.__self__.category=='data' and send.__self__.purpose=='collection'
+    wrong_window=Scope(date(2026,10,7),date(2026,10,14),6,contract)
+    with pytest.raises(ValueError):
+        live_transport(path,wrong_window,session_id='c2-20261013')
+
+
 def test_new_job_replays_content_without_new_version(store):
     """RF-003 partial: repeat acquisition observes content without duplicating it."""
     identity=str(uuid4())
@@ -190,10 +214,94 @@ def test_consistent_empty_200_and_changing_totals(store):
     assert result['state']=='partial' and result['next_page']==2 and result['checkpoint']['processed']==2
 
 
+def test_changed_page_totals_require_reconciliation_without_promoting_page(store):
+    prefix=str(uuid4())
+    replies=iter([page(1,[record(prefix+'a'),record(prefix+'b')],total=9577,pages=958),
+                  page(2,[record(prefix+'c')],total=9562,pages=957)])
+    job_id=job(store)
+    result=Collector(store,lambda _:next(replies),sleep=lambda _:None).run(job_id)
+    assert result['state']=='partial' and result['error_code']=='SourceChanged'
+    assert result['next_page']==2 and result['checkpoint']['processed']==2
+    change=result['checkpoint']['source_change']
+    assert change['reason']=='pagination_totals_changed'
+    assert change['page']==2
+    assert change['expected']=={'total_records':9577,'total_pages':958}
+    assert change['observed']=={'total_records':9562,'total_pages':957}
+    assert change['raw_response_id']
+    assert change['reconciliation_policy']=='child_partition_replay_required'
+    assert change['max_replays']==2 and change['replays_started']==0
+    resumed=Collector(store,lambda _:pytest.fail('changed source retried without reconciliation')).run(job_id)
+    assert resumed['error_code']=='SourceChanged' and resumed['request_count']==2
+    with store.engine.connect() as conn:
+        assert conn.scalar(text('SELECT count(*) FROM bronze.pncp_responses WHERE job_id=:id'),{'id':job_id})==2
+        assert conn.scalar(text('''SELECT count(*) FROM procurement.version_observations
+            WHERE correlation_id=:id'''),{'id':job_id})==2
+
+
+def test_stable_totals_with_identity_moved_between_pages_require_reconciliation(store):
+    prefix=str(uuid4())
+    replies=iter([page(1,[record(prefix+'a'),record(prefix+'b')],total=4,pages=2),
+                  page(2,[record(prefix+'b'),record(prefix+'d')],total=4,pages=2)])
+    job_id=job(store)
+    result=Collector(store,lambda _:next(replies),sleep=lambda _:None).run(job_id)
+    assert result['state']=='partial' and result['error_code']=='SourceChanged'
+    assert result['next_page']==2 and result['checkpoint']['processed']==2
+    assert result['checkpoint']['source_change']['reason']=='repeated_identity_across_pages'
+    with store.engine.connect() as conn:
+        assert conn.scalar(text('SELECT count(*) FROM bronze.pncp_responses WHERE job_id=:id'),{'id':job_id})==2
+        assert conn.scalar(text('''SELECT count(*) FROM procurement.version_observations
+            WHERE correlation_id=:id'''),{'id':job_id})==2
+
+
+def test_stable_totals_without_duplicate_still_do_not_prove_universe_complete(store):
+    prefix=str(uuid4())
+    # An independent source says C should exist, but pagination returns D/E instead.
+    # With no snapshot or independent enumeration the adapter cannot discover C.
+    replies=iter([page(1,[record(prefix+'a'),record(prefix+'b')],total=4,pages=2),
+                  page(2,[record(prefix+'d'),record(prefix+'e')],total=4,pages=2)])
+    result=Collector(store,lambda _:next(replies),sleep=lambda _:None).run(job(store))
+    assert result['state']=='success'
+    assert result['checkpoint']['coverage_status']=='pagination_consistent_unverified'
+
+
+def test_saved_bronze_classifies_legacy_error_without_request_or_cursor_advance(store):
+    prefix=str(uuid4())
+    job_id=job(store)
+    replies=iter([page(1,[record(prefix+'a'),record(prefix+'b')],total=9577,pages=958),
+                  page(2,[record(prefix+'c')],total=9562,pages=957)])
+    typed=Collector(store,lambda _:next(replies),sleep=lambda _:None).run(job_id)
+    assert typed['error_code']=='SourceChanged'
+    with store.engine.begin() as conn:
+        conn.execute(text('''UPDATE control.ingestion_jobs SET error_code='ValueError',
+            checkpoint=checkpoint - 'source_change' WHERE id=:id'''),{'id':job_id})
+    before=store.get(job_id)
+    classified=store.classify_saved_source_change(job_id,session_id=before['checkpoint']['session'])
+    assert classified['error_code']=='SourceChanged'
+    assert classified['next_page']==before['next_page']==2
+    assert classified['request_count']==before['request_count']==2
+    assert classified['records_seen']==before['records_seen']==2
+    assert classified['checkpoint']['source_change']['classification_source']=='saved_bronze_page'
+    again=store.classify_saved_source_change(job_id,session_id=before['checkpoint']['session'])
+    assert again['checkpoint']['source_change']==classified['checkpoint']['source_change']
+
+
+def test_manual_flow_reports_reconciliation_as_business_outcome(store,monkeypatch):
+    from pipelines.procurement import pncp_flow
+    prefix=str(uuid4())
+    replies=iter([page(1,[record(prefix+'a'),record(prefix+'b')],total=9577,pages=958),
+                  page(2,[record(prefix+'c')],total=9562,pages=957)])
+    monkeypatch.setattr(pncp_flow,'live_transport',lambda *args,**kwargs:lambda _:next(replies))
+    result=pncp_flow.collect_pncp.fn(str(job(store)))
+    assert result['state']=='partial'
+    assert result['business_outcome']=='reconciliation_required'
+    assert result['reconciliation_required'] is True
+    assert result['error_code']=='SourceChanged'
+
+
 def test_prefect_manual_body_uses_existing_job_and_zero_retries(store,monkeypatch):
     """RT-001: flow has no retry multiplier, deployment or implicit schedule."""
     from pipelines.procurement import pncp_flow
-    monkeypatch.setattr(pncp_flow,'live_transport',lambda *args:lambda _:Response(204,{},b''))
+    monkeypatch.setattr(pncp_flow,'live_transport',lambda *args,**kwargs:lambda _:Response(204,{},b''))
     result=pncp_flow.collect_pncp.fn(str(job(store)))
     assert result['state']=='success'
     assert pncp_flow.collect_pncp.retries==0

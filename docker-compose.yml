@@ -176,8 +176,8 @@ services:
     profiles: [control]
     build:
       context: .
-      dockerfile: docker/Dockerfile.api
-    image: motor_decisao-api
+      dockerfile: docker/Dockerfile.radar-history-prefect
+    image: radar-history-prefect:3.8.8-sa2.0.49
     environment:
       <<: *prefect-server-environment
       PREFECT_API_URL: http://prefect-server:4200/api
