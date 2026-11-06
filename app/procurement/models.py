@@ -94,3 +94,7 @@ class VersionObservation(Identity, PublicBase):
     actor: Mapped[str] = mapped_column(Text)
     correlation_id: Mapped[UUID] = mapped_column(Uuid)
     changed: Mapped[bool] = mapped_column(Boolean)
+    ordering_status: Mapped[str] = mapped_column(Text, server_default=text("'legacy'"))
+    source_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_time_text: Mapped[str | None] = mapped_column(Text)
+    observed_resource: Mapped[str] = mapped_column(Text, server_default=text("'legacy'"))

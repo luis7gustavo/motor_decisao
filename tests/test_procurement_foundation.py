@@ -60,19 +60,26 @@ def snapshot(raw, title='first', **overrides):
 
 
 def test_replay_and_return_to_old_content_preserve_observations(session, raw):
-    """TST-003/004 partial: content reused; every distinct observation is audited."""
+    """A stale replay reuses content; an official later reversal remains audited."""
     repo = ProcurementRepository(session)
-    first = snapshot(raw)
+    now = datetime.now(timezone.utc)
+    first = snapshot(raw, observed_at=now, source_updated_at=now)
     a = repo.record(first, actor='test', correlation_id=uuid4())
     for _ in range(10):
         assert repo.record(first, actor='test', correlation_id=uuid4()).id == a.id
-    b = repo.record(snapshot(raw, 'second'), actor='test', correlation_id=uuid4())
-    back = repo.record(snapshot(raw), actor='test', correlation_id=uuid4())
-    assert back.id == a.id and b.id != a.id
-    assert session.scalar(select(Procurement.current_version_id)) == a.id
-    assert len(session.scalars(select(ProcurementVersion)).all()) == 2
-    assert session.scalar(text('SELECT count(*) FROM procurement.version_observations')) == 3
+    b = repo.record(snapshot(raw, 'second', observed_at=now+timedelta(seconds=2),
+        source_updated_at=now+timedelta(seconds=2)), actor='test', correlation_id=uuid4())
+    stale = repo.record(snapshot(raw, observed_at=now+timedelta(seconds=3),
+        source_updated_at=now), actor='test', correlation_id=uuid4())
+    assert stale.id == a.id and session.scalar(select(Procurement.current_version_id)) == b.id
+    back = repo.record(snapshot(raw, observed_at=now+timedelta(seconds=4),
+        source_updated_at=now+timedelta(seconds=4)), actor='test', correlation_id=uuid4())
+    assert back.id not in (a.id,b.id)
+    assert session.scalar(select(Procurement.current_version_id)) == back.id
+    assert len(session.scalars(select(ProcurementVersion)).all()) == 3
+    assert session.scalar(text('SELECT count(*) FROM procurement.version_observations')) == 4
     assert session.scalar(text('SELECT count(*) FROM procurement.version_observations WHERE changed')) == 3
+    assert session.scalar(text("SELECT count(*) FROM procurement.version_observations WHERE ordering_status='stale_replay'")) == 1
 
 
 def test_unknowns_and_decimal_roundtrip(session, raw):
@@ -152,13 +159,37 @@ def test_manifest_change_and_delayed_observation(session, raw):
     """RF-004 partial: resource coverage changes version; late data keeps audit."""
     repo = ProcurementRepository(session)
     now = datetime.now(timezone.utc)
-    a = repo.record(snapshot(raw, observed_at=now), actor='test', correlation_id=uuid4())
+    a = repo.record(snapshot(raw, observed_at=now,source_updated_at=now), actor='test', correlation_id=uuid4())
     b = repo.record(snapshot(raw, observed_at=now+timedelta(seconds=2),
+        source_updated_at=now+timedelta(seconds=2),
         source_manifest={'coverage':'changed'}), actor='test', correlation_id=uuid4())
-    old = repo.record(snapshot(raw, observed_at=now+timedelta(seconds=1)), actor='test', correlation_id=uuid4())
+    old = repo.record(snapshot(raw, observed_at=now+timedelta(seconds=1),
+        source_updated_at=now), actor='test', correlation_id=uuid4())
     assert a.id != b.id and old.id == a.id
     assert session.scalar(select(Procurement.current_version_id)) == b.id
     assert session.scalar(text('SELECT count(*) FROM procurement.version_observations WHERE NOT changed')) == 1
+
+
+def test_unknown_or_equal_source_time_does_not_replace_current_version(session, raw):
+    repo = ProcurementRepository(session)
+    now = datetime.now(timezone.utc)
+    first = repo.record(snapshot(raw,observed_at=now),actor='test',correlation_id=uuid4())
+    repo.record(snapshot(raw,'new text',observed_at=now+timedelta(days=1)),
+                actor='test',correlation_id=uuid4())
+    assert session.scalar(select(Procurement.current_version_id)) == first.id
+    assert session.scalar(text("SELECT count(*) FROM procurement.version_observations WHERE ordering_status='unknown_source_time'")) == 1
+
+
+def test_cross_resource_update_is_pending_even_with_later_source_time(session, raw):
+    repo = ProcurementRepository(session)
+    now = datetime.now(timezone.utc)
+    first = repo.record(snapshot(raw,observed_at=now,source_updated_at=now,
+        source_manifest={'resource':'publication'}),actor='test',correlation_id=uuid4())
+    repo.record(snapshot(raw,'update',observed_at=now+timedelta(days=1),
+        source_updated_at=now+timedelta(days=1),source_manifest={'resource':'detail'}),
+        actor='test',correlation_id=uuid4())
+    assert session.scalar(select(Procurement.current_version_id)) == first.id
+    assert session.scalar(text("SELECT count(*) FROM procurement.version_observations WHERE ordering_status='cross_resource_pending'")) == 1
 
 
 def test_conflicting_observation_aborts_without_history_change(session, raw):

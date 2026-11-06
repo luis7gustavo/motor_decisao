@@ -8,5 +8,15 @@
   "bounds_evidence": null,
   "limits_reviewed": false,
   "verified_modalities": [],
-  "reason": "OpenAPI confirms query format but not date-boundary inclusion/timezone; public manual could not be retrieved. Terms/quota and modality catalogue remain unverified. Do not collect procurement data until resolved."
+  "reason": "General collection remains disabled. A single operator-authorized isolated-session grant allows only the fixed C2 window, one observed modality, and the persistent 50-request data ledger. Official terms and general boundary semantics remain unverified.",
+  "operator_authorization": {
+    "session": "c2-20261013",
+    "start": "2026-10-06",
+    "end": "2026-10-14",
+    "modality": 6,
+    "page_size": 10,
+    "uf": null,
+    "scope_source": "ADR-024 and operator continuation instruction on 2026-10-21",
+    "applies_to": "manual Prefect validation and resume in the isolated test database only"
+  }
 }

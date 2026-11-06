@@ -1,0 +1,6 @@
+FROM motor_decisao-api
+
+# Prefect 3.8.8's scheduler fails with SQLAlchemy 2.1.x while creating runs.
+# Pin only the Prefect scheduler process without changing the API or worker image.
+RUN pip install --no-cache-dir 'SQLAlchemy==2.0.49'
+RUN python -c "import prefect, sqlalchemy; assert prefect.__version__ == '3.8.8' and sqlalchemy.__version__ == '2.0.49'"
