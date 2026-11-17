@@ -2,7 +2,7 @@
 
 **Atualizado em:** 17/11/2026
 
-**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; P00 em autoria; G0 pendente.
+**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 em revisão no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); G0 pendente.
 
 **Fonte da fila:** [backlog da proposta V4](PROPOSTA_V4_20261117.md), reordenado pelas dependências e pelo método aprovado por Luis.
 
@@ -13,7 +13,7 @@
 - **Local dos documentos vivos:** este repositório de produto; o cofre `RADAR LICITA` preexistente permanece biblioteca de referência. O checkout de produto original tem alterações locais preexistentes e não foi usado para editar P30.
 - **Publicação:** o repositório de produto é público. Luis autorizou em 17/11/2026 a publicação da V4 integral e dos documentos de execução (PUB-01). Isso não aprova merge nem gates.
 - **Verificação de P30:** 36 cartões com IDs únicos, 36 entradas no controle, dependências de implementação em ordem, links Markdown locais resolvidos e `git diff --check` sem falhas. Uma sessão independente revisou o conteúdo e apontou o risco de publicação pública e um caminho ambíguo; o caminho foi corrigido e a autorização de publicação foi registrada.
-- **P00 em autoria:** branch `codex/radar-p00-baseline-20261117`, worktree exclusivo `motor_decisao_p00_20261117`, base no merge do P30. Entrega documental em [linha de base](LINHA_DE_BASE_P00.md), [políticas](POLITICAS_E_CRITERIOS_P00.md) e [pacote](PACOTE_REVISAO_P00.md). Verificação independente, aprovação e merge pendentes.
+- **P00 em revisão:** [PR #5 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/5), branch `codex/radar-p00-baseline-20261117`, worktree exclusivo `motor_decisao_p00_20261117`, base no merge do P30. Entrega documental em [linha de base](LINHA_DE_BASE_P00.md), [políticas](POLITICAS_E_CRITERIOS_P00.md) e [pacote](PACOTE_REVISAO_P00.md). Verificação independente, aprovação e merge pendentes.
 
 ## Fila proposta de PRs
 
@@ -22,7 +22,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | Ordem | PR | Entrega proposta | Dependência para implementar | Estado |
 | ---: | --- | --- | --- | --- |
 | 1 | [P30](prs/P30.md) | Inicializar Vault, índices, instruções dos agentes, templates, links e controle de permissão | — | [PR #4 integrado](https://github.com/luis7gustavo/motor_decisao/pull/4), `b46aec77` |
-| 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | Em autoria |
+| 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | [PR #5 em revisão](https://github.com/luis7gustavo/motor_decisao/pull/5) |
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | Fila |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | Fila |
 | 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | Condicional: manifestos |

@@ -1,7 +1,7 @@
 ---
 id: REV-P00
 tipo: pacote_revisao
-estado: aguardando_verificacao_independente
+estado: em_revisao
 atualizado_em: 2026-11-17
 ---
 
@@ -13,11 +13,11 @@ Luis: examinar e aprovar, pedir mudanças, rejeitar ou manter incerto o recorte 
 
 ## Entrega e base
 
-- Branch: `codex/radar-p00-baseline-20261117`; base: `b46aec77a3448f51ac212676216c675822fb12f3`, merge do [PR #4 (P30)](https://github.com/luis7gustavo/motor_decisao/pull/4).
+- [PR #5 (rascunho)](https://github.com/luis7gustavo/motor_decisao/pull/5); branch `codex/radar-p00-baseline-20261117`; base: `b46aec77a3448f51ac212676216c675822fb12f3`, merge do [PR #4 (P30)](https://github.com/luis7gustavo/motor_decisao/pull/4).
 - [Linha de base](LINHA_DE_BASE_P00.md): capacidades por recurso, lacunas, datas e hashes das fontes locais.
 - [Políticas e critérios](POLITICAS_E_CRITERIOS_P00.md): classes E0–E4, estados da ficha, seleção futura de compras, denominadores, bloqueios e contrato de runtime.
 - [Estado do PR](prs/P00.md) e [controle](CONTROLE_DE_PRS.md): histórico verificável. Não há fixture nem dado privado anexado.
-- Commit examinado e URL do PR: preencher após publicação. Nenhum código, banco, worker ou agendamento faz parte desta entrega.
+- Commit inicial publicado: `b0097ce38a31ab2ecb94b421ff59ba63b999bfc9`. O verificador deve registrar o **commit final que examinar** após esta atualização documental. Nenhum código, banco, worker ou agendamento faz parte desta entrega.
 
 ## Verificação e pendências
 
