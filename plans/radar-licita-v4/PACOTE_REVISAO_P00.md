@@ -11,6 +11,8 @@ atualizado_em: 2026-11-17
 
 Luis: examinar e aprovar, pedir mudanças, rejeitar ou manter incerto o recorte e as políticas de [P00](prs/P00.md). Carlos/responsável pelos dados: examinar a proveniência, os denominadores de cobertura/frescor e os limites de uso das fontes. A aprovação de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
 
+**Escolha já registrada:** Luis determinou em 17/11/2026 usar as amostras de periféricos já coletadas para a validação comercial (P00-01 em [decisões](DECISOES.md)). A elegibilidade de cada caso depende do inventário e da revisão de itens, lotes, documentos e versões. O tamanho, os revisores e os limiares de avaliação continuam pendentes.
+
 ## Entrega e base
 
 - [PR #5 (pronto para revisão humana)](https://github.com/luis7gustavo/motor_decisao/pull/5); branch `codex/radar-p00-baseline-20261117`; base: `b46aec77a3448f51ac212676216c675822fb12f3`, merge do [PR #4 (P30)](https://github.com/luis7gustavo/motor_decisao/pull/4).
