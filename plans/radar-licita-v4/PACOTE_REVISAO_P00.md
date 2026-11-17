@@ -27,6 +27,15 @@ Luis: examinar e aprovar, pedir mudanças, rejeitar ou manter incerto o recorte 
 - Uma **sessão verificadora distinta** deve confrontar diff e fontes e registrar achados aqui antes da decisão humana. A sessão autora não assina a verificação.
 - A escolha de revisores, data de rotulagem, tamanho e limiares por categoria, referência de cobertura e SLA de frescor permanece pendente. Esses números devem ser aprovados antes da avaliação cega, sem ajuste retroativo.
 
+### Verificação independente — 17/11/2026
+
+Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no commit `06e931df0abe00fede7adcbe5d1f8d42fa7bac4e` do PR #5, contra a base `b46aec77a3448f51ac212676216c675822fb12f3`.
+
+- Os seis SHA-256 das fontes locais na linha de base conferem com os arquivos originais. Os sete caminhos de código e documentação citados para as capacidades do produto existem no checkout da base.
+- O relatório offline confirma 20 identidades e versões observadas, 2.748 itens, 40 binários de PDF íntegros, 4.402 páginas com texto, 3.041 trechos sugeridos e resultados não coletados. O próprio relatório classifica os itens como leilão/alienação e não mede precisão ou revocação comercial.
+- O diff do PR contém somente nove arquivos Markdown. Links locais desses arquivos resolvem no checkout; `git diff --check` não apontou erros; o worktree estava limpo. Nenhum dataset ou credencial foi incluído.
+- **Parecer técnico:** sem achados bloqueantes no contrato documental examinado. Isto não aprova o recorte, os limiares, G0 ou o merge. A decisão humana e a validação do responsável pelos dados continuam pendentes.
+
 ## Risco e reversão
 
 O principal risco é interpretar um contrato proposto como qualidade medida. O cabeçalho e as tabelas mantêm esse estado explícito. Para desfazer, rejeitar ou reverter somente os arquivos documentais deste PR; nenhuma operação ou dado bruto é alterado. Decisão humana: **pendente**.
