@@ -1,6 +1,6 @@
 # Radar Licita — execução por PR
 
-**Estado:** P30 preparado e publicação autorizada, aguardando PR e revisão humana; V4 anexa permanece proposta para escopo técnico e gates ainda não aprovados.
+**Estado:** [P30 em revisão no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); merge e gates pendentes. A V4 anexa permanece proposta para escopo técnico e gates ainda não aprovados.
 
 Este diretório contém o controle vivo da execução do Radar Licita. Abra `plans/radar-licita-v4/` como cofre no Obsidian para consultar os mesmos arquivos Markdown que entram nos PRs, sem indexar código e dados do restante do repositório. O cofre preexistente `RADAR LICITA` continua como biblioteca de fontes e sínteses datadas; não mantenha duas cópias editáveis da mesma decisão.
 

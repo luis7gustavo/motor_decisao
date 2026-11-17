@@ -2,18 +2,18 @@
 
 **Atualizado em:** 17/11/2026
 
-**Estado:** P30 preparado; publicação autorizada por Luis; PR e merge pendentes.
+**Estado:** [P30 aberto no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); merge e G0 pendentes.
 
 **Fonte da fila:** [backlog da proposta V4](PROPOSTA_V4_20261117.md), reordenado pelas dependências e pelo método aprovado por Luis.
 
 ## Resumo da execução
 
 - **Método confirmado por Luis em 17/11/2026:** uma entrega curta por PR, worktree exclusivo, sessões distintas de autoria e verificação, aprovação humana antes de integrar e avançar para PR dependente. Os oito agentes da V4 são papéis de sessão.
-- **P30 preparado localmente:** worktree `motor_decisao_p30_20261117`, branch `codex/radar-p30-execucao-20261117`, derivada de `fadfc6024f2039c40313b82363b9326a02dc1422` após conferir o remoto.
+- **P30 publicado para revisão:** [PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4), worktree `motor_decisao_p30_20261117`, branch `codex/radar-p30-execucao-20261117`, derivada de `fadfc6024f2039c40313b82363b9326a02dc1422` após conferir o remoto.
 - **Local dos documentos vivos:** este repositório de produto; o cofre `RADAR LICITA` preexistente permanece biblioteca de referência. O checkout de produto original tem alterações locais preexistentes e não foi usado para editar P30.
 - **Publicação:** o repositório de produto é público. Luis autorizou em 17/11/2026 a publicação da V4 integral e dos documentos de execução (PUB-01). Isso não aprova merge nem gates.
 - **Verificação de P30:** 36 cartões com IDs únicos, 36 entradas no controle, dependências de implementação em ordem, links Markdown locais resolvidos e `git diff --check` sem falhas. Uma sessão independente revisou o conteúdo e apontou o risco de publicação pública e um caminho ambíguo; o caminho foi corrigido e a decisão de publicação permanece pendente.
-- **PR, decisão humana e merge de P30:** pendentes. Não há gate aprovado nem dado comercial validado por esta organização documental.
+- **Decisão humana e merge de P30:** pendentes. O PR está aberto para revisão; não há gate aprovado nem dado comercial validado por esta organização documental.
 
 ## Fila proposta de PRs
 
@@ -21,7 +21,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 
 | Ordem | PR | Entrega proposta | Dependência para implementar | Estado |
 | ---: | --- | --- | --- | --- |
-| 1 | [P30](prs/P30.md) | Inicializar Vault, índices, instruções dos agentes, templates, links e controle de permissão | — | Publicação autorizada; PR pendente |
+| 1 | [P30](prs/P30.md) | Inicializar Vault, índices, instruções dos agentes, templates, links e controle de permissão | — | [PR #4 aberto](https://github.com/luis7gustavo/motor_decisao/pull/4); merge pendente |
 | 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | Fila |
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | Fila |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | Fila |
