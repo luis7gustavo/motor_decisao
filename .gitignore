@@ -31,3 +31,4 @@ output/
 DBeaverData/
 .DS_Store
 Thumbs.db
+.obsidian/

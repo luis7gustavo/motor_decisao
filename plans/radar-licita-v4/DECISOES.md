@@ -1,0 +1,15 @@
+# Decisões e pendências da execução
+
+| ID | Estado | Autor e data | Decisão / pendência | Efeito |
+| --- | --- | --- | --- | --- |
+| EX-01 | **Confirmado** | Luis, 17/11/2026, conversa de aprovação desta sequência | Executar o desenvolvimento em entregas curtas, uma unidade de trabalho por PR, cada PR em worktree próprio, com aprovação humana entre PRs dependentes. | O PR é a unidade de implementação e revisão. |
+| EX-02 | **Confirmado** | Luis, 17/11/2026, mesma conversa | Os oito agentes da seção 4 da proposta V4 serão papéis de sessão, conforme a tarefa; a autoria e a verificação são sessões distintas. | Não pressupor oito agentes simultâneos nem autoaprovação. |
+| EX-03 | **Confirmado** | Luis, 17/11/2026, aprovação da recomendação de localização | Os documentos vivos de execução ficam no repositório de produto, revisados com o código; o cofre `RADAR LICITA` já existente fica como biblioteca e ponto de entrada. | Um PR pode incluir código e seu cartão/relatório; não duplicar decisões editáveis. |
+| EX-04 | **Confirmado** | Luis, 17/11/2026, pedido posterior | Criar controle de PRs com resumo da execução e lista dos futuros PRs em ordem de execução. | Atualizar [CONTROLE_DE_PRS.md](CONTROLE_DE_PRS.md) a cada PR aceito. |
+| PUB-01 | **Confirmado** | Luis, 17/11/2026, resposta “pode publicar” à consulta sobre a V4 integral no repositório público | Autorizar a publicação da proposta V4 integral e dos documentos de execução no repositório público de produto. | A branch P30 pode ser enviada e o PR aberto. A autorização de publicação não aprova merge, G0 ou a V4 integral como plano de produto. |
+| G0 | **Pendente** | Requer revisão humana do pacote P30 e das condições complementares | Governança pronta para iniciar PRs de implementação com autonomia. | P30 preparado não equivale a G0 aprovado. |
+| D12 restante | **Pendente** | Luis e responsável técnico | Política de sincronização/remoto e permissões além deste repositório. | Não inferir autorização para publicar anexos ou segredos. |
+| D13 | **Pendente** | Responsável pelos dados | Quais fontes existentes podem virar fixtures/anexos versionados. | P31 inventaria fontes; uso de dados restritos espera autorização específica. |
+| V4 técnica | **Proposta** | Documento recebido em 17/11/2026 | Backlog P00–P35, gates G1–G6, estimativas e regras ainda não confirmadas individualmente. | Cartões são guias revisáveis, não decisões de aceite. |
+
+**Registro:** EX-01 a EX-03 resultam da aprovação explícita de Luis à proposta operacional apresentada na conversa de 17/11/2026. EX-04 resulta do pedido explícito posterior. Não há assinatura de aprovação de P30, merge ou gate nesta nota.
