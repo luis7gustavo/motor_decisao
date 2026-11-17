@@ -4,6 +4,8 @@
 
 **Estado:** [PR #4 aberto](https://github.com/luis7gustavo/motor_decisao/pull/4); publicação autorizada por Luis em 17/11/2026; merge pendente.
 
+**Atualização de 17/11/2026:** o PR #4 foi integrado à branch de produto no commit `b46aec77a3448f51ac212676216c675822fb12f3`. O texto acima preserva o estado do pacote antes da integração. G0 e a aprovação integral da V4 continuam pendentes.
+
 ## Decisão pedida
 
 O repositório `luis7gustavo/motor_decisao` é **público**. O P30 inclui a [proposta V4 integral](PROPOSTA_V4_20261117.md), com estratégia comercial, referência de caixa, nomes de fornecedores e detalhes operacionais. Informado desse conteúdo e da visibilidade pública, Luis respondeu **“pode publicar”** em 17/11/2026. A decisão pendente é a revisão do [PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) para merge; publicação não equivale a aprovação do plano técnico integral, de G0 ou do merge.

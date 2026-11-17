@@ -1,0 +1,43 @@
+---
+id: BASE-P00
+tipo: evidencia
+estado: proposta_para_revisao
+classe_evidencia: mista_por_recurso
+atualizado_em: 2026-11-17
+base_commit: b46aec77a3448f51ac212676216c675822fb12f3
+---
+
+# P00 — linha de base e lacunas
+
+Esta é uma fotografia documental e do código da branch de produto no commit acima, examinada em 17/11/2026. As contagens do piloto são do relatório offline de 16/11, não uma medição de hoje. Os estados e critérios propostos estão em [políticas](POLITICAS_E_CRITERIOS_P00.md); o [cartão P00](prs/P00.md) registra o aceite.
+
+## Capacidades por recurso
+
+| Recurso | Implementação ou observação verificável | Lacuna para aceite real | Estado |
+| --- | --- | --- | --- |
+| Descoberta histórica | A prévia C2 possui busca por objeto, filtros brutos, paginação e detalhe com IDs, versão e hash; `app/api/radar_c2_preview.py` e `app/radar_c2_reader.py`. | Cobertura nacional, sincronização e abertura atual não demonstradas; a prévia de 05/11 apontou sete ponteiros de versão em quarentena. | parcial; histórico |
+| Detalhe e versões PNCP | O checkout de coleta registra detalhe no piloto de 20 processos; a prévia C2 preserva identidade e versão. | Reconciliação de todas as versões por janela e com a fonte atual. | parcial |
+| Itens e unidade de julgamento | Relatório offline de 16/11: 2.748 itens projetados do índice observado. | Todos são de leilão/alienação; falta amostra de compras e composição confirmada dos lotes. | estrutura observada; uso comercial pendente |
+| Documentos e exigências | 40 PDFs íntegros e 4.402 páginas com texto no relatório offline; 3.041 trechos sugeridos. | Revisão humana, anexos retificados, OCR real e vínculo de exigência ao lote. | sugestão, não confirmação |
+| Resultados | A exportação de 16/11 não contém resultados. | Coleta, versão e validação por item/lote. | desconhecido na exportação |
+| Cobertura e frescor | O piloto da coleta registra 20/20 índices observados, 2.748 itens e 40 anexos. | Falta referência independente, fechamento auditado da janela 12–13/11, recursos e atraso por janela. | não medidos |
+| Triagem comercial | Há demonstrações sintéticas de busca, viabilidade e fila em `app/radar_demo.py`, `app/viability_preview.py` e `app/review_queue_preview.py`. | Rótulos positivos/negativos de compras, precisão e revocação por categoria e lote. | demonstração E2; qualidade desconhecida |
+| Catálogo, cotação e caixa | Há regras e telas de simulação no produto; a decisão comercial inclui 3.095 registros de origem de MegaMix/Coletek. | Reconciliação versionada, cotação/estoque/frete atuais, premissas financeiras e caixa por data revisados. | referência/estimativa |
+| Decisão e operação | O produto expõe fila e ações de revisão; documentos existentes descrevem controle de coleta. | Aceite de responsáveis, auditoria persistente da nova ficha, gates G3–G6 e decisão humana por oportunidade. | pendente |
+
+**Denominador do piloto:** 20 identidades selecionadas e uma versão observada por identidade; 60 recursos esperados *dentro desse índice* para detalhe, itens e documentos. Essa fração não é cobertura de publicações nacionais nem frescor. Os 20 casos e seus 2.748 itens não entram no denominador de precisão ou revocação para compras de bens. O recurso resultados não foi coletado nessa exportação.
+
+## Fontes congeladas para esta fotografia
+
+| Fonte consultada | Versão e SHA-256 local | Uso e limite |
+| --- | --- | --- |
+| `Radar Licita/ESTADO_ATUAL.md` | 16/11; `7221cea4dbe4dad05d222138cb0860d0df498311cf16c3e0cd1ccb55a05be829` | Síntese datada, não estado ao vivo. |
+| `Radar Licita/DECISOES.md` | consultado em 17/11; `e3ac882f87413a64fd1a8b226c6e1918d7735f26fa29553be09f34600d505062` | Decisões de produto registradas. |
+| `Radar Licita/plans/PLANO_VERSAO_FINAL_20261116.md` | 16/11; `81c5e14ab5998a95848b8ebf82078421d687c1f84c5202003496df7b489773f7` | Plano I00 anterior; critérios propostos, não execução. |
+| `motor_decisao_produto/docs/licitacoes/execucao-metas-2-3-4-piloto-20261116.md` | 16/11; `342d4940701ce2c3c432c9722cbe20cf5fd7418a136d0929658470370679f311` | Medidas da exportação isolada. Documento local ainda não versionado na branch base. |
+| `motor_decisao_produto/docs/licitacoes/amostra-alvo-compras-para-revisao-20261116.md` | 16/11; `11b68f3f302fbf0b814dbd018c8a872655b04b808be6d0ed5043fcf0a598d6b1` | Cinco candidatos pelo objeto; nenhum rótulo de item confirmado. Documento local ainda não versionado na branch base. |
+| `motor_decisao_coleta_20261111/plans/pncp-enrichment-20261111/STATUS.md` | atualização documentada de 12/11; `a82de8bc4742a1d60844aeeb9666c1a2ecd60cdbac514e4163544a42848a73f5` | Piloto e início da janela; não comprova fechamento. |
+| `docs/licitacoes/radar-real-isolado-20261105.md` | commit base `b46aec77` | Limites da prévia C2. |
+| `docs/licitacoes/radar-review-queue-offline.md` | commit base `b46aec77` | Demonstração sintética de revisão. |
+
+As fontes locais fora deste repositório são referências por caminho e hash, não fixtures publicadas ou autorização para distribuir dados. O manifesto do cofre `RADAR LICITA/.biblioteca-manifest.json` foi consultado para localizar as cópias; para fatos mutáveis, foram lidos os arquivos originais acima. O código e os dados não foram modificados nesta fotografia.
