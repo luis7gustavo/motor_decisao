@@ -8,7 +8,7 @@
 
 O repositório `luis7gustavo/motor_decisao` é **público**. O P30 inclui a [proposta V4 integral](PROPOSTA_V4_20261117.md), com estratégia comercial, referência de caixa, nomes de fornecedores e detalhes operacionais. Informado desse conteúdo e da visibilidade pública, Luis respondeu **“pode publicar”** em 17/11/2026. A decisão pendente é a revisão do [PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) para merge; publicação não equivale a aprovação do plano técnico integral, de G0 ou do merge.
 
-## Entrega local
+## Entrega publicada para revisão
 
 - [PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) na branch `codex/radar-p30-execucao-20261117`, derivada do commit `fadfc6024f2039c40313b82363b9326a02dc1422` da branch de produto.
 - [Instruções de sessão](INSTRUCOES_SESSOES.md), [decisões](DECISOES.md), [permissões](PERMISSOES_E_FONTES.md), [controle com fila](CONTROLE_DE_PRS.md) e 36 [cartões de PR](prs/P30.md) neste repositório.
