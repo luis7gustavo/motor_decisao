@@ -9,9 +9,9 @@ atualizado_em: 2026-11-17
 
 ## Decisão pedida
 
-Luis: examinar e aprovar, pedir mudanças, rejeitar ou manter incerto o recorte e as políticas de [P00](prs/P00.md). Carlos/responsável pelos dados: examinar a proveniência, os denominadores de cobertura/frescor e os limites de uso das fontes. A aprovação de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
+Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026. Carlos/responsável pelos dados ainda precisa examinar a proveniência, os denominadores de cobertura/frescor e os limites de uso das fontes. A aprovação final de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
 
-**Escolha já registrada:** Luis determinou em 17/11/2026 usar as amostras de periféricos já coletadas para a validação comercial (P00-01 em [decisões](DECISOES.md)). A elegibilidade de cada caso depende do inventário e da revisão de itens, lotes, documentos e versões. O tamanho, os revisores e os limiares de avaliação continuam pendentes.
+**Escolhas registradas:** usar as amostras de periféricos já coletadas, duas revisões independentes, análise exploratória antes da avaliação cega, prioridade para encontrar candidatos na fila humana, referência independente de cobertura, apresentação histórica até auditoria de frescor e consulta local dos dados ([decisões](DECISOES.md)). A elegibilidade de cada caso depende do inventário e da revisão de itens, lotes, documentos e versões. Nomes dos revisores, tamanhos mínimos, limiares numéricos, referência concreta e SLA continuam pendentes.
 
 ## Entrega e base
 
@@ -27,7 +27,8 @@ Luis: examinar e aprovar, pedir mudanças, rejeitar ou manter incerto o recorte 
 - Conferir que 20 leilões e 2.748 itens só constam como evidência estrutural e que os cinco IDs por objeto não viram rótulos comerciais.
 - `git diff --check`: **OK** em 17/11/2026. Branch exclusiva na base `b46aec77`; o diff contém apenas Markdown. Nenhuma credencial ou dataset foi incluído.
 - Uma **sessão verificadora distinta** confrontou diff e fontes e registrou o parecer abaixo antes da decisão humana. A sessão autora não assinou a verificação.
-- A escolha de revisores, data de rotulagem, tamanho e limiares por categoria, referência de cobertura e SLA de frescor permanece pendente. Esses números devem ser aprovados antes da avaliação cega, sem ajuste retroativo.
+- O método de revisão foi aprovado por Luis; nomes dos dois rotuladores, data, tamanhos mínimos e limiares por categoria, referência concreta de cobertura e SLA de frescor permanecem pendentes. Os parâmetros correspondentes devem ser aprovados antes da avaliação cega ou do gate operacional, sem ajuste retroativo.
+- As alterações documentais posteriores ao commit técnico examinado precisam de verificação por outra sessão antes da aprovação final do PR.
 
 ### Verificação independente — 17/11/2026
 
@@ -36,8 +37,8 @@ Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no co
 - Os seis SHA-256 das fontes locais na linha de base conferem com os arquivos originais. Os sete caminhos de código e documentação citados para as capacidades do produto existem no checkout da base.
 - O relatório offline confirma 20 identidades e versões observadas, 2.748 itens, 40 binários de PDF íntegros, 4.402 páginas com texto, 3.041 trechos sugeridos e resultados não coletados. O próprio relatório classifica os itens como leilão/alienação e não mede precisão ou revocação comercial.
 - O diff do PR contém somente nove arquivos Markdown. Links locais desses arquivos resolvem no checkout; `git diff --check` não apontou erros; o worktree estava limpo. Nenhum dataset ou credencial foi incluído.
-- **Parecer técnico:** sem achados bloqueantes no contrato documental examinado. Isto não aprova o recorte, os limiares, G0 ou o merge. A decisão humana e a validação do responsável pelos dados continuam pendentes.
+- **Parecer técnico sobre o commit examinado:** sem achados bloqueantes no contrato documental então apresentado. As escolhas posteriores de Luis constam nas decisões P00-01 a P00-07; este parecer anterior não é verificação independente dessas alterações. A validação do responsável pelos dados, G0 e o merge continuam pendentes.
 
 ## Risco e reversão
 
-O principal risco é interpretar um contrato proposto como qualidade medida. O cabeçalho e as tabelas mantêm esse estado explícito. Para desfazer, rejeitar ou reverter somente os arquivos documentais deste PR; nenhuma operação ou dado bruto é alterado. Decisão humana: **pendente**.
+O principal risco é interpretar o método aprovado como qualidade medida. O cabeçalho e as tabelas mantêm esse limite explícito. Para desfazer, rejeitar ou reverter somente os arquivos documentais deste PR; nenhuma operação ou dado bruto é alterado. Decisão de Luis sobre o método: **registrada**. Validação dos dados e G0: **pendentes**.

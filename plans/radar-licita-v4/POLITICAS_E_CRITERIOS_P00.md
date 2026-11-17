@@ -8,7 +8,7 @@ base_commit: b46aec77a3448f51ac212676216c675822fb12f3
 
 # P00 — políticas, estados e critérios de avaliação
 
-Este contrato é uma **proposta para G0**. Organiza as decisões já registradas em [DECISOES.md](DECISOES.md), a [proposta V4](PROPOSTA_V4_20261117.md) e o [plano I00 de 16/11](LINHA_DE_BASE_P00.md#fontes-congeladas-para-esta-fotografia). Luis e os responsáveis indicados no [pacote de revisão](PACOTE_REVISAO_P00.md) devem aprovar o recorte e os limites antes de tratá-los como aceite. Não altera regras da aplicação nesta revisão.
+Este contrato reúne o método de P00 aprovado por Luis em 17/11/2026, registrado em [DECISOES.md](DECISOES.md), e condições ainda propostas para G0. Apoia-se na [proposta V4](PROPOSTA_V4_20261117.md) e no [plano I00 de 16/11](LINHA_DE_BASE_P00.md#fontes-congeladas-para-esta-fotografia). O responsável pelos dados ainda precisa validar proveniência, cobertura, frescor e limites de uso das fontes; mínimos, limiares e SLA serão fixados antes da avaliação correspondente. Não altera regras da aplicação nesta revisão.
 
 ## Classes de evidência e estado da ficha
 
@@ -32,20 +32,22 @@ O universo comercial candidato são todos os registros MegaMix/Coletek; o primei
 
 1. **Quadro de seleção, antes de rotular:** partir das amostras de periféricos já coletadas, conforme decisão P00-01, e inventariar quais têm compras de bens reais, itens e documentos disponíveis. Cobrir as quatro categorias, positivos, descartes e negativos difíceis; registrar lacunas do conjunto antes de avaliar. Incluir, se presentes no acervo elegível, lote misto, objeto genérico, pacote com acessório não separável, falso positivo lexical, serviço/leilão, retificação, prazo/destino incertos e PDF sem texto. Os cinco IDs do documento local `amostra-alvo-compras-para-revisao-20261116.md` são somente candidatos localizados pelo objeto, não positivos nem negativos confirmados.
 2. **Unidade e rótulo:** registrar contratação e versão, item, unidade de julgamento/lote e documento/página. Rotular separadamente contexto de compra, categoria, item ofertável, lote integralmente atendível, especificação suficiente, exigência documental, prazo e destino. Usar `sim`, `não` ou `incerto`, motivo e referência. Um item compatível não torna um lote misto compatível.
-3. **Revisão:** duas pessoas rotulam de forma independente; divergências recebem adjudicação documentada. Luis revisa positivos e descartes; Carlos ou responsável pelos dados valida proveniência e recorte. Quem revisa e a data ficam pendentes até confirmação nominal. Rótulos `incerto` não viram negativos silenciosos.
+3. **Revisão:** duas pessoas rotulam de forma independente; divergências recebem adjudicação documentada. Luis revisa positivos e descartes; Carlos ou responsável pelos dados valida proveniência e recorte. Os nomes dos dois rotuladores e a data ficam pendentes até confirmação nominal. Rótulos `incerto` não viram negativos silenciosos.
 4. **Separação:** congelar lista, hashes e critérios antes de avaliar a triagem. Agrupar por identidade de contratação, incluindo todas as versões e itens, para impedir vazamento entre desenvolvimento, validação e aceite cego. O conjunto cego não guia ajustes. Registrar exclusões e sua razão antes do resultado.
 
 Nenhuma amostra E3 foi congelada neste P00. A escolha das amostras já coletadas não confirma, por si, que haja casos elegíveis de periféricos com itens, lotes e documentos revisados. As 20 contratações de leilão/alienação da exportação de 12/11 entram apenas na avaliação estrutural; seus 2.748 itens não compõem o denominador comercial.
+
+**Duas etapas aprovadas:** inventariar e examinar todos os casos coletados elegíveis em análise exploratória; depois, somente se houver quantidade suficiente, congelar mínimo por categoria, separação por contratação e conjunto cego para avaliação quantitativa. Se uma categoria não atingir o mínimo definido antes do teste, publicar a lacuna, sem métrica de aceite para ela. A fila humana privilegia encontrar candidatos; compatibilidade de item, lote e participação permanece sujeita a evidência e decisão humana.
 
 ## Denominadores e metas a pactuar antes da avaliação
 
 | Medida | Numerador / denominador e recorte | Condição proposta de aceite |
 | --- | --- | --- |
-| Precisão por categoria | Verdadeiros positivos / todos os positivos previstos, por categoria, contexto e tipo de lote, no aceite cego E3. | Limiar e tamanho mínimo por estrato **pendentes de Luis e revisores comerciais** antes da rotulagem/avaliação. Publicar contagens, IC de 95% e discordâncias. |
-| Revocação por categoria | Verdadeiros positivos / todos os positivos humanos elegíveis do quadro amostrado; divulgar amostragem e limite de inferência. | Limiar e tamanho mínimo **pendentes**. Não extrapolar para compras nacionais se o quadro de seleção não representar o universo. |
+| Precisão por categoria | Verdadeiros positivos / todos os positivos previstos, por categoria, contexto e tipo de lote, no aceite cego E3. | Método aprovado; limiar e tamanho mínimo por estrato **a fixar antes da avaliação cega**. Publicar contagens, IC de 95% e discordâncias. |
+| Revocação por categoria | Verdadeiros positivos / todos os positivos humanos elegíveis do quadro amostrado; divulgar amostragem e limite de inferência. | Prioridade da fila humana; limiar e tamanho mínimo **a fixar antes da avaliação cega**. Não extrapolar para compras nacionais se o quadro de seleção não representar o universo. |
 | Lote inteiro | Lotes previstos como atendíveis e confirmados / todos os lotes previstos como atendíveis; reportar lotes parcialmente atendidos à parte. | Nenhum positivo sem composição e exigências do lote revisadas; limite quantitativo pendente. |
-| Cobertura por janela e recurso | Identidades/páginas/recursos aceitos / universo de referência independente para a mesma janela; ausências e tentativas separadas. | Referência, período e limiar **pendentes de Carlos**; 20/20 do índice observado não serve. |
-| Frescor | Distribuição do atraso entre atualização da fonte e recepção/integração, por janela e recurso; relógios e fuso explícitos. | SLA e percentis **pendentes de Carlos**; sem referência atual não há selo de frescor. |
+| Cobertura por janela e recurso | Identidades/páginas/recursos aceitos / universo de referência independente para a mesma janela; ausências e tentativas separadas. | Referência independente aprovada como método; referência concreta, período e limiar **pendentes de Carlos**. O 20/20 do índice observado não serve. |
+| Frescor | Distribuição do atraso entre atualização da fonte e recepção/integração, por janela e recurso; relógios e fuso explícitos. | Apresentação histórica até auditoria; SLA e percentis **pendentes de Carlos** e do uso pretendido. Sem medição não há selo de frescor. |
 | Finanças | Casos de ouro com mesmas premissas e valores por data; divergências em centavos. | Concordância ao centavo; premissas e casos assinados por financeiro/Luis antes do uso real. |
 | Proveniência | Registros críticos com identidade, versão, fonte, hash/URL, observação e lacunas recuperáveis / registros críticos avaliados. | Divergência crítica bloqueia promoção, mesmo com outros indicadores aprovados. |
 
@@ -55,5 +57,6 @@ Para precisão e revocação, publicar também falsos positivos, falsos negativo
 
 - O agente atua em desenvolvimento, verificação e documentação. O **produto em execução** usa processamento convencional, regras, NLP/ML convencional e cálculos determinísticos; não chama LLM nem executa agente para classificar, decidir, operar ou contatar terceiros. P28 deverá testar dependências e rede antes de G6.
 - Este P00 não autoriza chamadas PNCP, escrita no worker/coleta, promoção de banco, distribuição de dados privados, alertas atuais, contato com fornecedores, compras, propostas ou lances.
+- As amostras existentes podem ser inventariadas e revisadas localmente; não anexar dados reais ao repositório como fixture até a decisão D13 do responsável pelos dados.
 - Nenhuma tela ou API usa E0/E1/E2 como oportunidade aberta ou viabilidade confirmada. Preço de catálogo é referência; resultado não consultado não vale zero; orçamento sigiloso não cria receita; estoque, frete, habilitação e caixa exigem fonte específica.
 - G0 aprova a governança para PRs em ambiente isolado. G1/G2 são aceites estruturais/offline. G3 requer compras reais revisadas; G4 exige qualidade comercial medida; G5 exige cobertura/frescor e operação auditados; G6 exige piloto real e liberação expressa. A [proposta V4](PROPOSTA_V4_20261117.md#6-gates-e-níveis-de-pronto) detalha as provas propostas.
