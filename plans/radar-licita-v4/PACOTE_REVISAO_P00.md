@@ -9,7 +9,7 @@ atualizado_em: 2026-11-17
 
 ## Decisão pedida
 
-Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026. Carlos/responsável pelos dados ainda precisa examinar a proveniência, os denominadores de cobertura/frescor e os limites de uso das fontes. A aprovação final de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
+Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e esclareceu em P00-08 que ele mesmo é responsável por validar os dados. Sua validação explícita da proveniência, dos denominadores de cobertura/frescor e dos limites de uso das fontes ainda não foi registrada. A aprovação final de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
 
 **Escolhas registradas:** usar as amostras de periféricos já coletadas, duas revisões independentes, análise exploratória antes da avaliação cega, prioridade para encontrar candidatos na fila humana, referência independente de cobertura, apresentação histórica até auditoria de frescor e consulta local dos dados ([decisões](DECISOES.md)). A elegibilidade de cada caso depende do inventário e da revisão de itens, lotes, documentos e versões. Nomes dos revisores, tamanhos mínimos, limiares numéricos, referência concreta e SLA continuam pendentes.
 
