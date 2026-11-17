@@ -16,7 +16,7 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026. Car
 ## Entrega e base
 
 - [PR #5 (pronto para revisão humana)](https://github.com/luis7gustavo/motor_decisao/pull/5); branch `codex/radar-p00-baseline-20261117`; base: `b46aec77a3448f51ac212676216c675822fb12f3`, merge do [PR #4 (P30)](https://github.com/luis7gustavo/motor_decisao/pull/4).
-- [Linha de base](LINHA_DE_BASE_P00.md): capacidades por recurso, lacunas, datas e hashes das fontes locais.
+- [Linha de base](LINHA_DE_BASE_P00.md): capacidades por recurso, lacunas, datas, hashes das fontes locais e inventário preliminar das amostras disponíveis.
 - [Políticas e critérios](POLITICAS_E_CRITERIOS_P00.md): classes E0–E4, estados da ficha, seleção futura de compras, denominadores, bloqueios e contrato de runtime.
 - [Estado do PR](prs/P00.md) e [controle](CONTROLE_DE_PRS.md): histórico verificável. Não há fixture nem dado privado anexado.
 - Commit inicial publicado: `b0097ce38a31ab2ecb94b421ff59ba63b999bfc9`. Conteúdo técnico examinado no commit `06e931df0abe00fede7adcbe5d1f8d42fa7bac4e`; o registro da verificação foi acrescentado depois. Nenhum código, banco, worker ou agendamento faz parte desta entrega.
@@ -29,6 +29,7 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026. Car
 - Uma **sessão verificadora distinta** confrontou diff e fontes e registrou o parecer abaixo antes da decisão humana. A sessão autora não assinou a verificação.
 - O método de revisão foi aprovado por Luis; nomes dos dois rotuladores, data, tamanhos mínimos e limiares por categoria, referência concreta de cobertura e SLA de frescor permanecem pendentes. Os parâmetros correspondentes devem ser aprovados antes da avaliação cega ou do gate operacional, sem ajuste retroativo.
 - As alterações documentais posteriores ao commit técnico examinado precisam de verificação por outra sessão antes da aprovação final do PR.
+- O inventário preliminar das fontes locais examinadas não demonstrou compra de periférico com item, lote e documentos revisados. O acervo operacional restante ainda precisa de inventário pelo P31; sem esse denominador, o tamanho mínimo e os limiares numéricos não podem ser fixados como aceite do conjunto disponível.
 
 ### Verificação independente — 17/11/2026
 
@@ -38,6 +39,10 @@ Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no co
 - O relatório offline confirma 20 identidades e versões observadas, 2.748 itens, 40 binários de PDF íntegros, 4.402 páginas com texto, 3.041 trechos sugeridos e resultados não coletados. O próprio relatório classifica os itens como leilão/alienação e não mede precisão ou revocação comercial.
 - O diff do PR contém somente nove arquivos Markdown. Links locais desses arquivos resolvem no checkout; `git diff --check` não apontou erros; o worktree estava limpo. Nenhum dataset ou credencial foi incluído.
 - **Parecer técnico sobre o commit examinado:** sem achados bloqueantes no contrato documental então apresentado. As escolhas posteriores de Luis constam nas decisões P00-01 a P00-07; este parecer anterior não é verificação independente dessas alterações. A validação do responsável pelos dados, G0 e o merge continuam pendentes.
+
+### Revisão das decisões posteriores
+
+Uma sessão verificadora distinta examinou `c90e25241e3fea6a7b54fb38478e17e841f22ab9` e encontrou um risco de vazamento: a análise exploratória de todos os casos precedia a separação do conjunto cego. O método foi corrigido para congelar a separação por contratação antes da exploração e restringir a implementação à partição de desenvolvimento. A correção e o inventário preliminar exigem nova conferência independente no commit atualizado.
 
 ## Risco e reversão
 

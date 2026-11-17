@@ -27,6 +27,16 @@ Esta é uma fotografia documental e do código da branch de produto no commit ac
 
 **Denominador do piloto:** 20 identidades selecionadas e uma versão observada por identidade; 60 recursos esperados *dentro desse índice* para detalhe, itens e documentos. Essa fração não é cobertura de publicações nacionais nem frescor. Os 20 casos e seus 2.748 itens não entram no denominador de precisão ou revocação para compras de bens. O recurso resultados não foi coletado nessa exportação.
 
+## Inventário preliminar das amostras disponíveis em 17/11/2026
+
+| Fonte local examinada sem novas chamadas ao PNCP | O que está comprovado | Uso para a amostra de periféricos |
+| --- | --- | --- |
+| Exportação enriquecida de 12/11, processada no relatório de 16/11 | 20 identidades de leilão/alienação, 2.748 itens, 40 PDFs; nenhum resultado coletado. | Teste estrutural e exclusão de contexto; nenhum positivo comercial comprovado. |
+| Consulta ao Bronze descrita em `tratamento-coletas-com-descricao-20261116.md` | 55 detalhes e 100 páginas de itens com 3.489 ocorrências; zero menção literal a mouse, webcam ou headset e duas menções incidentais a teclado em serviços. | Não comprova compra de periférico elegível; contagens datadas de 16/11, sem inventário atual de todos os casos. |
+| Cópia C2 isolada de 10/11 e `amostra-alvo-compras-para-revisao-20261116.md` | Cinco identidades candidatas pelo texto do objeto. Consulta somente de leitura à cópia C2 em 17/11 mostrou apenas recursos de listagem `/v1/contratacoes/publicacao` e `/v1/contratacoes/atualizacao` no Bronze dessa cópia. | Sem itens, lotes e documentos conferidos nessa cópia; nenhum dos cinco IDs é rótulo positivo confirmado. |
+
+**Resultado:** nenhuma compra de periférico com item, lote e documentos revisados foi demonstrada **nessas fontes examinadas**. Isso não prova ausência de casos em outras partes da coleta. P31 deve inventariar metadados e disponibilidade de recursos dos casos coletados, com proveniência e permissão de uso, antes de separar desenvolvimento e aceite cego. Até lá não há denominador comercial E3 nem base para fixar um tamanho mínimo viável a partir do acervo.
+
 ## Fontes congeladas para esta fotografia
 
 | Fonte consultada | Versão e SHA-256 local | Uso e limite |
@@ -35,6 +45,7 @@ Esta é uma fotografia documental e do código da branch de produto no commit ac
 | `Radar Licita/DECISOES.md` | consultado em 17/11; `e3ac882f87413a64fd1a8b226c6e1918d7735f26fa29553be09f34600d505062` | Decisões de produto registradas. |
 | `Radar Licita/plans/PLANO_VERSAO_FINAL_20261116.md` | 16/11; `81c5e14ab5998a95848b8ebf82078421d687c1f84c5202003496df7b489773f7` | Plano I00 anterior; critérios propostos, não execução. |
 | `motor_decisao_produto/docs/licitacoes/execucao-metas-2-3-4-piloto-20261116.md` | 16/11; `342d4940701ce2c3c432c9722cbe20cf5fd7418a136d0929658470370679f311` | Medidas da exportação isolada. Documento local ainda não versionado na branch base. |
+| `motor_decisao_produto/docs/licitacoes/tratamento-coletas-com-descricao-20261116.md` | 16/11; `b0065aff0a82bc79eb82d1935fca803df3e3483e1fbf4fe71046319e431b46dd` | Consulta datada ao Bronze de enriquecimento e limites das menções a periféricos; não é inventário atual. |
 | `motor_decisao_produto/docs/licitacoes/amostra-alvo-compras-para-revisao-20261116.md` | 16/11; `11b68f3f302fbf0b814dbd018c8a872655b04b808be6d0ed5043fcf0a598d6b1` | Cinco candidatos pelo objeto; nenhum rótulo de item confirmado. Documento local ainda não versionado na branch base. |
 | `motor_decisao_coleta_20261111/plans/pncp-enrichment-20261111/STATUS.md` | atualização documentada de 12/11; `a82de8bc4742a1d60844aeeb9666c1a2ecd60cdbac514e4163544a42848a73f5` | Piloto e início da janela; não comprova fechamento. |
 | `docs/licitacoes/radar-real-isolado-20261105.md` | commit base `b46aec77` | Limites da prévia C2. |
