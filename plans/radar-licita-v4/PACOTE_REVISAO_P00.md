@@ -23,12 +23,12 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026. Car
 
 ## Verificação e pendências
 
-- Autoria conferiu os hashes dos seis documentos locais citados na linha de base e os links Markdown locais: **OK** em 17/11/2026.
+- Autoria conferiu os hashes dos seis documentos locais inicialmente citados na linha de base e os links Markdown locais: **OK** em 17/11/2026. A sétima fonte acrescentada no inventário foi conferida na revisão independente posterior.
 - Conferir que 20 leilões e 2.748 itens só constam como evidência estrutural e que os cinco IDs por objeto não viram rótulos comerciais.
 - `git diff --check`: **OK** em 17/11/2026. Branch exclusiva na base `b46aec77`; o diff contém apenas Markdown. Nenhuma credencial ou dataset foi incluído.
 - Uma **sessão verificadora distinta** confrontou diff e fontes e registrou o parecer abaixo antes da decisão humana. A sessão autora não assinou a verificação.
 - O método de revisão foi aprovado por Luis; nomes dos dois rotuladores, data, tamanhos mínimos e limiares por categoria, referência concreta de cobertura e SLA de frescor permanecem pendentes. Os parâmetros correspondentes devem ser aprovados antes da avaliação cega ou do gate operacional, sem ajuste retroativo.
-- As alterações documentais posteriores ao commit técnico examinado precisam de verificação por outra sessão antes da aprovação final do PR.
+- As alterações documentais posteriores ao primeiro parecer técnico receberam a revisão independente descrita abaixo; ela não substitui a validação do responsável pelos dados.
 - O inventário preliminar das fontes locais examinadas não demonstrou compra de periférico com item, lote e documentos revisados. O acervo operacional restante ainda precisa de inventário pelo P31; sem esse denominador, o tamanho mínimo e os limiares numéricos não podem ser fixados como aceite do conjunto disponível.
 
 ### Verificação independente — 17/11/2026
@@ -42,7 +42,9 @@ Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no co
 
 ### Revisão das decisões posteriores
 
-Uma sessão verificadora distinta examinou `c90e25241e3fea6a7b54fb38478e17e841f22ab9` e encontrou um risco de vazamento: a análise exploratória de todos os casos precedia a separação do conjunto cego. O método foi corrigido para congelar a separação por contratação antes da exploração e restringir a implementação à partição de desenvolvimento. A correção e o inventário preliminar exigem nova conferência independente no commit atualizado.
+Uma sessão verificadora distinta examinou `c90e25241e3fea6a7b54fb38478e17e841f22ab9` e encontrou um risco de vazamento: a análise exploratória de todos os casos precedia a separação do conjunto cego. O método foi corrigido para congelar a separação por contratação antes da exploração e restringir a implementação à partição de desenvolvimento.
+
+Na revisão de `9afa9c2`, a mesma sessão confirmou a correção, o SHA-256 da sétima fonte e suas contagens datadas (55 detalhes, 100 páginas de itens e 3.489 ocorrências). Repetiu a consulta somente de leitura à cópia C2 `radar_c2_snapshot_20261110`: o Bronze dessa cópia contém apenas recursos de listagem `/v1/contratacoes/atualizacao` e `/v1/contratacoes/publicacao`, sem detalhe de itens ou documentos. A única observação remanescente foi a redação acima sobre seis fontes iniciais versus sete atuais, corrigida nesta atualização. A validação do responsável pelos dados ainda não foi registrada.
 
 ## Risco e reversão
 
