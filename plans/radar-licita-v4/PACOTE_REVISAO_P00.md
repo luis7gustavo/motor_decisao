@@ -23,7 +23,7 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e es
 
 ## Verificação e pendências
 
-- Continuação de 18/11: consulta somente de leitura ao C2 isolado e inventário de oito candidatas por metadados; cinco casos já expostos foram separados para desenvolvimento e três reservados sem revisão de conteúdo. O manifesto de metadados ficou local, fora do PR, com SHA-256 registrado na [linha de base](LINHA_DE_BASE_P00.md). Os cinco casos expostos somam 23 registros de itens, 18 binários com hash válido e 20 resultados; esses totais são estruturais, não rótulos comerciais.
+- Continuação de 18/11: consulta somente de leitura ao C2 isolado e inventário de nove candidatas por metadados; cinco casos já expostos foram separados para desenvolvimento, três tiveram corpos processados por rotina estrutural antes de reserva provisória e uma quarta foi reservada somente por metadados. Os manifestos ficaram locais, fora do PR, com SHA-256 registrados na [linha de base](LINHA_DE_BASE_P00.md). Os cinco casos expostos somam 23 registros de itens, 18 binários com hash válido e 20 resultados; esses totais são estruturais, não rótulos comerciais.
 - Luis informou que não estará disponível para validar agora e autorizou seguir com as sugestões (P00-09). Sua validação de proveniência/uso e a decisão G0 continuam pendentes; não há aprovação por silêncio. A revisão técnica anterior se refere a commits anteriores, não a esta continuação.
 
 - Autoria conferiu os hashes dos seis documentos locais inicialmente citados na linha de base e os links Markdown locais: **OK** em 17/11/2026. A sétima fonte acrescentada no inventário foi conferida na revisão independente posterior.
@@ -48,6 +48,8 @@ Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no co
 Uma sessão verificadora distinta examinou `c90e25241e3fea6a7b54fb38478e17e841f22ab9` e encontrou um risco de vazamento: a análise exploratória de todos os casos precedia a separação do conjunto cego. O método foi corrigido para congelar a separação por contratação antes da exploração e restringir a implementação à partição de desenvolvimento.
 
 Na revisão de `9afa9c2`, a mesma sessão confirmou a correção, o SHA-256 da sétima fonte e suas contagens datadas (55 detalhes, 100 páginas de itens e 3.489 ocorrências). Repetiu a consulta somente de leitura à cópia C2 `radar_c2_snapshot_20261110`: o Bronze dessa cópia contém apenas recursos de listagem `/v1/contratacoes/atualizacao` e `/v1/contratacoes/publicacao`, sem detalhe de itens ou documentos. A única observação remanescente foi a redação acima sobre seis fontes iniciais versus sete atuais, corrigida nesta atualização. A validação do responsável pelos dados ainda não foi registrada.
+
+Na revisão independente do commit `4bd03fb`, foi identificado que `inspect_identity` processa corpos de respostas ao calcular contagens e hashes. A redação inicial dizia incorretamente que nenhum conteúdo havia sido aberto nas três reservas. Esta atualização registra o processamento estrutural e deixa a elegibilidade cega dessas três pendente de revisão; uma identidade adicional foi selecionada somente por metadados. O novo diff ainda precisa de verificação independente.
 
 ## Risco e reversão
 
