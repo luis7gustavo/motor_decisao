@@ -1,0 +1,48 @@
+{
+  "observed_at": "2026-11-18T12:00:00Z",
+  "source_available": false,
+  "versions": [
+    {
+      "source_id": "SINTETICO-P31-001",
+      "version": 1,
+      "object": "Aquisição de computadores com mouse e teclado inclusos",
+      "uf": "GO",
+      "municipality": "Goiânia",
+      "category": "informática",
+      "opening_state": "unknown",
+      "deadline": null,
+      "source_url": "https://example.invalid/sintetico/p31/001",
+      "source_hash": "synthetic-p31-001-v1",
+      "published_at": "2026-11-01T12:00:00Z",
+      "change": "Caso sintético: menções a periféricos no objeto não confirmam item ofertável, lote ou entrega"
+    },
+    {
+      "source_id": "SINTETICO-P31-001",
+      "version": 2,
+      "object": "Aquisição de computadores com acessórios inclusos",
+      "uf": "GO",
+      "municipality": "Goiânia",
+      "category": "informática",
+      "opening_state": "unknown",
+      "deadline": null,
+      "source_url": "https://example.invalid/sintetico/p31/001",
+      "source_hash": "synthetic-p31-001-v2",
+      "published_at": "2026-11-02T12:00:00Z",
+      "change": "Retificação sintética: objeto mudou; versão anterior não substitui a atual"
+    },
+    {
+      "source_id": "SINTETICO-P31-002",
+      "version": 1,
+      "object": "Serviço de manutenção de teclado de computador",
+      "uf": "SP",
+      "municipality": "Campinas",
+      "category": "serviços",
+      "opening_state": "unknown",
+      "deadline": null,
+      "source_url": "https://example.invalid/sintetico/p31/002",
+      "source_hash": "synthetic-p31-002-v1",
+      "published_at": "2026-11-03T12:00:00Z",
+      "change": "Caso sintético: falso positivo lexical em serviço"
+    }
+  ]
+}
