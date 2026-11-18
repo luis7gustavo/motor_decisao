@@ -10,7 +10,7 @@ atualizado_em: 2026-11-18
 
 ## Escopo entregue pela autoria
 
-Base `a80cdfcb7fd397126d32c57b73fddcfc227096a9` da branch de produto; branch exclusiva `codex/radar-p31-inventario-20261118`. Arquivos: [inventário](INVENTARIO_AMOSTRAS_P31.md), [schema observado](SCHEMA_E_EXEMPLOS.md), [manifesto de hashes](MANIFESTOS_E_FIXTURES.md), [caso sintético](../../fixtures/radar_p31/opportunities_boundary.json), [cartão](prs/P31.md), controle, decisões e README. O checkout de produto original e a coleta ficaram intactos.
+Base `a80cdfcb7fd397126d32c57b73fddcfc227096a9` da branch de produto; branch exclusiva `codex/radar-p31-inventario-20261118`. [PR #7 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/7), commit inicial `1fd8e5190183ea0ad4f7405395320d017bb41a32`. Arquivos: [inventário](INVENTARIO_AMOSTRAS_P31.md), [schema observado](SCHEMA_E_EXEMPLOS.md), [manifesto de hashes](MANIFESTOS_E_FIXTURES.md), [caso sintético](../../fixtures/radar_p31/opportunities_boundary.json), [cartão](prs/P31.md), controle, decisões e README. O checkout de produto original e a coleta ficaram intactos.
 
 ## Verificações da autoria em 18/11/2026
 

@@ -1,6 +1,6 @@
 # Radar Licita — execução por PR
 
-**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 integrado no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); [P32 integrada no PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6); G0 documental aprovado com limites em 18/11/2026. P31 está em autoria; os gates seguintes e o escopo técnico integral da V4 continuam propostos ou pendentes.
+**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 integrado no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); [P32 integrada no PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6); G0 documental aprovado com limites em 18/11/2026. [P31 está em revisão no PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7); os gates seguintes e o escopo técnico integral da V4 continuam propostos ou pendentes.
 
 Este diretório contém o controle vivo da execução do Radar Licita. Abra `plans/radar-licita-v4/` como cofre no Obsidian para consultar os mesmos arquivos Markdown que entram nos PRs, sem indexar código e dados do restante do repositório. O cofre preexistente `RADAR LICITA` continua como biblioteca de fontes e sínteses datadas; não mantenha duas cópias editáveis da mesma decisão.
 
