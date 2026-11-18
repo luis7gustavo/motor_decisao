@@ -1,15 +1,15 @@
 ---
 id: REV-P00
 tipo: pacote_revisao
-estado: em_revisao
+estado: aprovado_para_integracao
 atualizado_em: 2026-11-18
 ---
 
 # Pacote de revisão — P00
 
-## Decisão pedida
+## Decisão registrada
 
-Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e esclareceu em P00-08 que ele mesmo é responsável por validar os dados. Sua validação explícita da proveniência, dos denominadores de cobertura/frescor e dos limites de uso das fontes ainda não foi registrada. A aprovação final de P00/G0 deve registrar autor, data, commit examinado e ressalvas; o merge por si não concede G3–G6 nem aprova metas comerciais ainda não fixadas.
+Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e esclareceu em P00-08 que ele mesmo é responsável por validar os dados. Em 18/11/2026, respondeu “Sim, validar e integrar” à decisão apresentada sobre o pacote do PR #5 no commit `a1b8429d2b680bc1efffcbba0975cec477c80fbf`. Assim, validou o **uso local** das fontes e do inventário descritos aqui, aprovou G0 documental com limites e autorizou integrar o PR #5. A decisão não atesta cobertura nacional, frescor ou qualidade comercial e não autoriza D13, publicação de dados como fixtures/anexos, G3–G6 ou metas comerciais ainda não fixadas.
 
 **Escolhas registradas:** usar as amostras de periféricos já coletadas, duas revisões independentes, análise exploratória antes da avaliação cega, prioridade para encontrar candidatos na fila humana, referência independente de cobertura, apresentação histórica até auditoria de frescor e consulta local dos dados ([decisões](DECISOES.md)). A elegibilidade de cada caso depende do inventário e da revisão de itens, lotes, documentos e versões. Nomes dos revisores, tamanhos mínimos, limiares numéricos, referência concreta e SLA continuam pendentes.
 
@@ -24,7 +24,7 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e es
 ## Verificação e pendências
 
 - Continuação de 18/11: consulta somente de leitura ao C2 isolado e inventário de nove candidatas por metadados; cinco casos já expostos foram separados para desenvolvimento, três tiveram corpos processados por rotina estrutural antes de reserva provisória e uma quarta foi reservada somente por metadados. Os manifestos ficaram locais, fora do PR, com SHA-256 registrados na [linha de base](LINHA_DE_BASE_P00.md). Os cinco casos expostos somam 23 registros de itens, 18 binários com hash válido e 20 resultados; esses totais são estruturais, não rótulos comerciais.
-- Luis informou que não estará disponível para validar agora e autorizou seguir com as sugestões (P00-09). Sua validação de proveniência/uso e a decisão G0 continuam pendentes; não há aprovação por silêncio. A revisão técnica anterior se refere a commits anteriores, não a esta continuação.
+- Na etapa P00-09, Luis informou que não estaria disponível para validar naquele momento e autorizou seguir com as sugestões; não houve aprovação por silêncio. Sua decisão explícita posterior, em 18/11/2026, está registrada no início deste pacote. A revisão técnica anterior se refere a commits anteriores, não a esta continuação.
 
 - Autoria conferiu os hashes dos seis documentos locais inicialmente citados na linha de base e os links Markdown locais: **OK** em 17/11/2026. A sétima fonte acrescentada no inventário foi conferida na revisão independente posterior.
 - Conferir que 20 leilões e 2.748 itens só constam como evidência estrutural e que os cinco IDs por objeto não viram rótulos comerciais.
@@ -41,7 +41,7 @@ Sessão verificadora Codex distinta da sessão autora. Conteúdo examinado no co
 - Os seis SHA-256 das fontes locais na linha de base conferem com os arquivos originais. Os sete caminhos de código e documentação citados para as capacidades do produto existem no checkout da base.
 - O relatório offline confirma 20 identidades e versões observadas, 2.748 itens, 40 binários de PDF íntegros, 4.402 páginas com texto, 3.041 trechos sugeridos e resultados não coletados. O próprio relatório classifica os itens como leilão/alienação e não mede precisão ou revocação comercial.
 - O diff do PR contém somente nove arquivos Markdown. Links locais desses arquivos resolvem no checkout; `git diff --check` não apontou erros; o worktree estava limpo. Nenhum dataset ou credencial foi incluído.
-- **Parecer técnico sobre o commit examinado:** sem achados bloqueantes no contrato documental então apresentado. As escolhas posteriores de Luis constam nas decisões P00-01 a P00-07; este parecer anterior não é verificação independente dessas alterações. A validação do responsável pelos dados, G0 e o merge continuam pendentes.
+- **Parecer técnico sobre o commit examinado:** sem achados bloqueantes no contrato documental então apresentado. As escolhas posteriores de Luis constam nas decisões P00-01 a P00-07; este parecer anterior não é verificação independente dessas alterações. Na data desse parecer, a validação do responsável pelos dados, G0 e o merge ainda estavam pendentes; a decisão humana posterior consta no início deste pacote.
 
 ### Revisão das decisões posteriores
 
@@ -55,4 +55,4 @@ A sessão verificadora distinta reexaminou o commit `48d3a184daff7f58a6d237d4ce1
 
 ## Risco e reversão
 
-O principal risco é interpretar o método aprovado como qualidade medida. O cabeçalho e as tabelas mantêm esse limite explícito. Para desfazer, rejeitar ou reverter somente os arquivos documentais deste PR; nenhuma operação ou dado bruto é alterado. Decisão de Luis sobre o método: **registrada**. Validação dos dados e G0: **pendentes**.
+O principal risco é interpretar o método aprovado como qualidade medida. O cabeçalho e as tabelas mantêm esse limite explícito. Para desfazer, rejeitar ou reverter somente os arquivos documentais deste PR; nenhuma operação ou dado bruto é alterado. Decisão de Luis sobre o método, uso local das fontes e G0 documental: **registrada em 18/11/2026**. Medições de cobertura, frescor e qualidade comercial: **pendentes**.

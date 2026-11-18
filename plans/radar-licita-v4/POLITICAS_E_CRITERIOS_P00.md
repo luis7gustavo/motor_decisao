@@ -8,7 +8,7 @@ base_commit: b46aec77a3448f51ac212676216c675822fb12f3
 
 # P00 — políticas, estados e critérios de avaliação
 
-Este contrato reúne o método de P00 aprovado por Luis em 17/11/2026, registrado em [DECISOES.md](DECISOES.md), e condições ainda propostas para G0. Apoia-se na [proposta V4](PROPOSTA_V4_20261117.md) e no [plano I00 de 16/11](LINHA_DE_BASE_P00.md#fontes-congeladas-para-esta-fotografia). Luis, também responsável pelos dados neste P00, ainda precisa validar explicitamente proveniência, cobertura, frescor e limites de uso das fontes; mínimos, limiares e SLA serão fixados antes da avaliação correspondente. Não altera regras da aplicação nesta revisão.
+Este contrato reúne o método de P00 aprovado por Luis em 17/11/2026, registrado em [DECISOES.md](DECISOES.md), e as condições do G0 documental que ele aprovou com limites em 18/11/2026. Apoia-se na [proposta V4](PROPOSTA_V4_20261117.md) e no [plano I00 de 16/11](LINHA_DE_BASE_P00.md#fontes-congeladas-para-esta-fotografia). Luis validou o uso local das fontes e do inventário descritos no pacote; cobertura, frescor e qualidade comercial continuam sem medição suficiente. Mínimos, limiares e SLA serão fixados antes da avaliação correspondente. Não altera regras da aplicação nesta revisão.
 
 ## Classes de evidência e estado da ficha
 

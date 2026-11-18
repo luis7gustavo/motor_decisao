@@ -1,6 +1,6 @@
 # Radar Licita — execução por PR
 
-**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 em revisão no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); G0 e demais gates pendentes. A V4 anexa permanece proposta para escopo técnico e gates ainda não aprovados.
+**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 aprovado para integração no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); G0 documental aprovado com limites em 18/11/2026. Os gates seguintes e o escopo técnico integral da V4 continuam propostos ou pendentes.
 
 Este diretório contém o controle vivo da execução do Radar Licita. Abra `plans/radar-licita-v4/` como cofre no Obsidian para consultar os mesmos arquivos Markdown que entram nos PRs, sem indexar código e dados do restante do repositório. O cofre preexistente `RADAR LICITA` continua como biblioteca de fontes e sínteses datadas; não mantenha duas cópias editáveis da mesma decisão.
 
@@ -21,7 +21,7 @@ Este diretório contém o controle vivo da execução do Radar Licita. Abra `pla
 - [Permissões e fontes](PERMISSOES_E_FONTES.md): o que pode ser consultado e o que requer autorização específica.
 - [Modelo de cartão](MODELO_PR.md) e [modelo de revisão](MODELO_REVISAO.md).
 - [Pacote de revisão P30](PACOTE_REVISAO_P30.md): histórico da publicação e verificação; integração registrada no controle.
-- [Linha de base P00](LINHA_DE_BASE_P00.md), [políticas e critérios](POLITICAS_E_CRITERIOS_P00.md) e [pacote de revisão](PACOTE_REVISAO_P00.md): proposta de contrato e estado atual do PR, sem aprovação de G0.
+- [Linha de base P00](LINHA_DE_BASE_P00.md), [políticas e critérios](POLITICAS_E_CRITERIOS_P00.md) e [pacote de revisão](PACOTE_REVISAO_P00.md): contrato documental aprovado com limites e estado atual do PR.
 - [Cartões de PR](prs/): uma nota por PR, com identificador estável.
 
 Os cartões derivados da V4 são **planejamento**. O início de cada PR exige conferir o código, as fontes, os bloqueios e o escopo efetivamente aprovado. Dependências satisfeitas e testes verdes não elevam uma classe de evidência para outra.

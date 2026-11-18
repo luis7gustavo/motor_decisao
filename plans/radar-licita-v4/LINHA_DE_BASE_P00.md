@@ -1,7 +1,7 @@
 ---
 id: BASE-P00
 tipo: evidencia
-estado: proposta_para_revisao
+estado: aprovada_com_limites
 classe_evidencia: mista_por_recurso
 atualizado_em: 2026-11-18
 base_commit: b46aec77a3448f51ac212676216c675822fb12f3
@@ -10,6 +10,8 @@ base_commit: b46aec77a3448f51ac212676216c675822fb12f3
 # P00 — linha de base e lacunas
 
 Esta é uma fotografia documental e do código da branch de produto no commit acima, examinada em 17/11/2026. As contagens do piloto são do relatório offline de 16/11, não uma medição de hoje. Os estados e critérios propostos estão em [políticas](POLITICAS_E_CRITERIOS_P00.md); o [cartão P00](prs/P00.md) registra o aceite.
+
+Em 18/11/2026, Luis validou o uso local das fontes e do inventário aqui descritos e aprovou G0 documental com limites, conforme [decisões](DECISOES.md). As lacunas e estados de evidência abaixo permanecem; esta aprovação não comprova cobertura, frescor, rótulos E3 ou qualidade comercial.
 
 ## Capacidades por recurso
 
