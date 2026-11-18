@@ -1,7 +1,7 @@
 ---
 id: REV-P32
 tipo: pacote_revisao
-estado: aguardando_verificacao
+estado: aguardando_decisao_humana
 atualizado_em: 2026-11-18
 ---
 
@@ -31,8 +31,10 @@ Após verificação independente, Luis poderá aprovar, pedir mudanças, rejeita
 
 O lint valida forma, presença de arquivos e resolução local de commits; não consulta PNCP, não valida SHA-256 contra arquivos externos ou manifestos privados, não autentica decisões humanas e não atesta cobertura, frescor, dados E3/E4 ou qualidade comercial. Para desfazer, reverter somente os arquivos deste PR.
 
-## Verificação e decisão pendentes
+## Verificação independente e decisão
 
-Verificador em sessão distinta: **pendente**. Achados e commit examinado: **pendentes**. Decisão humana e merge: **pendentes**.
+Na primeira leitura independente do commit `b24d180de39f84a8f88aa7532084f6ff07cea348`, foram identificadas duas lacunas: uma nota nova sem frontmatter e um embed `![[...]]` quebrado passavam sem aviso. A autoria corrigiu ambas e adicionou testes de regressão.
 
-Na primeira leitura independente do commit `b24d180de39f84a8f88aa7532084f6ff07cea348`, foram identificadas duas lacunas: uma nota nova sem frontmatter e um embed `![[...]]` quebrado passavam sem aviso. A autoria corrigiu ambas e adicionou testes de regressão. A rechecagem independente do novo HEAD ainda está pendente.
+Em 18/11/2026, a sessão verificadora distinta reexaminou o commit `a6656dfa049dde4865ccad9837dde08d3776fe2f` do [PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6). Confirmou a correção dos dois achados, executou oito testes (8/8), CLI sobre as notas atuais com `--no-git` (OK) e `git diff --check b24d180..a6656df` (limpo). O worktree estava limpo e o HEAD coincidia com o remoto. **Parecer:** sem achados bloqueantes no escopo estrutural/offline. Limitação menor: a expressão de links Markdown não cobre todos os destinos com parênteses e títulos complexos; nenhum desses links foi encontrado nas notas atuais. Este parecer não autentica decisões nem valida conteúdo de hashes externos, cobertura, frescor ou qualidade comercial.
+
+**Decisão humana e merge:** pendentes. A atualização deste pacote após o parecer é apenas documental; a verificação independente examinou o código em `a6656df`.
