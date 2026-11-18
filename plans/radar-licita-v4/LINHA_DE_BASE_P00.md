@@ -3,7 +3,7 @@ id: BASE-P00
 tipo: evidencia
 estado: proposta_para_revisao
 classe_evidencia: mista_por_recurso
-atualizado_em: 2026-11-17
+atualizado_em: 2026-11-18
 base_commit: b46aec77a3448f51ac212676216c675822fb12f3
 ---
 
@@ -36,6 +36,14 @@ Esta é uma fotografia documental e do código da branch de produto no commit ac
 | Cópia C2 isolada de 10/11 e `amostra-alvo-compras-para-revisao-20261116.md` | Cinco identidades candidatas pelo texto do objeto. Consulta somente de leitura à cópia C2 em 17/11 mostrou apenas recursos de listagem `/v1/contratacoes/publicacao` e `/v1/contratacoes/atualizacao` no Bronze dessa cópia. | Sem itens, lotes e documentos conferidos nessa cópia; nenhum dos cinco IDs é rótulo positivo confirmado. |
 
 **Resultado:** nenhuma compra de periférico com item, lote e documentos revisados foi demonstrada **nessas fontes examinadas**. Isso não prova ausência de casos em outras partes da coleta. P31 deve inventariar metadados e disponibilidade de recursos dos casos coletados, com proveniência e permissão de uso, antes de separar desenvolvimento e aceite cego. Até lá não há denominador comercial E3 nem base para fixar um tamanho mínimo viável a partir do acervo.
+
+## Atualização da coleta isolada em 18/11/2026
+
+Esta seção registra uma consulta **somente de leitura** ao banco C2 isolado da coleta, entre 01h52 e 02h08 de 18/11 (America/Sao_Paulo). É uma fotografia posterior e de fonte diferente da cópia de 10/11 descrita acima. O worker dedicado estava online, a missão e os agendamentos ativos. Na janela iniciada em 17/11 às 17h54 havia 395 tentativas até 01h52, 25 respostas HTTP 5xx, zero 403/429 e zero tentativas sem desfecho registrado naquele instante. A janela termina em 18/11 às 17h54. Execução e respostas recebidas não demonstram cobertura nem frescor nacionais.
+
+Cinco contratações previamente selecionadas pelo texto do objeto tinham índices estruturais completos: 23 registros de itens, 18 documentos baixados com hash presente e válido e 20 registros de resultado esperados/recebidos. A descrição de itens desses cinco casos já havia sido examinada antes do congelamento desta seleção; por isso, **os cinco ficam somente na partição de desenvolvimento**, inclusive os aparentes descartes. Integridade e contagem dos recursos não equivalem a rótulo de periférico, revisão do edital/lote ou elegibilidade comercial E3.
+
+Na fila de detalhes já coletados, um filtro de **metadados do objeto** por mouse, teclado, webcam ou headset encontrou oito identidades, incluindo as cinco anteriores. As outras três foram reservadas em um manifesto local de metadados para possível aceite cego; a separação vale para a contratação inteira, inclusive qualquer versão ou item. Uma das três tinha índices estruturais completos; duas ainda tinham binário de documento pendente, e uma delas também resultados pendentes. Nenhum conteúdo de item, documento ou resultado dessas três foi aberto para ajustar a triagem. Nas oito versões correntes consultadas, `source_updated_at` era nulo, portanto esta observação não comprova frescor. O manifesto privado foi congelado em 18/11 às 02h07, com SHA-256 `22f5230d89d6809447ea1f62592e175229c3aba6f460ed2778ca151afb95df58`; contém apenas identificadores, hashes de versão, sinais de metadados e disponibilidade, sem corpos ou rótulos, e não integra o PR. Esta reserva **não é uma amostra E3 aprovada**: proveniência, permissão de uso e elegibilidade dependem da validação de Luis, e o conjunto cego ainda é insuficiente para métricas por categoria.
 
 ## Fontes congeladas para esta fotografia
 

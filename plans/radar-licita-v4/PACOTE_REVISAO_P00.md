@@ -2,7 +2,7 @@
 id: REV-P00
 tipo: pacote_revisao
 estado: em_revisao
-atualizado_em: 2026-11-17
+atualizado_em: 2026-11-18
 ---
 
 # Pacote de revisão — P00
@@ -22,6 +22,9 @@ Luis aprovou o método descrito nas decisões P00-01 a P00-07 em 17/11/2026 e es
 - Commit inicial publicado: `b0097ce38a31ab2ecb94b421ff59ba63b999bfc9`. Conteúdo técnico examinado no commit `06e931df0abe00fede7adcbe5d1f8d42fa7bac4e`; o registro da verificação foi acrescentado depois. Nenhum código, banco, worker ou agendamento faz parte desta entrega.
 
 ## Verificação e pendências
+
+- Continuação de 18/11: consulta somente de leitura ao C2 isolado e inventário de oito candidatas por metadados; cinco casos já expostos foram separados para desenvolvimento e três reservados sem revisão de conteúdo. O manifesto de metadados ficou local, fora do PR, com SHA-256 registrado na [linha de base](LINHA_DE_BASE_P00.md). Os cinco casos expostos somam 23 registros de itens, 18 binários com hash válido e 20 resultados; esses totais são estruturais, não rótulos comerciais.
+- Luis informou que não estará disponível para validar agora e autorizou seguir com as sugestões (P00-09). Sua validação de proveniência/uso e a decisão G0 continuam pendentes; não há aprovação por silêncio. A revisão técnica anterior se refere a commits anteriores, não a esta continuação.
 
 - Autoria conferiu os hashes dos seis documentos locais inicialmente citados na linha de base e os links Markdown locais: **OK** em 17/11/2026. A sétima fonte acrescentada no inventário foi conferida na revisão independente posterior.
 - Conferir que 20 leilões e 2.748 itens só constam como evidência estrutural e que os cinco IDs por objeto não viram rótulos comerciais.
