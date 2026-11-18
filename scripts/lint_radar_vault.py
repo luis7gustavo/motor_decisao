@@ -19,12 +19,18 @@ from urllib.parse import unquote
 DEFAULT_NOTES = Path(__file__).resolve().parents[1] / "plans" / "radar-licita-v4"
 CARD_ID = re.compile(r"P\d{2}")
 MARKDOWN_LINK = re.compile(r"!?\[[^\]]+\]\((<?[^)]+>?)\)")
-WIKI_LINK = re.compile(r"(?<!!)\[\[([^\]]+)\]\]")
+WIKI_LINK = re.compile(r"!?\[\[([^\]]+)\]\]")
 HEX_REF = re.compile(r"`([0-9a-fA-F]{7,})`")
 LONG_REF = re.compile(r"`([A-Za-z0-9]{41,})`")
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 HUMAN_DATE = re.compile(r"\b\d{2}/\d{2}/\d{4}\b")
 EXTERNAL = re.compile(r"^[a-z][a-z0-9+.-]*:", re.I)
+LEGACY_UNSTRUCTURED = {
+    "README.md", "CONTROLE_DE_PRS.md", "DECISOES.md",
+    "INSTRUCOES_SESSOES.md", "PACOTE_REVISAO_P30.md",
+    "PERMISSOES_E_FONTES.md", "PROPOSTA_V4_20261117.md",
+    "MODELO_PR.md", "MODELO_REVISAO.md",
+}
 
 
 @dataclass(frozen=True, order=True)
@@ -151,10 +157,12 @@ def lint(notes: Path, *, check_git: bool = True) -> list[Issue]:
     for path, body in texts.items():
         rel = path.relative_to(notes).as_posix()
         is_card = path.parent == notes / "prs"
-        # The proposal is historical source material; the model is a template.
-        is_record = is_card or (body.startswith("---\n") and path.name not in {
-            "MODELO_PR.md", "PROPOSTA_V4_20261117.md"
-        })
+        # Keep the known P30-era pages readable as-is, while requiring every
+        # new note (including a newly added root-level page) to have metadata.
+        is_record = (
+            is_card or path.parent != notes or path.name not in LEGACY_UNSTRUCTURED
+            or (body.startswith("---\n") and path.name not in {"MODELO_PR.md", "PROPOSTA_V4_20261117.md"})
+        )
         if is_record:
             fields, errors = _frontmatter(body)
             issues.extend(Issue(rel, 1, "frontmatter", error) for error in errors)
@@ -198,7 +206,7 @@ def lint(notes: Path, *, check_git: bool = True) -> list[Issue]:
                 name = match.group(1).split("|", 1)[0].split("#", 1)[0]
                 if not name:
                     continue
-                candidate = (path.parent / (name if name.endswith(".md") else name + ".md")).resolve()
+                candidate = (path.parent / (name if Path(name).suffix else name + ".md")).resolve()
                 if not candidate.is_file() and not any(p.stem == name for p in files):
                     issues.append(Issue(rel, number, "broken_wikilink", f"nota não encontrada: {name}"))
         # A short commit reference can be resolved in this Git checkout. A

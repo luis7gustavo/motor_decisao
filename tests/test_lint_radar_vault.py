@@ -97,3 +97,17 @@ def test_unresolved_wikilink_is_reported(tmp_path: Path):
     (notes / "README.md").write_text("[[Nota ausente]]\n", encoding="utf-8")
 
     assert {issue.code for issue in lint(notes, check_git=False)} == {"broken_wikilink"}
+
+
+def test_unresolved_obsidian_embed_is_reported(tmp_path: Path):
+    notes = _notes(tmp_path)
+    (notes / "README.md").write_text("![[Nota ausente]]\n", encoding="utf-8")
+
+    assert {issue.code for issue in lint(notes, check_git=False)} == {"broken_wikilink"}
+
+
+def test_new_note_without_frontmatter_is_reported(tmp_path: Path):
+    notes = _notes(tmp_path)
+    (notes / "NOVA_NOTA.md").write_text("# Nota nova\n", encoding="utf-8")
+
+    assert "frontmatter" in {issue.code for issue in lint(notes, check_git=False)}
