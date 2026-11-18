@@ -1,6 +1,6 @@
 # Radar Licita — execução por PR
 
-**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 integrado no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); G0 documental aprovado com limites em 18/11/2026. P32 foi verificada tecnicamente e aguarda decisão humana no [PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6). Os gates seguintes e o escopo técnico integral da V4 continuam propostos ou pendentes.
+**Estado:** [P30 integrado no PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4); [P00 integrado no PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5); [P32 integrada no PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6); G0 documental aprovado com limites em 18/11/2026. [P31 está em revisão no PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7); os gates seguintes e o escopo técnico integral da V4 continuam propostos ou pendentes.
 
 Este diretório contém o controle vivo da execução do Radar Licita. Abra `plans/radar-licita-v4/` como cofre no Obsidian para consultar os mesmos arquivos Markdown que entram nos PRs, sem indexar código e dados do restante do repositório. O cofre preexistente `RADAR LICITA` continua como biblioteca de fontes e sínteses datadas; não mantenha duas cópias editáveis da mesma decisão.
 
@@ -23,6 +23,7 @@ Este diretório contém o controle vivo da execução do Radar Licita. Abra `pla
 - [Pacote de revisão P30](PACOTE_REVISAO_P30.md): histórico da publicação e verificação; integração registrada no controle.
 - [Linha de base P00](LINHA_DE_BASE_P00.md), [políticas e critérios](POLITICAS_E_CRITERIOS_P00.md) e [pacote de revisão](PACOTE_REVISAO_P00.md): contrato documental aprovado com limites e estado atual do PR.
 - [Lint P32](../../scripts/lint_radar_vault.py) e [pacote P32](PACOTE_REVISAO_P32.md): verificação offline da estrutura das notas e referências.
+- [Inventário P31](INVENTARIO_AMOSTRAS_P31.md), [schema observado](SCHEMA_E_EXEMPLOS.md), [manifesto de hashes](MANIFESTOS_E_FIXTURES.md) e [pacote P31](PACOTE_REVISAO_P31.md): exemplos E0, caso E2 e lacuna de autorização para E1.
 - [Cartões de PR](prs/): uma nota por PR, com identificador estável.
 
 Os cartões derivados da V4 são **planejamento**. O início de cada PR exige conferir o código, as fontes, os bloqueios e o escopo efetivamente aprovado. Dependências satisfeitas e testes verdes não elevam uma classe de evidência para outra.
