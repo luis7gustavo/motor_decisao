@@ -15,6 +15,7 @@ Após verificação independente, Luis poderá aprovar, pedir mudanças, rejeita
 
 - Base integrada: `058514f054981669357b6d4083dbb9497883bad7` na branch `codex/radar-licita-produto-2026-11-04`, conferida por `git fetch` em 18/11/2026.
 - Branch autora: `codex/radar-p32-lint-20261118`; worktree exclusivo: `motor_decisao_p32_20261118`.
+- [PR #6 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/6), commit inicial publicado `84a7783184410e0e825bdee204cc858a89b95a52`. A verificação deve examinar o HEAD final do PR.
 - Entrega: [CLI](../../scripts/lint_radar_vault.py), [testes](../../tests/test_lint_radar_vault.py), instruções no [README](README.md), [cartão](prs/P32.md) e atualização do [controle](CONTROLE_DE_PRS.md).
 - A CLI valida estrutura e referências da documentação versionada. Não altera dados nem aplicações em execução.
 

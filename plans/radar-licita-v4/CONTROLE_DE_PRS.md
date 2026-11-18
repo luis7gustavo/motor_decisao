@@ -2,7 +2,7 @@
 
 **Atualizado em:** 18/11/2026
 
-**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 integrado pelo PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5) no commit `058514f054981669357b6d4083dbb9497883bad7`; G0 documental aprovado com limites em 18/11/2026. P32 está em preparação de revisão.
+**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 integrado pelo PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5) no commit `058514f054981669357b6d4083dbb9497883bad7`; G0 documental aprovado com limites em 18/11/2026. [P32 em PR rascunho #6](https://github.com/luis7gustavo/motor_decisao/pull/6).
 
 **Fonte da fila:** [backlog da proposta V4](PROPOSTA_V4_20261117.md), reordenado pelas dependências e pelo método aprovado por Luis.
 
@@ -15,7 +15,7 @@
 - **Verificação de P30:** 36 cartões com IDs únicos, 36 entradas no controle, dependências de implementação em ordem, links Markdown locais resolvidos e `git diff --check` sem falhas. Uma sessão independente revisou o conteúdo e apontou o risco de publicação pública e um caminho ambíguo; o caminho foi corrigido e a autorização de publicação foi registrada.
 - **P00 aprovado para integração:** [PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5), branch `codex/radar-p00-baseline-20261117`, worktree exclusivo `motor_decisao_p00_20261117`, base no merge do P30. Entrega documental em [linha de base](LINHA_DE_BASE_P00.md), [políticas](POLITICAS_E_CRITERIOS_P00.md) e [pacote](PACOTE_REVISAO_P00.md). Luis aprovou o método P00-01 a P00-07, confirmou em P00-08 que ele mesmo valida os dados e autorizou a continuidade técnica em P00-09. Em 18/11, validou o uso local das fontes e do inventário, aprovou G0 documental com os limites registrados em [decisões](DECISOES.md) e autorizou integrar o PR #5. Três reservas exigem revisão de cegamento por processamento estrutural de corpos e uma reserva nova usou apenas metadados. Cobertura, frescor, qualidade comercial e D13 continuam pendentes.
 - **P00 integrado:** o remoto da branch de produto aponta para `058514f054981669357b6d4083dbb9497883bad7`, merge do PR #5, conferido em 18/11/2026. O parágrafo anterior preserva o histórico da aprovação.
-- **P32 em revisão de autoria:** worktree `motor_decisao_p32_20261118` na base integrada do P00; CLI/testes de lint documental e [pacote](PACOTE_REVISAO_P32.md) preparados. A verificação independente, decisão humana e merge estão pendentes.
+- **P32 em PR rascunho:** [PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6), worktree `motor_decisao_p32_20261118` na base integrada do P00; CLI/testes de lint documental e [pacote](PACOTE_REVISAO_P32.md) preparados. A verificação independente, decisão humana e merge estão pendentes.
 
 ## Fila proposta de PRs
 
@@ -25,7 +25,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | ---: | --- | --- | --- | --- |
 | 1 | [P30](prs/P30.md) | Inicializar Vault, índices, instruções dos agentes, templates, links e controle de permissão | — | [PR #4 integrado](https://github.com/luis7gustavo/motor_decisao/pull/4), `b46aec77` |
 | 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | [PR #5 integrado](https://github.com/luis7gustavo/motor_decisao/pull/5), `058514f`; G0 documental com limites |
-| 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | Em revisão de autoria; verificação independente e decisão pendentes |
+| 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | [PR #6 rascunho](https://github.com/luis7gustavo/motor_decisao/pull/6); verificação independente e decisão pendentes |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | Fila |
 | 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | Condicional: manifestos |
 | 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | Fila |
