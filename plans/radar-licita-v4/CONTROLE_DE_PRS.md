@@ -29,7 +29,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | [PR #6 integrado](https://github.com/luis7gustavo/motor_decisao/pull/6), `a80cdfc` |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | [PR #7 rascunho](https://github.com/luis7gustavo/motor_decisao/pull/7); E1 novo aguarda D13, G1 pendente |
 | 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | Condicional: manifestos |
-| 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | [Revisão independente](REVISAO_INDEPENDENTE_P02_20261119.md) pediu trilha por tentativa; correção, nova revisão e decisão humana pendentes |
+| 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | Trilha por tentativa corrigida na autoria após [parecer](REVISAO_INDEPENDENTE_P02_20261119.md); nova revisão independente e decisão humana pendentes |
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Em autoria local no worktree P03; revisão, D14 e decisão humana pendentes |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |

@@ -85,12 +85,14 @@ def audit(manifest_path: Path) -> dict[str, Any]:
         seen_attempts.add(key + (page, attempt))
         row = {"page": page, "attempt": attempt, "http_status": status,
                "received_at": received, "source_updated_at": source,
-               "total_pages_reported": reported, "sha256": raw.get("sha256"), "hash_valid": None}
+               "total_pages_reported": reported, "file": raw.get("file"),
+               "sha256": raw.get("sha256"), "actual_sha256": None, "hash_valid": None}
         if 200 <= status < 300:
             digest = _text(raw.get("sha256"), "sha256").lower()
             if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
                 raise ValueError("sha256: 64 hexadecimal characters required")
             actual = _file_hash(manifest_path.parent, raw.get("file"))
+            row["actual_sha256"] = actual
             row["hash_valid"] = actual == digest
             if actual != digest:
                 issues.append(f"hash_mismatch:{'/'.join(key)}:{page}:{attempt}")
@@ -107,6 +109,7 @@ def audit(manifest_path: Path) -> dict[str, Any]:
         for row in rows:
             by_page[row["page"]].append(row)
         latest = [max(page_rows, key=lambda row: row["attempt"]) for _, page_rows in sorted(by_page.items())]
+        latest_by_page = {row["page"]: row for row in latest}
         totals = {row["total_pages_reported"] for row in rows if row["total_pages_reported"] is not None and 200 <= row["http_status"] < 300}
         if len(totals) > 1:
             issues.append(f"reported_total_conflict:{'/'.join(key)}")
@@ -120,7 +123,30 @@ def audit(manifest_path: Path) -> dict[str, Any]:
             issues.append(f"future_timestamp:{'/'.join(key)}")
         result_groups.append({
             "window": key[0], "resource": key[1], "partition": key[2], "version": key[3],
-            "attempt_count": len(rows), "successful_pages": [row["page"] for row in successful],
+            "attempt_count": len(rows),
+            "page_attempts": [
+                {"page": row["page"], "attempt": row["attempt"],
+                 "http_status": row["http_status"],
+                 "received_at": row["received_at"].isoformat(),
+                 "source_updated_at": row["source_updated_at"].isoformat()
+                 if row["source_updated_at"] else None,
+                 "total_pages_reported": row["total_pages_reported"],
+                 "file": row["file"], "sha256": row["sha256"],
+                 "actual_sha256": row["actual_sha256"],
+                 "hash_valid": row["hash_valid"],
+                 "is_latest": row is latest_by_page[row["page"]],
+                 "accepted": row is latest_by_page[row["page"]]
+                 and 200 <= row["http_status"] < 300 and row["hash_valid"] is True}
+                for row in sorted(rows, key=lambda item: (item["page"], item["attempt"]))
+            ],
+            "failed_http_attempt_count": sum(not 200 <= row["http_status"] < 300 for row in rows),
+            "recovered_failed_http_attempt_count": sum(
+                not 200 <= row["http_status"] < 300
+                and latest_by_page[row["page"]]["attempt"] > row["attempt"]
+                and latest_by_page[row["page"]] in successful
+                for row in rows
+            ),
+            "successful_pages": [row["page"] for row in successful],
             "failed_latest_pages": failed, "total_pages_reported": total,
             "missing_pages_within_reported_total": missing,
             "observed_page_state": "all_reported_pages_observed" if total is not None and not missing and not failed else "partial_or_unknown",

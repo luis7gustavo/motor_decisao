@@ -24,3 +24,7 @@ atualizado_em: 2026-11-19
 ## Revisão ainda necessária
 
 Uma sessão verificadora independente deve revisar o diff e reproduzir os testes, em especial hash divergente, página faltante, totais contraditórios, HTTP 500 após sucesso, idade/fuso e limite de caminho. G1/G2, cobertura, frescor, fechamento da janela 12–13/11, publicação e merge continuam pendentes. A reversão é restrita aos arquivos desta entrega; nenhum dado operacional foi alterado.
+
+## Correção após revisão independente de 19/11/2026
+
+O [parecer independente](REVISAO_INDEPENDENTE_P02_20261119.md) apontou perda da trilha por tentativa. A autoria acrescentou `page_attempts` com HTTP, horários, arquivo, hash esperado/observado e estado final de cada tentativa, além de contadores de falhas HTTP e falhas recuperadas. O teste sintético agora exige que o HTTP 500 e a recuperação 200 apareçam na mesma saída, com horários e hashes; cobre também hash divergente e falha posterior a sucesso. Nesta revisão local, 14 testes focados e de lint passaram. Requer nova sessão verificadora para o novo diff; o parecer anterior permanece preservado como histórico. Nenhuma decisão de integração, G1/G2 ou uso de dados reais decorre desta correção.
