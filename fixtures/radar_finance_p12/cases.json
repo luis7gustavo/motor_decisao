@@ -1,0 +1,109 @@
+{
+  "schema_version": "p12-e2-v1",
+  "evidence_class": "E2",
+  "origin": "synthetic_manual",
+  "currency": "BRL",
+  "rounding": "ROUND_HALF_UP_cent_per_line",
+  "cases": [
+    {
+      "id": "lote_misto",
+      "required_item_keys": ["A", "B"],
+      "items": [
+        {"key": "A", "quantity": "2", "sale_unit": "150.00", "acquisition_unit": "90.00"},
+        {"key": "B", "quantity": "1", "sale_unit": "80.00", "acquisition_unit": "100.00"}
+      ],
+      "costs": [
+        {"id": "frete", "amount": "20.00"},
+        {"id": "fixo", "amount": "10.00"},
+        {"id": "financeiro", "amount": "5.00"},
+        {"id": "tributo_didatico", "amount": "30.00"}
+      ],
+      "risk_reserve": "15.00",
+      "liquidity_reserve": "15.00",
+      "reserve_relation": "same_risk_not_twice_in_cash",
+      "events": [
+        {"date": "2026-11-01", "kind": "acquisition", "direction": "out", "amount": "280.00"},
+        {"date": "2026-11-01", "kind": "guarantee_deposit", "direction": "out", "amount": "40.00"},
+        {"date": "2026-11-02", "kind": "cost", "cost_id": "frete", "direction": "out", "amount": "20.00"},
+        {"date": "2026-11-02", "kind": "cost", "cost_id": "fixo", "direction": "out", "amount": "10.00"},
+        {"date": "2026-11-03", "kind": "cost", "cost_id": "financeiro", "direction": "out", "amount": "5.00"},
+        {"date": "2026-11-03", "kind": "cost", "cost_id": "tributo_didatico", "direction": "out", "amount": "30.00"},
+        {"date": "2026-11-04", "kind": "receipt", "direction": "in", "amount": "200.00"},
+        {"date": "2026-11-05", "kind": "receipt", "direction": "in", "amount": "180.00"},
+        {"date": "2026-11-06", "kind": "guarantee_return", "direction": "in", "amount": "40.00"}
+      ],
+      "expected": {
+        "revenue": "380.00",
+        "acquisition": "280.00",
+        "costs": "65.00",
+        "profit": "20.00",
+        "base_capital_need": "385.00",
+        "capital_need": "400.00",
+        "ending_cash": "35.00",
+        "missing_reasons": []
+      }
+    },
+    {
+      "id": "recebimento_tardio",
+      "required_item_keys": ["C"],
+      "items": [
+        {"key": "C", "quantity": "1", "sale_unit": "100.00", "acquisition_unit": "60.00"}
+      ],
+      "costs": [
+        {"id": "frete", "amount": "5.00"},
+        {"id": "tributo_didatico", "amount": "10.00"}
+      ],
+      "risk_reserve": "0.00",
+      "liquidity_reserve": "0.00",
+      "reserve_relation": "none",
+      "events": [
+        {"date": "2026-11-01", "kind": "acquisition", "direction": "out", "amount": "60.00"},
+        {"date": "2026-11-02", "kind": "cost", "cost_id": "frete", "direction": "out", "amount": "5.00"},
+        {"date": "2026-11-08", "kind": "cost", "cost_id": "tributo_didatico", "direction": "out", "amount": "10.00"},
+        {"date": "2026-11-08", "kind": "receipt", "direction": "in", "amount": "100.00"}
+      ],
+      "expected": {
+        "revenue": "100.00",
+        "acquisition": "60.00",
+        "costs": "15.00",
+        "profit": "25.00",
+        "base_capital_need": "75.00",
+        "capital_need": "75.00",
+        "ending_cash": "25.00",
+        "missing_reasons": []
+      }
+    },
+    {
+      "id": "preco_ausente",
+      "required_item_keys": ["D"],
+      "items": [
+        {"key": "D", "quantity": "1", "sale_unit": null, "acquisition_unit": "50.00"}
+      ],
+      "costs": [],
+      "risk_reserve": "0.00",
+      "liquidity_reserve": "0.00",
+      "reserve_relation": "none",
+      "events": [],
+      "expected": {
+        "revenue": null,
+        "acquisition": null,
+        "costs": null,
+        "profit": null,
+        "base_capital_need": null,
+        "capital_need": null,
+        "ending_cash": null,
+        "missing_reasons": ["sale_unit_missing:D"]
+      }
+    }
+  ],
+  "portfolio": {
+    "id": "carteira_simultanea",
+    "scenario_ids": ["lote_misto", "recebimento_tardio"],
+    "expected": {
+      "base_capital_need": "450.00",
+      "liquidity_reserve": "15.00",
+      "capital_need": "465.00",
+      "ending_cash": "60.00"
+    }
+  }
+}
