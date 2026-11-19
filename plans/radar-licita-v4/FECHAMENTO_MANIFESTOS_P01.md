@@ -21,7 +21,9 @@ O backup foi recebido entre **12/11/2026 11h55min56s e 12h03min02s de São Paulo
 | `motor_decisao/backups/pncp-enrichment-inspection-20261112/manifest.json` | SHA-256 `62172be9b4ae314b4eb1e3eaab4aa28c025e06d2415b75db273cdd3d516f6106` | Manifesto raiz do piloto; 20 entradas. Arquivo local não publicado neste PR. |
 | `motor_decisao/backups/pncp-enrichment-inspection-20261112/LEIA-ME.md` | SHA-256 `632f88de2ec0c70e3b1445c3d95a2bbc24653405b6a6d468095cc8a441a73ab0` | Resumo original; seu texto limita a completude ao índice observado. |
 | `motor_decisao/backups/pncp-history-budget/20261112-enrichment-rewindow.json` | SHA-256 `4ed4a6a41d50eb02c1d50af0f9babad4678b88b447f9240c241e474763624603` | Recibo da janela; estado `rewindowed_paused` no instante do registro, não recibo de conclusão. |
-| `motor_decisao_coleta_20261111/plans/pncp-enrichment-20261111/STATUS.md` | SHA-256 `a82de8bc4742a1d60844aeeb9666c1a2ecd60cdbac514e4163544a42848a73f5` | Relato operacional de 12/11: início da janela, HTTP 500 em atualização e lotes documentais parciais/adiados. Não atesta o encerramento em 13/11. |
+| `motor_decisao_coleta_20261111/plans/pncp-enrichment-20261111/STATUS.md` | SHA-256 `28a0237cddcee5ddb8687c58be44b501859b4e3a9e8d8cd1496ffcfd4d10f7cb`, conferido em 19/11/2026 | Arquivo operacional mutável: registra tanto a atualização de 12/11 quanto a retomada de 19/11. A seção de 12/11 relata início da janela, HTTP 500 e lotes parciais/adiados; a de 19/11 relata outra janela. Nenhuma delas atesta fechamento auditado em 13/11. |
+
+O hash `a82de8bc4742a1d60844aeeb9666c1a2ecd60cdbac514e4163544a42848a73f5` foi registrado antes da retomada de 19/11, mas não há cópia imutável identificada para reproduzir aquela versão do `STATUS.md`. Ele não identifica o arquivo atual nem serve como prova do encerramento da janela. Os manifestos do piloto acima são arquivos separados e mantêm seus próprios hashes.
 
 Os caminhos acima são relativos à pasta local `motor publico/`. Os manifestos, respostas e identidades reais não foram copiados ao repositório. O uso local para inventário segue o limite de G0; publicação e classificação E3 dependem da decisão de Luis.
 
