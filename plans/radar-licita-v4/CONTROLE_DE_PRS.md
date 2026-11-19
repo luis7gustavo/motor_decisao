@@ -21,6 +21,7 @@
 - **P02, P03 e P12 preparadas localmente:** worktrees exclusivos `motor_decisao_p02_20261119`, `motor_decisao_p03_20261119` e `motor_decisao_p12_20261119`, sem PR remoto criado por esta automação. Cada entrega aguarda revisão independente, decisão humana separada e o gate aplicável. P12 usa somente casos sintéticos.
 - **P06 corrigida na autoria após mudanças solicitadas:** [auditoria e ensaio isolado](AUDITORIA_CATALOGOS_P06.md) reconciliaram 3.095 registros de origem. Após a [revisão de 19/11](REVISAO_INDEPENDENTE_P06_20261119.md), API e `collect_all.py` passaram a exigir data explícita quando importam MegaMix; a importação fica desligada por padrão. Oito testes locais passaram. Nova revisão independente, data comprovada do JSON real, concorrência simultânea e G2 continuam pendentes. Nenhum banco operacional foi usado nesta correção.
 - **P06, concorrência E2 ensaiada em 19/11:** dois processos disputaram o mesmo arquivo sintético com datas distintas em banco descartável; um carregou 2 itens e o outro foi recusado. O teste 1/1 passou, com 2 linhas Bronze e 1 execução de fonte. [Pacote P06](PACOTE_REVISAO_P06.md) atualizado. Revisão independente do teste, data real MegaMix, execuções legadas, G2 e decisão humana de integração permanecem pendentes.
+- **P06, revisão independente do ensaio E2 em 19/11:** o commit `61eb314` foi reexaminado em execução distinta, com 8 testes offline aprovados, 1 teste de integração ignorado sem banco, lint e diff check aprovados. Em banco pgvector descartável, migração e teste de concorrência passaram 1/1; recursos de ensaio removidos. [Parecer](REVISAO_CONCORRENCIA_P06_20261119.md) sem bloqueio no cenário sintético. Data real MegaMix, cargas legadas, G2 e decisão humana de integração permanecem pendentes.
 
 ## Fila proposta de PRs
 
@@ -37,7 +38,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Preparada offline em worktree próprio; revisão pendente |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
-| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | [Reexame](REVISAO_CORRECAO_P06_20261119.md) das entradas sem bloqueio; concorrência E2 ensaiada; revisão do teste, data MegaMix real, G2 e integração pendentes |
+| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | [Revisão E2](REVISAO_CONCORRENCIA_P06_20261119.md) sem bloqueio no ensaio de concorrência; data MegaMix real, cargas legadas, G2 e integração pendentes |
 | 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Preparada offline; revisão financeira e G2 pendentes |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |
