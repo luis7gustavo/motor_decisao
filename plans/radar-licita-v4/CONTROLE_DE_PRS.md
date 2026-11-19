@@ -23,6 +23,7 @@
 - **P06, concorrência E2 ensaiada em 19/11:** dois processos disputaram o mesmo arquivo sintético com datas distintas em banco descartável; um carregou 2 itens e o outro foi recusado. O teste 1/1 passou, com 2 linhas Bronze e 1 execução de fonte. [Pacote P06](PACOTE_REVISAO_P06.md) atualizado. Revisão independente do teste, data real MegaMix, execuções legadas, G2 e decisão humana de integração permanecem pendentes.
 - **P06, revisão independente do ensaio E2 em 19/11:** o commit `61eb314` foi reexaminado em execução distinta, com 8 testes offline aprovados, 1 teste de integração ignorado sem banco, lint e diff check aprovados. Em banco pgvector descartável, migração e teste de concorrência passaram 1/1; recursos de ensaio removidos. [Parecer](REVISAO_CONCORRENCIA_P06_20261119.md) sem bloqueio no cenário sintético. Data real MegaMix, cargas legadas, G2 e decisão humana de integração permanecem pendentes.
 - **P06, estabilização posterior da autoria em 19/11:** teste de concorrência sincronizado pela espera de bloqueio observada em PostgreSQL, sem atraso fixo. Migração e teste em banco descartável passaram 1/1; suíte focada offline aprovou 8 testes e ignorou a integração sem banco; lint documental e diff check passaram. [Pacote P06](PACOTE_REVISAO_P06.md) registra a tentativa inicial de ambiente e os limites. Nova revisão independente do ajuste pendente; G2 e integração não foram aprovados.
+- **P06, revisão independente da sincronização em 19/11:** o commit `d015653` foi reexaminado em execução distinta. Diff check, 8 testes focados, lint e ensaio de concorrência em PostgreSQL/pgvector descartável passaram; recursos temporários removidos. [Parecer E2](REVISAO_SINCRONIZACAO_P06_20261119.md) sem bloqueio técnico no cenário sintético. Data de origem MegaMix real, cargas legadas sem hash, G2 e decisão humana de integração pendentes.
 
 ## Fila proposta de PRs
 
@@ -39,7 +40,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Preparada offline em worktree próprio; revisão pendente |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
-| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Ensaio E2 sincronizado por bloqueio observado; nova revisão independente pendente; data MegaMix real, cargas legadas, G2 e integração pendentes |
+| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Revisão da sincronização E2 sem bloqueio técnico; data MegaMix real, cargas legadas, G2 e integração pendentes |
 | 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Preparada offline; revisão financeira e G2 pendentes |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |
