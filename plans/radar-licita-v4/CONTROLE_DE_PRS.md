@@ -2,7 +2,7 @@
 
 **Atualizado em:** 19/11/2026
 
-**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 integrado pelo PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5) no commit `058514f054981669357b6d4083dbb9497883bad7`; G0 documental aprovado com limites em 18/11/2026. [P32 integrada pelo PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6) no commit `a80cdfcb7fd397126d32c57b73fddcfc227096a9`. [P31 integrada pelo PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7) no commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`; G1 pendente. P06 tem reconciliação offline em autoria, sem importação no banco.
+**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 integrado pelo PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5) no commit `058514f054981669357b6d4083dbb9497883bad7`; G0 documental aprovado com limites em 18/11/2026. [P32 integrada pelo PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6) no commit `a80cdfcb7fd397126d32c57b73fddcfc227096a9`. [P31 integrada pelo PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7) no commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`; G1 pendente. P06 tem reconciliação offline e ensaios somente em banco descartável; nenhum banco operacional recebeu importação P06.
 
 **Fonte da fila:** [backlog da proposta V4](PROPOSTA_V4_20261117.md), reordenado pelas dependências e pelo método aprovado por Luis.
 
@@ -20,6 +20,7 @@
 - **P01 em revisão:** [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8) e worktree `motor_decisao_p01_20261119`. A auditoria do pacote local do piloto foi reproduzida em 19/11 com 20 entradas, 186 arquivos e zero divergência; o fechamento da janela 12–13/11, a revisão independente e G1 continuam pendentes.
 - **P02, P03 e P12 preparadas localmente:** worktrees exclusivos `motor_decisao_p02_20261119`, `motor_decisao_p03_20261119` e `motor_decisao_p12_20261119`, sem PR remoto criado por esta automação. Cada entrega aguarda revisão independente, decisão humana separada e o gate aplicável. P12 usa somente casos sintéticos.
 - **P06 corrigida na autoria após mudanças solicitadas:** [auditoria e ensaio isolado](AUDITORIA_CATALOGOS_P06.md) reconciliaram 3.095 registros de origem. Após a [revisão de 19/11](REVISAO_INDEPENDENTE_P06_20261119.md), API e `collect_all.py` passaram a exigir data explícita quando importam MegaMix; a importação fica desligada por padrão. Oito testes locais passaram. Nova revisão independente, data comprovada do JSON real, concorrência simultânea e G2 continuam pendentes. Nenhum banco operacional foi usado nesta correção.
+- **P06, concorrência E2 ensaiada em 19/11:** dois processos disputaram o mesmo arquivo sintético com datas distintas em banco descartável; um carregou 2 itens e o outro foi recusado. O teste 1/1 passou, com 2 linhas Bronze e 1 execução de fonte. [Pacote P06](PACOTE_REVISAO_P06.md) atualizado. Revisão independente do teste, data real MegaMix, execuções legadas, G2 e decisão humana de integração permanecem pendentes.
 
 ## Fila proposta de PRs
 
@@ -36,7 +37,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Preparada offline em worktree próprio; revisão pendente |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
-| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | [Reexame](REVISAO_CORRECAO_P06_20261119.md) sem bloqueio nas entradas simuladas; data MegaMix real, concorrência, G2 e integração pendentes |
+| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | [Reexame](REVISAO_CORRECAO_P06_20261119.md) das entradas sem bloqueio; concorrência E2 ensaiada; revisão do teste, data MegaMix real, G2 e integração pendentes |
 | 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Preparada offline; revisão financeira e G2 pendentes |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |
