@@ -1,3 +1,11 @@
+---
+id: REV-P06-INDEPENDENTE
+tipo: revisao
+estado: mudancas_solicitadas
+classe_evidencia: E2
+atualizado_em: 2026-11-19
+---
+
 # Revisão independente da P06 — 19/11/2026
 
 **Versão examinada:** `dd564c6c93bbaba699a9818a7cdbda0f1f962afb`, contra a base `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`.

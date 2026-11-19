@@ -29,3 +29,9 @@ Verificar o diff contra `e0eaa0b`, a identidade de snapshot e seus casos negativ
 ## Limites e decisão
 
 P06 permanece **parcial**. A data real do catálogo MegaMix precisa de evidência humana; não inferir a data do arquivo, da carga ou do ensaio. A guarda nova não retroage às execuções sem SHA-256 em metadados. G2, revisão independente, integração e qualquer uso comercial permanecem pendentes. O plano 1.0 vincula P04 a P02, enquanto o controle V4 o vincula a P31; P04 não foi iniciado nesta execução e a divergência deve ser resolvida antes de sua autoria.
+
+## Correção após parecer independente de 19/11/2026
+
+O [parecer](REVISAO_INDEPENDENTE_P06_20261119.md) encontrou duas entradas que ainda importavam MegaMix sem data. A rota `POST /decision-engine/run` agora deixa essa importação desligada por padrão e responde 422 antes do banco quando `import_megamix=true` sem `megamix_snapshot_date`. Com data informada, ela a passa ao importador. `collect_all.py` mantém a importação Coletek e só acrescenta MegaMix quando recebe `--megamix-snapshot-date`. README e guia local foram corrigidos para não instruir importação sem data; essa data ainda exige comprovação humana da origem.
+
+Na revisão local da autoria, 8 testes passaram: cinco testes anteriores de catálogo/importação e três novos de entrada, incluindo HTTP 422, chamada datada e comandos do estágio. O teste HTTP usou `TestClient` com importador e motor simulados; não houve banco, coleta, PNCP nem importação real. O lint documental e o diff ainda devem ser conferidos no checkpoint. O parecer anterior segue preservado; nova sessão independente deve revisar o diff corrigido. G2 e integração continuam pendentes.

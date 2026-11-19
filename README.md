@@ -213,12 +213,16 @@ Coletar Mirao:
 docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
 ```
 
-Importar MegaMix e rodar motor:
+Importar Coletek e rodar motor:
 
 ```powershell
 .\scripts\extract_coletek_catalog.ps1
-docker compose exec -T api python scripts/build_decision_engine.py --import-megamix --import-coletek
+docker compose exec -T api python scripts/build_decision_engine.py --import-coletek
 ```
+
+Para incluir MegaMix, confirme a data de origem do arquivo e passe
+`--import-megamix --megamix-snapshot-date AAAA-MM-DD`. A data da execução
+ou do arquivo local não substitui a data de origem comprovada.
 
 Consultar resumo:
 

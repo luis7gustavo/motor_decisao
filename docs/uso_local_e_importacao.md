@@ -124,7 +124,7 @@ Para rotina local completa:
 ```powershell
 .\SetupMotor.cmd
 docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao
-docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+docker compose exec -T api python scripts/build_decision_engine.py --import-coletek
 Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary
 ```
 
@@ -218,14 +218,18 @@ Observacao operacional:
 
 O caminho mais simples e rodar o motor com importacao:
 
+Confirme a data de origem do JSON MegaMix antes de importar. O arquivo não
+informa essa data; não use a data da execução nem do arquivo local como substituta.
+
 ```powershell
-docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+$dataMegaMix = Read-Host 'Data de origem comprovada do MegaMix (AAAA-MM-DD)'
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix --megamix-snapshot-date $dataMegaMix
 ```
 
 Tambem e possivel importar diretamente:
 
 ```powershell
-docker compose exec -T api python scripts/import_megamix_catalog.py
+docker compose exec -T api python scripts/import_megamix_catalog.py --snapshot-date $dataMegaMix
 ```
 
 Arquivo padrao:
@@ -239,7 +243,7 @@ data/megamix_catalog_raw.json
 Com importacao MegaMix antes da pontuacao:
 
 ```powershell
-docker compose exec -T api python scripts/build_decision_engine.py --import-megamix
+docker compose exec -T api python scripts/build_decision_engine.py --import-megamix --megamix-snapshot-date $dataMegaMix
 ```
 
 Sem reimportar MegaMix:
@@ -251,7 +255,7 @@ docker compose exec -T api python scripts/build_decision_engine.py
 Via API:
 
 ```powershell
-Invoke-RestMethod -Method Post "http://127.0.0.1:8010/decision-engine/run?import_megamix=true"
+Invoke-RestMethod -Method Post "http://127.0.0.1:8010/decision-engine/run?import_megamix=true&megamix_snapshot_date=$dataMegaMix"
 ```
 
 Saida esperada no CLI:
@@ -505,7 +509,7 @@ Use `.env.example` como referencia.
 2. `Invoke-RestMethod http://127.0.0.1:8010/health`
 3. `Invoke-RestMethod "http://127.0.0.1:8010/ops/recent-runs?limit=20"`
 4. `docker compose exec -T api python scripts/collect_suppliers.py --supplier mirao`
-5. `docker compose exec -T api python scripts/build_decision_engine.py --import-megamix`
+5. `docker compose exec -T api python scripts/build_decision_engine.py --import-coletek`
 6. `Invoke-RestMethod http://127.0.0.1:8010/decision-engine/summary`
 7. Revisar manualmente os itens `comprar_teste`
 
