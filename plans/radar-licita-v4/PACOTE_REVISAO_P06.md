@@ -19,6 +19,7 @@ atualizado_em: 2026-11-19
 - O auditor reconciliou 2.360 MegaMix e 735 Coletek, 3.095 IDs únicos; 111 Coletek sem preço. O ensaio anterior em banco descartável carregou 3.095 linhas e zero na repetição no mesmo dia, antes da guarda nova.
 - Para a guarda nova, migração até `20261013_0010` em banco `test_20261119_cdef12345678` descartável passou. Com fixture E2 de dois registros: primeira importação 2, repetição 0, tentativa dos mesmos bytes com outra data rejeitada. Consulta Bronze: 2 linhas com data 01/06/2026. Dois testes unitários passaram. Nenhuma carga do JSON MegaMix real foi feita com a guarda nova.
 - Os três testes do auditor e os dois da guarda passaram; o lint documental `--no-git` e `git diff --cached --check` passaram. O CLI do motor recusou `--import-megamix` sem data antes de consultar qualquer banco.
+- Após o checkpoint inicial, foi acrescentado bloqueio transacional PostgreSQL por hash antes de consultar execuções, incluindo execuções em andamento. Nova migração descartável e teste E2 confirmaram carga 2/2 e rejeição de outra data. Concorrência simultânea de dois processos não foi ensaiada e segue para revisão.
 - Banco, contêiner e rede de teste foram descartados após a consulta. O checkout do produto principal, worker, coleta, banco operacional e remoto não foram modificados.
 
 ## Revisão solicitada

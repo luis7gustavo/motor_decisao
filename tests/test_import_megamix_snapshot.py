@@ -34,6 +34,8 @@ class MegaMixSnapshotTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "another snapshot date"):
                     importer.import_megamix_catalog(path=path, snapshot_date=date(2026, 6, 1))
                 create_run.assert_not_called()
+                self.assertEqual(connection.execute.call_count, 2)
+                self.assertIn("pg_advisory_xact_lock", str(connection.execute.call_args_list[0].args[0]))
                 params = connection.execute.call_args.args[1]
                 self.assertEqual(params["snapshot_date"], "2026-06-01")
                 self.assertEqual(len(params["source_sha256"]), 64)

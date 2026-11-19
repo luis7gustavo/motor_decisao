@@ -86,13 +86,16 @@ def import_megamix_catalog(
     }
 
     with engine.begin() as connection:
+        connection.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext('megamix'), hashtext(:source_sha256))"),
+            {"source_sha256": source_sha256},
+        )
         reused_snapshot = connection.execute(
             text(
                 """
                 SELECT 1 FROM control.source_runs
                 WHERE source_name = 'megamix'
-                  AND status IN ('success', 'partial')
-                  AND records_loaded > 0
+                  AND (status = 'running' OR (status IN ('success', 'partial') AND records_loaded > 0))
                   AND metadata->>'source_sha256' = :source_sha256
                   AND metadata->>'snapshot_date' <> :snapshot_date
                 LIMIT 1
