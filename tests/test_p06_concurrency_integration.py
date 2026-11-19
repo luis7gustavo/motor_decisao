@@ -23,13 +23,21 @@ from scripts import import_megamix_catalog as importer
 FIXTURE = Path(__file__).parent / "fixtures" / "megamix_snapshot_synthetic.json"
 
 
-def _import_concurrently(barrier: multiprocessing.Barrier, results: multiprocessing.Queue, day: int) -> None:
+def _import_concurrently(
+    barrier: multiprocessing.Barrier,
+    results: multiprocessing.Queue,
+    lock_acquired: multiprocessing.Event,
+    release_lock: multiprocessing.Event,
+    day: int,
+) -> None:
     original_create = importer.create_pipeline_run
 
     def hold_snapshot_lock(*args, **kwargs):
-        # Keep the first transaction open long enough for the second process
-        # to reach the same advisory lock.
-        time.sleep(1.5)
+        # This callback runs after the transaction acquired the advisory lock.
+        # Hold it until the parent observes the other process waiting in PG.
+        lock_acquired.set()
+        if not release_lock.wait(timeout=20):
+            raise TimeoutError("parent did not release the snapshot lock")
         return original_create(*args, **kwargs)
 
     importer.create_pipeline_run = hold_snapshot_lock
@@ -57,13 +65,39 @@ class MegaMixConcurrencyIntegrationTest(unittest.TestCase):
         context = multiprocessing.get_context("fork")
         barrier = context.Barrier(2)
         results = context.Queue()
+        lock_acquired = context.Event()
+        release_lock = context.Event()
         processes = [
-            context.Process(target=_import_concurrently, args=(barrier, results, day))
+            context.Process(
+                target=_import_concurrently,
+                args=(barrier, results, lock_acquired, release_lock, day),
+            )
             for day in (1, 2)
         ]
         try:
             for process in processes:
                 process.start()
+            self.assertTrue(lock_acquired.wait(timeout=15), "no process acquired the lock")
+            deadline = time.monotonic() + 15
+            waiting_on_lock = False
+            while time.monotonic() < deadline:
+                with engine.connect() as connection:
+                    waiting_on_lock = connection.execute(
+                        text(
+                            """SELECT EXISTS (
+                                SELECT 1 FROM pg_stat_activity
+                                WHERE datname = current_database()
+                                  AND wait_event_type = 'Lock'
+                                  AND wait_event = 'advisory'
+                                  AND query LIKE '%pg_advisory_xact_lock%'
+                            )"""
+                        )
+                    ).scalar_one()
+                if waiting_on_lock:
+                    break
+                time.sleep(0.05)
+            self.assertTrue(waiting_on_lock, "second process never waited on the advisory lock")
+            release_lock.set()
             for process in processes:
                 process.join(timeout=20)
             self.assertTrue(all(process.exitcode == 0 for process in processes))
@@ -71,7 +105,6 @@ class MegaMixConcurrencyIntegrationTest(unittest.TestCase):
             self.assertEqual({row[0] for row in observed}, {"loaded", "rejected"}, observed)
             self.assertEqual(next(row[2] for row in observed if row[0] == "loaded"), 2)
             self.assertIn("another snapshot date", next(row[2] for row in observed if row[0] == "rejected"))
-            self.assertLess(abs(observed[0][3] - observed[1][3]), 1.0, observed)
             self.assertLess(max(row[3] for row in observed), min(row[4] for row in observed), observed)
 
             with engine.connect() as connection:
@@ -80,6 +113,7 @@ class MegaMixConcurrencyIntegrationTest(unittest.TestCase):
             self.assertEqual(row_count, 2)
             self.assertEqual(source_runs, 1)
         finally:
+            release_lock.set()
             for process in processes:
                 if process.is_alive():
                     process.terminate()
