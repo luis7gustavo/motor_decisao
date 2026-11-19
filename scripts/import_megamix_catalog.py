@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -64,18 +66,42 @@ def _load_rows(path: Path) -> list[dict[str, Any]]:
 def import_megamix_catalog(
     *,
     path: Path = DEFAULT_CATALOG_PATH,
+    snapshot_date: date | None = None,
     triggered_by: str = "local_cli_megamix_import",
 ) -> MegaMixImportResult:
+    if snapshot_date is None:
+        raise ValueError("MegaMix requires an explicit source snapshot date; the JSON has none.")
     path = path.resolve()
+    source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
     rows = _load_rows(path)
+    if hashlib.sha256(path.read_bytes()).hexdigest() != source_sha256:
+        raise ValueError("MegaMix source file changed while it was being read.")
     project_config = get_settings().load_project_config()
     metadata = {
         "supplier_slug": "megamix",
         "source_file": str(path),
+        "source_sha256": source_sha256,
+        "snapshot_date": snapshot_date.isoformat(),
         "row_count": len(rows),
     }
 
     with engine.begin() as connection:
+        reused_snapshot = connection.execute(
+            text(
+                """
+                SELECT 1 FROM control.source_runs
+                WHERE source_name = 'megamix'
+                  AND status IN ('success', 'partial')
+                  AND records_loaded > 0
+                  AND metadata->>'source_sha256' = :source_sha256
+                  AND metadata->>'snapshot_date' <> :snapshot_date
+                LIMIT 1
+                """
+            ),
+            {"source_sha256": source_sha256, "snapshot_date": snapshot_date.isoformat()},
+        ).first()
+        if reused_snapshot is not None:
+            raise ValueError("This MegaMix file was imported with another snapshot date.")
         pipeline_run_id = create_pipeline_run(
             connection,
             pipeline_name="megamix_catalog_import",
@@ -123,7 +149,8 @@ def import_megamix_catalog(
                             sku,
                             ean,
                             payload,
-                            payload_hash
+                            payload_hash,
+                            fetched_date
                         )
                         VALUES (
                             :source_run_id,
@@ -135,7 +162,8 @@ def import_megamix_catalog(
                             :sku,
                             :ean,
                             CAST(:payload AS jsonb),
-                            :payload_hash
+                            :payload_hash,
+                            :fetched_date
                         )
                         ON CONFLICT (supplier_slug, payload_hash, fetched_date) DO NOTHING
                         RETURNING id
@@ -150,6 +178,7 @@ def import_megamix_catalog(
                         "ean": payload["barcode"],
                         "payload": to_json_text(payload),
                         "payload_hash": payload_hash(payload),
+                        "fetched_date": snapshot_date,
                     },
                 ).first()
                 if insert_row is None:
@@ -216,8 +245,14 @@ def main() -> int:
         default=DEFAULT_CATALOG_PATH,
         help="Caminho do megamix_catalog_raw.json.",
     )
+    parser.add_argument(
+        "--snapshot-date",
+        type=date.fromisoformat,
+        required=True,
+        help="Data comprovada do snapshot de origem (AAAA-MM-DD), não a data da carga.",
+    )
     args = parser.parse_args()
-    result = import_megamix_catalog(path=args.path)
+    result = import_megamix_catalog(path=args.path, snapshot_date=args.snapshot_date)
     print(
         f"MegaMix importado: {result.loaded} carregados / "
         f"{result.extracted} extraidos / {result.skipped} duplicados ou invalidos"

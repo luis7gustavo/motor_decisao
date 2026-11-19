@@ -19,7 +19,7 @@
 - **P31 integrada:** a pedido de Luis em 18/11/2026, worktree `motor_decisao_p31_20261118` baseado no merge P32. [Inventário](INVENTARIO_AMOSTRAS_P31.md), [schema observado](SCHEMA_E_EXEMPLOS.md), [manifesto](MANIFESTOS_E_FIXTURES.md) e um caso E2 sintético foram integrados pelo PR #7 no commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`. D13/D14 e G1 permanecem pendentes.
 - **P01 em revisão:** [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8) e worktree `motor_decisao_p01_20261119`. A auditoria do pacote local do piloto foi reproduzida em 19/11 com 20 entradas, 186 arquivos e zero divergência; o fechamento da janela 12–13/11, a revisão independente e G1 continuam pendentes.
 - **P02, P03 e P12 preparadas localmente:** worktrees exclusivos `motor_decisao_p02_20261119`, `motor_decisao_p03_20261119` e `motor_decisao_p12_20261119`, sem PR remoto criado por esta automação. Cada entrega aguarda revisão independente, decisão humana separada e o gate aplicável. P12 usa somente casos sintéticos.
-- **P06 em autoria parcial:** [auditoria e ensaio isolado](AUDITORIA_CATALOGOS_P06.md) reconciliaram 3.095 registros de origem; 3.095 linhas foram carregadas em banco descartável e zero na repetição no mesmo dia. Identidade de snapshot/deduplicação entre dias do MegaMix, revisão independente e G2 continuam pendentes. Nenhum banco operacional foi usado.
+- **P06 em autoria parcial:** [auditoria e ensaio isolado](AUDITORIA_CATALOGOS_P06.md) reconciliaram 3.095 registros de origem. Uma guarda nova exige data de origem MegaMix e bloqueia o mesmo hash com outra data; o teste E2 em banco descartável passou. Falta a data comprovada do JSON real, revisão independente e G2. Nenhum banco operacional foi usado.
 
 ## Fila proposta de PRs
 
@@ -36,7 +36,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Preparada offline em worktree próprio; revisão pendente |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
-| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Ensaio em banco descartável passou; versão entre dias, revisão e G2 pendentes |
+| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Guarda de snapshot E2 passou; data MegaMix real, revisão e G2 pendentes |
 | 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Preparada offline; revisão financeira e G2 pendentes |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |

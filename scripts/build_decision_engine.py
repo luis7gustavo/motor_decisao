@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date
 from pathlib import Path
 
 from pipelines.decision_engine.build import build_decision_opportunities
@@ -25,6 +26,11 @@ def main() -> int:
         help="Caminho do megamix_catalog_raw.json.",
     )
     parser.add_argument(
+        "--megamix-snapshot-date",
+        type=date.fromisoformat,
+        help="Data comprovada do snapshot MegaMix exigida com --import-megamix.",
+    )
+    parser.add_argument(
         "--import-coletek",
         action="store_true",
         help="Importa o snapshot Coletek para Bronze antes de pontuar.",
@@ -38,8 +44,11 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.import_megamix:
+        if args.megamix_snapshot_date is None:
+            parser.error("--import-megamix exige --megamix-snapshot-date")
         import_result = import_megamix_catalog(
             path=args.megamix_path,
+            snapshot_date=args.megamix_snapshot_date,
             triggered_by="local_cli_decision_engine",
         )
         print(

@@ -1,0 +1,20 @@
+[
+  {
+    "codigo": "SYN-001",
+    "barcode": null,
+    "nome": "MOUSE SINTETICO PARA TESTE",
+    "modelo": "TESTE-1",
+    "preco": 12.5,
+    "unidade": "UN",
+    "fonte": "megamix"
+  },
+  {
+    "codigo": "SYN-002",
+    "barcode": null,
+    "nome": "TECLADO SINTETICO PARA TESTE",
+    "modelo": "TESTE-2",
+    "preco": 25.0,
+    "unidade": "UN",
+    "fonte": "megamix"
+  }
+]
