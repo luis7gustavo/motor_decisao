@@ -17,7 +17,7 @@
 - **P00 integrado:** o remoto da branch de produto aponta para `058514f054981669357b6d4083dbb9497883bad7`, merge do PR #5, conferido em 18/11/2026. O parágrafo anterior preserva o histórico da aprovação.
 - **P32 integrada:** Luis autorizou a integração do [PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6) em 18/11/2026 após revisão técnica independente do commit `885c6f80093bc3021373e25136b0f96bb0cf7781`; o GitHub confirmou o merge `a80cdfcb7fd397126d32c57b73fddcfc227096a9` na branch de produto. A decisão não aprova dados reais nem gates comerciais.
 - **P31 integrada:** [PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7) integrado em 18/11/2026, commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`. D13/D14 e G1 não foram aprovados por esse merge.
-- **P01 em autoria:** a pedido de Luis em 19/11/2026, worktree `motor_decisao_p01_20261119`. A [auditoria](FECHAMENTO_MANIFESTOS_P01.md) confirmou a integridade do pacote local do piloto de 12/11; não encontrou fechamento da janela 12–13/11. Revisão independente, aceite de Carlos e G1 pendentes.
+- **P01 em autoria:** a pedido de Luis em 19/11/2026, worktree `motor_decisao_p01_20261119`. A [auditoria](FECHAMENTO_MANIFESTOS_P01.md) confirmou a integridade do pacote local do piloto de 12/11; não encontrou fechamento da janela 12–13/11. O [parecer independente](REVISAO_INDEPENDENTE_P01_20261119.md) pediu corrigir o hash mutável de `STATUS.md`; correção local feita, nova revisão independente, aceite de Carlos e G1 pendentes.
 
 ## Fila proposta de PRs
 
@@ -29,7 +29,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | [PR #5 integrado](https://github.com/luis7gustavo/motor_decisao/pull/5), `058514f`; G0 documental com limites |
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | [PR #6 integrado](https://github.com/luis7gustavo/motor_decisao/pull/6), `a80cdfc` |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | [PR #7 integrado](https://github.com/luis7gustavo/motor_decisao/pull/7), `e0eaa0b`; E1 novo aguarda D13, G1 pendente |
-| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8), [auditoria do piloto](FECHAMENTO_MANIFESTOS_P01.md); janela 12–13/11, revisão independente, Carlos e G1 pendentes |
+| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8); [reexame](REVISAO_CORRECAO_P01_20261119.md) sem bloqueio documental; janela 12–13/11, Carlos/Luis, G1 e integração pendentes |
 | 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | Fila |
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Fila |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
