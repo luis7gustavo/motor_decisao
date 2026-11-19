@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text
 
 from app.core.database import engine
@@ -39,17 +40,21 @@ def _serialize_row(row: dict[str, Any]) -> dict[str, Any]:
 
 @router.post("/run")
 def run_decision_engine(
-    import_megamix: bool = Query(default=True),
+    import_megamix: Annotated[bool, Query()] = False,
     megamix_path: str | None = Query(default=None),
+    megamix_snapshot_date: Annotated[date | None, Query()] = None,
     import_coletek: bool = Query(default=True),
     coletek_path: str | None = Query(default=None),
 ) -> dict[str, Any]:
     import_summary = None
     coletek_import_summary = None
     if import_megamix:
+        if megamix_snapshot_date is None:
+            raise HTTPException(status_code=422, detail="import_megamix requires a proven megamix_snapshot_date")
         path = Path(megamix_path) if megamix_path else DEFAULT_CATALOG_PATH
         import_summary = import_megamix_catalog(
             path=path,
+            snapshot_date=megamix_snapshot_date,
             triggered_by="api_decision_engine",
         )
     if import_coletek:

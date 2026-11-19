@@ -16,7 +16,7 @@ import argparse
 import subprocess
 import sys
 import threading
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from queue import Queue
 from typing import Callable
@@ -93,16 +93,14 @@ def stage_powerbi() -> bool:
     return _run("Power BI Export", "export_power_bi.py")
 
 
-def stage_engine() -> bool:
+def stage_engine(megamix_snapshot_date: str | None = None) -> bool:
     _sep()
     _log("[ENGINE] Importa snapshots e recalcula recomendacoes Gold")
     _sep()
-    return _run(
-        "Decision Engine",
-        "build_decision_engine.py",
-        "--import-megamix",
-        "--import-coletek",
-    )
+    args = ["--import-coletek"]
+    if megamix_snapshot_date is not None:
+        args.extend(("--import-megamix", "--megamix-snapshot-date", megamix_snapshot_date))
+    return _run("Decision Engine", "build_decision_engine.py", *args)
 
 
 def parse_args() -> argparse.Namespace:
@@ -125,6 +123,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Forca execucao sequencial (padrao: ml e web em paralelo).",
+    )
+    parser.add_argument(
+        "--megamix-snapshot-date",
+        type=date.fromisoformat,
+        help="Data de origem comprovada do MegaMix; sem ela, a importacao e omitida.",
     )
     return parser.parse_args()
 
@@ -197,7 +200,9 @@ def main() -> int:
     if run_etl:
         stage_results["etl"] = stage_etl()
     if run_engine:
-        stage_results["engine"] = stage_engine()
+        stage_results["engine"] = stage_engine(
+            args.megamix_snapshot_date.isoformat() if args.megamix_snapshot_date else None
+        )
     if run_powerbi:
         stage_results["powerbi"] = stage_powerbi()
 
