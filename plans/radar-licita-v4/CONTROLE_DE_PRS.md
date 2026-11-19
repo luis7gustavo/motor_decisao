@@ -29,13 +29,13 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | [PR #5 integrado](https://github.com/luis7gustavo/motor_decisao/pull/5), `058514f`; G0 documental com limites |
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | [PR #6 integrado](https://github.com/luis7gustavo/motor_decisao/pull/6), `a80cdfc` |
 | 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | [PR #7 integrado](https://github.com/luis7gustavo/motor_decisao/pull/7), `e0eaa0b`; E1 novo aguarda D13, G1 pendente |
-| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8), [auditoria do piloto](FECHAMENTO_MANIFESTOS_P01.md); janela 12–13/11, revisão independente, Carlos e G1 pendentes |
-| 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | Fila |
-| 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Fila |
+| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 integrado](https://github.com/luis7gustavo/motor_decisao/pull/8); correções e reexames no [PR #10](https://github.com/luis7gustavo/motor_decisao/pull/10); janela 12–13/11, Carlos e G1 pendentes |
+| 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | [PR #9 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/9); reexame sem bloqueio no cenário E2; gates e integração pendentes |
+| 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | [PR #12 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/12); D13/D14, dados reais, gates e integração pendentes |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
-| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Fila |
-| 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Fila |
+| 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | [PR #11 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/11); data real MegaMix, legados sem hash, G2 e integração pendentes |
+| 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | [PR #13 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/13); parecer financeiro, G2 e integração pendentes |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |
 | 14 | [P13](prs/P13.md) | Lucro `Decimal`, fluxo de caixa datado e preço mínimo de lance | P12 | Fila |
