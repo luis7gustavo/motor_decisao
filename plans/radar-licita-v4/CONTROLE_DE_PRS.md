@@ -34,7 +34,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
 | 9 | [P33](prs/P33.md) | Adaptador formal de exportação de Carlos: contract tests, validação e mapeamento de divergências | P03 + P04 | Fila |
 | 10 | [P06](prs/P06.md) | Importar MegaMix/Coletek e reconciliar 3.095 registros de origem (se fontes disponíveis) | P00; arquivos de catálogo | Fila |
-| 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | Autoria offline preparada em worktree próprio; revisão independente, financeiro e G2 pendentes; sem PR remoto |
+| 11 | [P12](prs/P12.md) | Contrato de cenário e casos de ouro financeiros propostos | P00 + P31 | [Revisão independente E2](REVISAO_INDEPENDENTE_P12_20261119.md) sem bloqueio; financeiro, P07 no plano 1.0, decisão humana e G2 pendentes; sem PR remoto |
 | 12 | [P05](prs/P05.md) | Documento, unidade de julgamento e resultado com estados desconhecidos e versão | P04 | Fila |
 | 13 | [P07](prs/P07.md) | Cotação, estoque, validade e distinção catálogo × confirmado | P06 | Fila |
 | 14 | [P13](prs/P13.md) | Lucro `Decimal`, fluxo de caixa datado e preço mínimo de lance | P12 | Fila |
