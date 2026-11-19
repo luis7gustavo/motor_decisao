@@ -10,6 +10,7 @@ atualizado_em: 2026-11-19
 ## Escopo e base
 
 - Branch local: `codex/radar-p06-catalog-20261119`, worktree exclusivo `motor_decisao_p06_20261119`, base integrada P31 `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`.
+- Commit da guarda examinado pela sessão autora: `e113c3f` (revisão independente ainda pendente).
 - Entrega: auditoria offline dos catálogos, ensaio isolado de importação, exigência de data de origem para MegaMix e guarda por hash para impedir atribuir outra data aos mesmos bytes.
 - Fontes rastreadas: `data/megamix_catalog_raw.json` (SHA-256 `b6dd728fa89027f85828f075a0d7f19aaed81ed957479d548ee9be6d200e3a40`) e `data/coletek_catalog_raw.json` (SHA-256 `83b0f0aa9634ec61654bf88064a1a4c427c6fe6af5eeabe12398bfd809077b65`). A data de origem MegaMix permanece desconhecida.
 
@@ -17,6 +18,7 @@ atualizado_em: 2026-11-19
 
 - O auditor reconciliou 2.360 MegaMix e 735 Coletek, 3.095 IDs únicos; 111 Coletek sem preço. O ensaio anterior em banco descartável carregou 3.095 linhas e zero na repetição no mesmo dia, antes da guarda nova.
 - Para a guarda nova, migração até `20261013_0010` em banco `test_20261119_cdef12345678` descartável passou. Com fixture E2 de dois registros: primeira importação 2, repetição 0, tentativa dos mesmos bytes com outra data rejeitada. Consulta Bronze: 2 linhas com data 01/06/2026. Dois testes unitários passaram. Nenhuma carga do JSON MegaMix real foi feita com a guarda nova.
+- Os três testes do auditor e os dois da guarda passaram; o lint documental `--no-git` e `git diff --cached --check` passaram. O CLI do motor recusou `--import-megamix` sem data antes de consultar qualquer banco.
 - Banco, contêiner e rede de teste foram descartados após a consulta. O checkout do produto principal, worker, coleta, banco operacional e remoto não foram modificados.
 
 ## Revisão solicitada
