@@ -1,14 +1,14 @@
 ---
 id: SCH-P31
 tipo: contrato_proposto
-estado: em_revisao
-classe_evidencia: E0_E2
-atualizado_em: 2026-11-18
+estado: aprovado_com_limites
+classe_evidencia: E0_E1_E2
+atualizado_em: 2026-11-23
 ---
 
 # P31 — schema observado e campos ausentes
 
-Este é um **mapa do formato observado**, não um schema canônico aprovado nem o contrato de exportação de Carlos. A observação foi feita offline nos [arquivos inventariados](INVENTARIO_AMOSTRAS_P31.md), no commit base `a80cdfcb7fd397126d32c57b73fddcfc227096a9`. O arquivo oficial expandido é um snapshot histórico já versionado; campos abaixo descrevem seus registros, sem garantir que sejam obrigatórios em toda resposta futura.
+Este é o **contrato estrutural v1 provisório** aprovado por Luis em 23/11/2026, com o aceite operacional de Carlos delegado por ele. A base combina o mapa offline do commit `a80cdfcb7fd397126d32c57b73fddcfc227096a9` e a exportação E1 real autorizada. Campos observados não se tornam obrigatórios em toda resposta futura: divergências devem ser registradas e campos ausentes permanecem desconhecidos.
 
 | Envelope | Campos observados e tipos JSON | Relação observada / ressalva |
 | --- | --- | --- |
@@ -20,6 +20,8 @@ Este é um **mapa do formato observado**, não um schema canônico aprovado nem 
 | `results[]` | Objetos de resultado com campos de fornecedor, situação, valor, quantidade e datas | Campos podem variar; não atribuir resultado a item/lote sem identidade e versão conferidas. |
 | Demonstração `E2` | `observed_at` texto, `source_available` booleano, `versions` lista | Estrutura externa própria da demonstração, não formato de exportação PNCP. |
 | `versions[]` E2 | `source_id` texto, `version` número, `object` texto, `uf` texto, `municipality` texto, `category` texto, `opening_state` texto, `deadline` texto ou nulo, `source_url` texto, `source_hash` texto, `published_at` texto, `change` texto | `source_hash` é identificador **ilustrativo**, não SHA-256; o hash de bytes da fixture está no manifesto. `opening_state` não prova abertura atual. |
+| Exportação real `E1` | `identity` texto, `source` texto, `version` texto, `acquired_at` texto, `payload` objeto e `coverage` objeto | Cada payload é nomeado por SHA-256; o manifesto liga identidade, versão, arquivo, contagens e limites. |
+| `coverage` E1 | `observed_resources_complete`, contagens esperadas/observadas e listas de pendências/órfãos | `true` comprova somente conciliação perante o índice observado; `source_snapshot_verified=false` e `commercial_eligibility_verified=false` impedem promoção indevida. |
 
 ## Ausências relevantes para o produto
 
@@ -30,8 +32,8 @@ Este é um **mapa do formato observado**, não um schema canônico aprovado nem 
 | Destino e prazo de entrega | UF do órgão existe; destino de entrega não foi demonstrado aqui | `desconhecido` até edital/anexos revisados |
 | Estado de coleta por recurso, hora de recepção e atraso frente à fonte | `captured_at` do arquivo E0 existe; ledger de cobertura/frescor não está nesses envelopes | `não_consultado`/`desconhecido` conforme recurso, sem selo de atualidade |
 | Preço e estoque de fornecedor, frete, caixa e rótulo humano | Não integram o envelope PNCP observado | `desconhecido`; não calcular viabilidade confirmada |
-| Autorização para reutilizar dados reais como E1, licença e hash do recorte congelado | D13 pendente | Nenhuma nova E1 pública nesta P31 |
+| Autorização para reutilizar dados reais como E1, licença e hash do recorte congelado | D13 aprovado com controles em 23/11/2026 | Recorte E1 público controlado; integral somente no Kaggle privado |
 
 ## Contrato de normalização proposto para o próximo PR
 
-Preservar o JSON original e seu SHA-256; associar cada projeção à classe de evidência, caminho/URL, instante de captura e versão; mapear ausências para `desconhecido` sem converter nulo em zero. Adaptadores para os dois envelopes devem ser separados e testados com duplicidade, retificação, lista vazia, campos opcionais e texto longo. Carlos e o responsável técnico ainda precisam revisar D14 antes de tratar esse mapa como schema canônico. O caso sintético P31 cobre apenas três bordas do envelope E2; ele não exercita um parser PNCP, deduplicação de itens ou o G1 completo.
+Preservar o JSON original e seu SHA-256; associar cada projeção à classe de evidência, caminho/URL, instante de captura e versão; mapear ausências para `desconhecido` sem converter nulo em zero. Adaptadores para os envelopes devem ser separados e testados com duplicidade, retificação, lista vazia, campos opcionais e texto longo. D14 torna este mapa v1 provisório; P33 deve confrontar novas exportações sem converter divergência silenciosamente. O caso sintético P31 cobre somente bordas E2, enquanto a exportação E1 valida estrutura real; nenhuma das duas prova G3–G6.
