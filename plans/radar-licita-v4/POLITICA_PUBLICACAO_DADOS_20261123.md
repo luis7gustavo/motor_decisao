@@ -54,12 +54,15 @@ Luis, Filipe e Carlos podem criar branches, enviar commits, abrir e revisar
 PRs, publicar versões no dataset privado do Kaggle e executar as rotinas de
 entrega previstas nesta política. Para mudanças de gate ou promoção de dados,
 uma pessoa atua como autora e outra registra a revisão; testes verdes não são
-autoaprovação.
+autoaprovação. A PR #15 é uma exceção explícita: Luis é seu único validador
+humano e autorizou a integração em 23/11/2026. A exceção não se estende aos
+demais PRs.
 
 - Luis: responsável por proveniência, política de uso e finanças.
 - Filipe e Luis: rotuladores independentes.
-- Carlos: adjudicador das divergências de rótulo e aceite operacional da
-  coleta conforme os critérios documentados.
+- Carlos: adjudicador das divergências de rótulo, responsável pela continuidade
+  da coleta completa e por seu aceite operacional conforme os critérios
+  documentados.
 
 ## Retenção e conjuntos cegos
 

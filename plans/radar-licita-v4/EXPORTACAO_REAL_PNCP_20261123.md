@@ -39,6 +39,11 @@ hashes, itens, resultados, documentos, ausências e testes de borda. O schema
 P31 passa a ser v1 provisório; divergências de uma exportação posterior são
 registradas e não convertidas silenciosamente.
 
+Luis reconheceu em 23/11/2026 que este recorte é uma amostra real ampla e
+autorizou seu uso para preparar o ciclo E3. Carlos continuará a coleta completa;
+portanto, futuras versões podem ampliar o universo sem reclassificar esta
+fotografia histórica.
+
 ## Limites
 
 `observed_resources_complete` significa completude perante o índice observado,
