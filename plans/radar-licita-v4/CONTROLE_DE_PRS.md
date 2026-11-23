@@ -1,8 +1,8 @@
 # Controle de PRs — Radar Licita
 
-**Atualizado em:** 18/11/2026
+**Atualizado em:** 23/11/2026
 
-**Estado:** [P30 integrado pelo PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4) no commit `b46aec77a3448f51ac212676216c675822fb12f3`; [P00 integrado pelo PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5) no commit `058514f054981669357b6d4083dbb9497883bad7`; G0 documental aprovado com limites em 18/11/2026. [P32 integrada pelo PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6) no commit `a80cdfcb7fd397126d32c57b73fddcfc227096a9`. [P31 integrada pelo PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7) no commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`. P01 em autoria; G1 pendente.
+**Estado:** P30/P00/P32/P31 integrados pelos PRs #4–#7; [P01 integrado pelo PR #8](https://github.com/luis7gustavo/motor_decisao/pull/8) no commit `c850554`. Em 23/11/2026, Luis aprovou D12–D14 e G1 com limites estruturais, autorizou o recorte E1 público e o snapshot integral privado. PRs #9–#13 permanecem em rascunho e aguardam revisão/integração.
 
 **Fonte da fila:** [backlog da proposta V4](PROPOSTA_V4_20261117.md), reordenado pelas dependências e pelo método aprovado por Luis.
 
@@ -11,13 +11,14 @@
 - **Método confirmado por Luis em 17/11/2026:** uma entrega curta por PR, worktree exclusivo, sessões distintas de autoria e verificação, aprovação humana antes de integrar e avançar para PR dependente. Os oito agentes da V4 são papéis de sessão.
 - **P30 integrado:** [PR #4](https://github.com/luis7gustavo/motor_decisao/pull/4), commit `b46aec77a3448f51ac212676216c675822fb12f3` na branch de produto, confirmado por consulta ao remoto em 17/11/2026. A integração não aprova G0 nem a V4 integral.
 - **Local dos documentos vivos:** este repositório de produto; o cofre `RADAR LICITA` preexistente permanece biblioteca de referência. O checkout de produto original tem alterações locais preexistentes e não foi usado para editar P30.
-- **Publicação:** o repositório de produto é público. Luis autorizou em 17/11/2026 a publicação da V4 integral e dos documentos de execução (PUB-01). Isso não aprova merge nem gates.
+- **Publicação:** o repositório de produto é público para código, documentação e recortes E1 controlados. O acervo integral fica no [Kaggle privado](https://www.kaggle.com/datasets/luisgustavo27/radar-licita-pncp-integral-2026-11-23). A [política](POLITICA_PUBLICACAO_DADOS_20261123.md) separa publicação, revisão, merge e gates.
 - **Verificação de P30:** 36 cartões com IDs únicos, 36 entradas no controle, dependências de implementação em ordem, links Markdown locais resolvidos e `git diff --check` sem falhas. Uma sessão independente revisou o conteúdo e apontou o risco de publicação pública e um caminho ambíguo; o caminho foi corrigido e a autorização de publicação foi registrada.
 - **P00 aprovado para integração:** [PR #5](https://github.com/luis7gustavo/motor_decisao/pull/5), branch `codex/radar-p00-baseline-20261117`, worktree exclusivo `motor_decisao_p00_20261117`, base no merge do P30. Entrega documental em [linha de base](LINHA_DE_BASE_P00.md), [políticas](POLITICAS_E_CRITERIOS_P00.md) e [pacote](PACOTE_REVISAO_P00.md). Luis aprovou o método P00-01 a P00-07, confirmou em P00-08 que ele mesmo valida os dados e autorizou a continuidade técnica em P00-09. Em 18/11, validou o uso local das fontes e do inventário, aprovou G0 documental com os limites registrados em [decisões](DECISOES.md) e autorizou integrar o PR #5. Três reservas exigem revisão de cegamento por processamento estrutural de corpos e uma reserva nova usou apenas metadados. Cobertura, frescor, qualidade comercial e D13 continuam pendentes.
 - **P00 integrado:** o remoto da branch de produto aponta para `058514f054981669357b6d4083dbb9497883bad7`, merge do PR #5, conferido em 18/11/2026. O parágrafo anterior preserva o histórico da aprovação.
 - **P32 integrada:** Luis autorizou a integração do [PR #6](https://github.com/luis7gustavo/motor_decisao/pull/6) em 18/11/2026 após revisão técnica independente do commit `885c6f80093bc3021373e25136b0f96bb0cf7781`; o GitHub confirmou o merge `a80cdfcb7fd397126d32c57b73fddcfc227096a9` na branch de produto. A decisão não aprova dados reais nem gates comerciais.
 - **P31 integrada:** [PR #7](https://github.com/luis7gustavo/motor_decisao/pull/7) integrado em 18/11/2026, commit `e0eaa0b3b8c6034cf08dd4d18f8354efcbdc186f`. D13/D14 e G1 não foram aprovados por esse merge.
-- **P01 em autoria:** a pedido de Luis em 19/11/2026, worktree `motor_decisao_p01_20261119`. A [auditoria](FECHAMENTO_MANIFESTOS_P01.md) confirmou a integridade do pacote local do piloto de 12/11; não encontrou fechamento da janela 12–13/11. Revisão independente, aceite de Carlos e G1 pendentes.
+- **P01 integrada:** [PR #8](https://github.com/luis7gustavo/motor_decisao/pull/8), merge `c850554`. A [auditoria](FECHAMENTO_MANIFESTOS_P01.md) confirmou a integridade do pacote local do piloto de 12/11 e registrou os limites da janela 12–13/11.
+- **Decisões de 23/11:** D12–D14 e G1 estrutural aprovados; 100 identidades reais completas no índice observado foram congeladas como E1 pública. O snapshot integral privado tem 2.855 observações, 1.527 identidades mais recentes e 350 completas. Isso não aprova G3–G6, cobertura nacional, frescor ou viabilidade.
 
 ## Fila proposta de PRs
 
@@ -28,8 +29,8 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 1 | [P30](prs/P30.md) | Inicializar Vault, índices, instruções dos agentes, templates, links e controle de permissão | — | [PR #4 integrado](https://github.com/luis7gustavo/motor_decisao/pull/4), `b46aec77` |
 | 2 | [P00](prs/P00.md) | Baseline, políticas, limites, metas futuras, contrato sem agente no runtime e status no Vault | P30 | [PR #5 integrado](https://github.com/luis7gustavo/motor_decisao/pull/5), `058514f`; G0 documental com limites |
 | 3 | [P32](prs/P32.md) | CLI/testes para lint de notas, links, frontmatter, IDs, decisão e referências a commits/dados | P30 | [PR #6 integrado](https://github.com/luis7gustavo/motor_decisao/pull/6), `a80cdfc` |
-| 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | [PR #7 integrado](https://github.com/luis7gustavo/motor_decisao/pull/7), `e0eaa0b`; E1 novo aguarda D13, G1 pendente |
-| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 em rascunho](https://github.com/luis7gustavo/motor_decisao/pull/8), [auditoria do piloto](FECHAMENTO_MANIFESTOS_P01.md); janela 12–13/11, revisão independente, Carlos e G1 pendentes |
+| 4 | [P31](prs/P31.md) | Inventário das descrições/exemplos, schema observado, campos ausentes, fixtures/manifestos E0/E1/E2 com hash | P30 | [PR #7 integrado](https://github.com/luis7gustavo/motor_decisao/pull/7), `e0eaa0b`; E1 real autorizado em 23/11, G1 estrutural aprovado com limites |
+| 5 | [P01](prs/P01.md) | Fechamento de manifestos **existentes**, se acessíveis; registrar pendência da janela 12–13/11 | P31 | [PR #8 integrado](https://github.com/luis7gustavo/motor_decisao/pull/8), `c850554`; limites preservados na [auditoria](FECHAMENTO_MANIFESTOS_P01.md) |
 | 6 | [P02](prs/P02.md) | Ledger offline de páginas, falhas, versões, hash e idade; simular casos de falha | P31 | Fila |
 | 7 | [P03](prs/P03.md) | Contrato, importador e mecanismo de rotulagem para futura exportação de Carlos | P31 | Fila |
 | 8 | [P04](prs/P04.md) | Modelo de contratação, versão e item; migração/restauração em banco descartável | P31 | Fila |
@@ -59,7 +60,7 @@ A ordem abaixo é uma **fila de execução**, não um cronograma. Um cartão é 
 | 32 | [P22](prs/P22.md) | Jobs incrementais idempotentes, reprocessamento, propagação de retificação e alertas simulados | P20 + P21 | Fila |
 | 33 | [P23](prs/P23.md) | Telemetria, orçamentos, pausa, backup/restauração e rollback em sandbox | P22 | Fila |
 | 34 | [P24](prs/P24.md) | Piloto técnico, correções, manual e release candidato; **release 1.0 condicionado** | P20, P23, P28, P29; para 1.0 também P34/P35 e G5/G6 | Fila |
-| 35 | [P34](prs/P34.md) | Integrar snapshot real autorizado, auditar contagem/versão/itens/documentos | P33 + entrega de Carlos | Aguarda Carlos |
+| 35 | [P34](prs/P34.md) | Integrar snapshot real autorizado, auditar contagem/versão/itens/documentos | P33 + exportação real | Fonte entregue em 23/11; aguarda P33 e PR próprio |
 | 36 | [P35](prs/P35.md) | **I05V-R:** estudo de oportunidades reais e validação comercial por recorte | P34 + P11 + P14 | Aguarda P34 |
 
 ## Como atualizar este controle
