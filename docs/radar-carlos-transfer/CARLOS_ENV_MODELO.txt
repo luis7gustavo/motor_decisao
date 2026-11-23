@@ -1,0 +1,7 @@
+# Copie este modelo para um arquivo .env privado e substitua a senha.
+# Não envie o .env em repositório público. Use canal privado separado do pacote.
+MOTOR_POSTGRES_USER=motor
+MOTOR_POSTGRES_DB=motor_decisao
+MOTOR_POSTGRES_PASSWORD=ALTERAR_PARA_SENHA_PRIVADA
+SILLO_ENABLE_SCHEDULES=false
+
